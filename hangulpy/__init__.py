@@ -7,5 +7,5 @@ from .hangul_decompose import decompose_hangul_char
 from .hangul_ends_with_consonant import ends_with_consonant
 from .hangul_number import float_to_hangul, hangul_to_number, number_to_hangul
 from .hangul_role import can_be_chosung, can_be_jongsung
-from .hangul_split import split_hangul_char
+from .hangul_split import split_hangul_char, split_hangul_string
 from .josa import has_jongsung, josa
