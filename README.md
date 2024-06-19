@@ -10,6 +10,8 @@ pip install hangulpy
 
 ## 사용법
 
+모든 기능은 [위키 문서](https://wiki.uiharu.dev/w/hangulpy)를 확인하세요!
+
 ### 초성 검색
 
 ```python
