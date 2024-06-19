@@ -1,6 +1,6 @@
 # hangulpy/__init__.py
 
-from .chosung import chosungIncludes, get_chosung
+from .chosung import chosungIncludes, get_chosung_string, get_chosung
 from .hangul_check import is_hangul_consonant, is_hangul_vowel
 from .hangul_contains import hangul_contains
 from .hangul_decompose import decompose_hangul_char
