@@ -15,6 +15,19 @@ def get_chosung(c):
         return CHOSUNG_LIST[chosung_index]
     return c
 
+def get_chosung_string(text, keep_spaces=False):
+    """
+    주어진 문자열의 각 문자의 초성을 반환합니다.
+    
+    :param text: 한글 문자열
+    :param keep_spaces: 공백을 유지할지 여부 (기본값: False)
+    :return: 초성 문자열
+    """
+    if keep_spaces:
+        return ''.join(get_chosung(c) if is_hangul_char(c) else c for c in text)
+    else:
+        return ''.join(get_chosung(c) for c in text if is_hangul_char(c) or not c.isspace())
+
 def chosungIncludes(word, pattern):
     """
     주어진 단어에 패턴의 초성이 포함되어 있는지 확인합니다.
