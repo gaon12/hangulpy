@@ -1,5 +1,6 @@
 # chosung.py
 
+import warnings
 from hangulpy.utils import CHOSUNG_LIST, CHOSUNG_BASE, is_hangul_char, HANGUL_BEGIN_UNICODE
 
 def get_chosung(c):
@@ -9,6 +10,11 @@ def get_chosung(c):
     :param c: 한글 음절 문자
     :return: 초성 문자 (한글이 아니면 그대로 반환)
     """
+    warnings.warn(
+        "The get_chosung function will be removed in a future version. Use the get_chosung_string function. Check out https://github.com/gaon12/hangulpy/issue/4 for more information!",
+        DeprecationWarning,
+        stacklevel=2
+    )
     if is_hangul_char(c):
         char_index = ord(c) - HANGUL_BEGIN_UNICODE
         chosung_index = char_index // CHOSUNG_BASE

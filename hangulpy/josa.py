@@ -20,7 +20,7 @@ def josa(word, particle):
     주어진 단어에 적절한 조사를 붙여 반환합니다.
     
     :param word: 조사와 결합할 단어
-    :param particle: 붙일 조사 ('을/를', '이/가', '은/는', '와/과', '으로/로', '이나/나', '이에/에', '이란/란', '아/야', '이랑/랑', '이에요/예요', '으로서/로서', '으로써/로써', '으로부터/로부터', '이여/여', '께서', '이야/야', '와서/와', '이라서/라서', '이든/든', '이며/며', '이라도/라도', '이니까/니까', '이지만/지만', '이랑는/랑는')
+    :param particle: 붙일 조사 ('을/를', '이/가', '은/는', '와/과', '으로/로', '이나/나', '이에/에', '이란/란', '아/야', '이랑/랑', '이에요/예요', '으로서/로서', '으로써/로써', '으로부터/로부터', '이여/여', '께서', '이야/야', '와서/와', '이라서/라서', '이든/든', '이며/며', '이라도/라도', '이니까/니까', '이지만/지만', '이랑은/랑은')
     :return: 적절한 조사가 붙은 단어 문자열
     """
     if not word:
@@ -79,7 +79,7 @@ def josa(word, particle):
         return word + ('이니까' if jongsung_exists else '니까')
     elif particle == '이지만/지만':
         return word + ('이지만' if jongsung_exists else '지만')
-    elif particle == '이랑는/랑는':
-        return word + ('이랑는' if jongsung_exists else '랑는')
+    elif particle == '이랑은/랑은':
+        return word + ('이랑은' if jongsung_exists else '랑은')
     else:
         raise ValueError(f"Unsupported particle: {particle}")
