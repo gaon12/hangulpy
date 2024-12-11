@@ -115,6 +115,30 @@ print(can_be_jongsung('ㄸ'))  # False
 print(can_be_jongsung('ㄳ'))  # True
 ```
 
+### 자립명사 붙이기
+```python
+from hangulpy import jarip_noun
+
+word1 = '확'
+sentence1 = '율/률' + '과 통계' # 확률과 통계
+
+word2 = '직'
+sentence2 = jarip_noun(word2, '열/렬')
+print(sentence2) # 직렬
+
+word3 = '명'
+sentence3 = jarip_noun(word3, '영/령')
+print(sentence3)    # 명령
+
+word4 = '신'
+sentence4 = jarip_noun(word4, '염/념')
+print(sentence4)    # 신념
+
+word5 = '범'
+sentence5 = jarip_noun(word5, '예/례')
+print(sentence5)    # 범례
+```
+
 ### 숫자 읽기
 ```python
 from hangulpy import number_to_hangul, hangul_to_number
