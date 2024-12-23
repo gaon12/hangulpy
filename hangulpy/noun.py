@@ -1,6 +1,6 @@
 # noun.py
 
-from hangulpy.utils import is_hangul_char, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
+from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
 from hangulpy.josa import has_jongsung
 
 def jarip_noun(word, particle):

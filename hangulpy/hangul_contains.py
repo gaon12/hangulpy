@@ -1,6 +1,6 @@
 # hangul_contains.py
 
-from hangulpy.utils import is_hangul_char
+from hangulpy.utils import is_hangul
 from hangulpy.hangul_split import split_hangul_char
 
 def hangul_contains(word, pattern, notallowempty=False):

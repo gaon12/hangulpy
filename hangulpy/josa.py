@@ -1,6 +1,6 @@
 # josa.py
 
-from hangulpy.utils import is_hangul_char, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
+from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
 
 def has_jongsung(char):
 	"""
@@ -9,7 +9,7 @@ def has_jongsung(char):
 	:param char: 한글 음절 문자
 	:return: 받침이 있으면 True, 없으면 False
 	"""
-	if is_hangul_char(char):
+	if is_hangul(char):
 		# 한글 음절의 유니코드 값을 기준으로 받침의 유무를 확인합니다.
 		char_index = ord(char) - HANGUL_BEGIN_UNICODE
 		return (char_index % JONGSUNG_COUNT) != 0
