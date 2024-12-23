@@ -74,11 +74,22 @@ UNITS = [
 
 NUMBERS = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"]
 
-def is_hangul_char(c):
-	"""
-	주어진 문자가 한글 음절인지 확인합니다.
-	
-	:param c: 확인할 문자
-	:return: 한글 음절이면 True, 아니면 False
-	"""
-	return HANGUL_BEGIN_UNICODE <= ord(c) <= HANGUL_END_UNICODE
+def is_hangul(text, spaces=False):
+    """
+    입력된 값이 한글인지 확인합니다.
+
+    :param text: 문자 또는 문자열
+    :param spaces: True일 경우 띄어쓰기를 허용합니다.
+    :return: 모든 문자가 한글이거나, spaces=True일 경우 한글 또는 띄어쓰기면 True, 그렇지 않으면 False
+    """
+    if not isinstance(text, str):
+        return False
+
+    for char in text:
+        code = ord(char)
+        if char == ' ' and spaces:
+            continue
+        if not (HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE):
+            return False
+
+    return True

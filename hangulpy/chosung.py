@@ -1,6 +1,6 @@
 # chosung.py
 
-from hangulpy.utils import CHOSUNG_LIST, CHOSUNG_BASE, is_hangul_char, HANGUL_BEGIN_UNICODE
+from hangulpy.utils import CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE
 
 def get_chosung_string(text, keep_spaces=False):
 	"""
@@ -11,16 +11,16 @@ def get_chosung_string(text, keep_spaces=False):
 	:return: 초성 문자열
 	"""
 	def extract_chosung(c):
-		if is_hangul_char(c):
+		if is_hangul(c):
 			char_index = ord(c) - HANGUL_BEGIN_UNICODE
 			chosung_index = char_index // CHOSUNG_BASE
 			return CHOSUNG_LIST[chosung_index]
 		return c
 
 	if keep_spaces:
-		return ''.join(extract_chosung(c) if is_hangul_char(c) else c for c in text)
+		return ''.join(extract_chosung(c) if is_hangul(c) else c for c in text)
 	else:
-		return ''.join(extract_chosung(c) for c in text if is_hangul_char(c) or not c.isspace())
+		return ''.join(extract_chosung(c) for c in text if is_hangul(c) or not c.isspace())
 
 def chosungIncludes(word, pattern):
 	"""
@@ -32,7 +32,7 @@ def chosungIncludes(word, pattern):
 	"""
 	# 단어의 각 문자를 초성으로 변환하여 문자열을 생성합니다.
 	def extract_chosung(c):
-		if is_hangul_char(c):
+		if is_hangul(c):
 			char_index = ord(c) - HANGUL_BEGIN_UNICODE
 			chosung_index = char_index // CHOSUNG_BASE
 			return CHOSUNG_LIST[chosung_index]
