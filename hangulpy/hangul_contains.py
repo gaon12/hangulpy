@@ -1,7 +1,7 @@
 # hangul_contains.py
 
 from hangulpy.utils import is_hangul
-from hangulpy.hangul_split import split_hangul_char
+from hangulpy.hangul_split import split_hangul_string
 
 def hangul_contains(word, pattern, notallowempty=False):
 	"""
@@ -16,7 +16,7 @@ def hangul_contains(word, pattern, notallowempty=False):
 		return not notallowempty
 	
 	# 문자열을 분해하여 리스트로 변환
-	word_split = ''.join(''.join(split_hangul_char(char)) for char in word)
-	pattern_split = ''.join(''.join(split_hangul_char(char)) for char in pattern)
+	word_split = ''.join(''.join(split_hangul_string(char)) for char in word)
+	pattern_split = ''.join(''.join(split_hangul_string(char)) for char in pattern)
 	
 	return pattern_split in word_split
