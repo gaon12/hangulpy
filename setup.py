@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name='hangulpy',
-	version='1.2.0',
+	version='1.2.1',
 	description='A Python library for processing Hangul, inspired by es-hangul.',
 	long_description=open('README.md', encoding='utf-8').read(),
 	long_description_content_type='text/markdown',
