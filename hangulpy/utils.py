@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 # 한글 유니코드 및 구성 요소 관련 상수, 리스트, 매핑 정보를 정의합니다.
 # ------------------------------------------------------------
+from typing import List, Tuple
 
 # [1] 한글 유니코드 범위 설정
 HANGUL_BEGIN_UNICODE = 0xAC00  # '가'
@@ -222,7 +223,8 @@ VOWEL_RMAP = {
 
 # [6] 한글 관련 함수들
 
-def is_hangul(text, spaces=False):
+
+def is_hangul(text: str, spaces: bool = False) -> bool:
     """
     입력된 문자열의 모든 문자가 한글 완성형(또는 띄어쓰기)인지 확인합니다.
     
@@ -240,7 +242,7 @@ def is_hangul(text, spaces=False):
             return False
     return True
 
-def compose_syllable(cho, jung, jong):
+def compose_syllable(cho: str, jung: str, jong: str) -> str:
     """
     초성, 중성, (선택적) 종성을 결합하여 완성형 한글 음절을 생성합니다.
     

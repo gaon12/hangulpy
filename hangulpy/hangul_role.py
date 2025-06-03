@@ -2,7 +2,7 @@
 
 from hangulpy.utils import CHOSUNG_LIST, JONGSUNG_LIST
 
-def can_be_chosung(char):
+def can_be_chosung(char: str) -> bool:
 	"""
 	주어진 문자가 한글 초성으로 쓰일 수 있는지 확인합니다.
 	
@@ -11,7 +11,7 @@ def can_be_chosung(char):
 	"""
 	return char in CHOSUNG_LIST
 
-def can_be_jongsung(char):
+def can_be_jongsung(char: str) -> bool:
 	"""
 	주어진 문자가 한글 종성으로 쓰일 수 있는지 확인합니다.
 	

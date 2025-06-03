@@ -2,7 +2,7 @@
 
 from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, CHOSUNG_LIST, JONGSUNG_LIST
 
-def ends_with_consonant(char):
+def ends_with_consonant(char: str) -> bool:
 	"""
 	주어진 문자가 자음으로 끝나는지 확인합니다.
 	

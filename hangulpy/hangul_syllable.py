@@ -2,7 +2,7 @@
 
 from hangulpy.utils import compose_syllable
 
-def hangul_syllable(cho, jung, jong=''):
+def hangul_syllable(cho: str, jung: str, jong: str = '') -> str:
     """
     입력된 초성, 중성, (선택적) 종성을 가지고 조합해 한글 문자를 만듭니다.
     

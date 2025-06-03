@@ -3,7 +3,7 @@
 from hangulpy.utils import is_hangul
 from hangulpy.hangul_split import split_hangul_string
 
-def hangul_contains(word, pattern, notallowempty=False):
+def hangul_contains(word: str, pattern: str, notallowempty: bool = False) -> bool:
 	"""
 	주어진 한글 문자열이 다른 한글 문자열을 포함하는지 검사합니다.
 	

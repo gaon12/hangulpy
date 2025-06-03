@@ -3,7 +3,7 @@
 from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
 from hangulpy.josa import has_jongsung
 
-def jarip_noun(word, particle):
+def jarip_noun(word: str, particle: str) -> str:
     """
     주어진 단어에 적절한 자립명사를 붙여 반환합니다.
 

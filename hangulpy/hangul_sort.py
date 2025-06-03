@@ -1,8 +1,9 @@
 # sort_hangul.py
 
+from typing import List
 from hangulpy.hangul_decompose import decompose_hangul_string
 
-def sort_hangul(words, reverse=False):
+def sort_hangul(words: List[str], reverse: bool = False) -> List[str]:
     """
     한글 문자열을 초성, 중성, 종성을 기준으로 정렬합니다.
     

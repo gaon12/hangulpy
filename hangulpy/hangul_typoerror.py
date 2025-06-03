@@ -1,13 +1,13 @@
 # hangul_typoerror.py
 
 from hangulpy.utils import (
-    CHOSUNG_LIST, JUNGSUNG_LIST, JONGSUNG_LIST, 
-    CONSONANT_MAP, VOWEL_MAP, CONSONANT_RMAP, VOWEL_RMAP, 
+    CHOSUNG_LIST, JUNGSUNG_LIST, JONGSUNG_LIST,
+    CONSONANT_MAP, VOWEL_MAP, CONSONANT_RMAP, VOWEL_RMAP,
     DOUBLE_INITIAL_MAP, COMPOUND_FINAL_MAP, COMPOUND_FINAL_DECOMP, VOWEL_COMBO,
     is_hangul, compose_syllable
 )
 
-def enko(eng_text, allowDoubleConsonant=False):
+def enko(eng_text: str, allowDoubleConsonant: bool = False) -> str:
     """
     영문 키보드 입력값을 한글 자모 조합으로 변환합니다.
     
@@ -98,7 +98,7 @@ def enko(eng_text, allowDoubleConsonant=False):
     flush()
     return "".join(result)
 
-def koen(kor_text):
+def koen(kor_text: str) -> str:
     """
     한글(자판 입력값)을 영문 키보드 입력값으로 변환합니다.
     
@@ -140,7 +140,7 @@ def koen(kor_text):
             result.append(ch)
     return "".join(result)
 
-def autofix(text, allowDoubleConsonant=False):
+def autofix(text: str, allowDoubleConsonant: bool = False) -> str:
     """
     입력 문자열의 각 구간(한글, 영문, 기타)을 분리하여
     한글인 부분은 koen, 영문인 부분은 enko를 적용합니다.

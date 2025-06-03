@@ -2,10 +2,11 @@
 
 import re
 import unicodedata
+from typing import Optional
 from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
 from hangulpy import number_to_hangul
 
-def has_jongsung(char):
+def has_jongsung(char: str) -> bool:
     """
     주어진 한글 음절에 받침이 있는지 확인합니다.
     
@@ -19,7 +20,7 @@ def has_jongsung(char):
         return (char_index % JONGSUNG_COUNT) != 0
     return False
 
-def _get_last_valid_char(word):
+def _get_last_valid_char(word: str) -> Optional[str]:
     """
     문자열을 뒤에서부터 탐색하여 조사 판단에 사용할 가장 가까운 유효 문자를 반환합니다.
     유효 문자는 다음을 포함합니다:
@@ -59,7 +60,7 @@ def _get_last_valid_char(word):
         return None
     return None
 
-def josa(word, particle):
+def josa(word: str, particle: str) -> str:
     """
     주어진 단어에 적절한 조사를 붙여 반환합니다.
     

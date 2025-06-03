@@ -2,7 +2,7 @@
 
 from hangulpy.utils import CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE
 
-def get_chosung_string(text, keep_spaces=False):
+def get_chosung_string(text: str, keep_spaces: bool = False) -> str:
 	"""
 	주어진 문자열의 각 문자의 초성을 반환합니다.
 
@@ -22,7 +22,7 @@ def get_chosung_string(text, keep_spaces=False):
 	else:
 		return ''.join(extract_chosung(c) for c in text if is_hangul(c) or not c.isspace())
 
-def chosungIncludes(word, pattern):
+def chosungIncludes(word: str, pattern: str) -> bool:
 	"""
 	주어진 단어에 패턴의 초성이 포함되어 있는지 확인합니다.
 

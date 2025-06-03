@@ -1,12 +1,13 @@
 # hangul_decompose.py
 
 import warnings
+from typing import List, Tuple
 from hangulpy.utils import (
     CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE,
     JUNGSUNG_LIST, JUNGSUNG_DECOMPOSE, JONGSUNG_LIST, JONGSUNG_DECOMPOSE, JUNGSUNG_BASE
 )
 
-def decompose_hangul_string(s):
+def decompose_hangul_string(s: str) -> List[Tuple[str, Tuple[str, ...], Tuple[str, ...]]]:
     """
     주어진 문자열의 각 한글 음절을 초성, 중성, 종성으로 분해하여 배열 형태로 반환합니다.
 

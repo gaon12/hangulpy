@@ -2,7 +2,7 @@
 
 from hangulpy.utils import is_hangul as utils_is_hangul
 
-def is_hangul(text, spaces=False):
+def is_hangul(text: str, spaces: bool = False) -> bool:
     """
     입력된 값이 한글인지 확인합니다.
 

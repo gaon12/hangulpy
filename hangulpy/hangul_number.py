@@ -1,8 +1,9 @@
 # hangul_number.py
 
+from typing import Union
 from hangulpy.utils import UNITS, NUMBERS
 
-def number_to_hangul(num):
+def number_to_hangul(num: Union[int, float]) -> str:
 	"""
 	주어진 숫자를 한글로 변환합니다.
 	
@@ -35,7 +36,7 @@ def number_to_hangul(num):
 	
 	return result
 
-def float_to_hangul(num):
+def float_to_hangul(num: float) -> str:
 	"""
 	주어진 소수를 한글로 변환합니다.
 	
@@ -45,7 +46,7 @@ def float_to_hangul(num):
 	int_part, frac_part = str(num).split('.')
 	return f"{number_to_hangul(int(int_part))} 점 {''.join(NUMBERS[int(d)] for d in frac_part)}"
 
-def hangul_to_number(hangul):
+def hangul_to_number(hangul: str) -> Union[int, float]:
 	"""
 	주어진 한글 숫자 문자열을 숫자로 변환합니다.
 	
