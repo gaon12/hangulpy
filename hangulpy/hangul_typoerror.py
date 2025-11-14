@@ -1,38 +1,57 @@
 # hangul_typoerror.py
 
+from typing import List, Optional, TypedDict
+
 from hangulpy.utils import (
-    CHOSUNG_LIST, JUNGSUNG_LIST, JONGSUNG_LIST, 
-    CONSONANT_MAP, VOWEL_MAP, CONSONANT_RMAP, VOWEL_RMAP, 
-    DOUBLE_INITIAL_MAP, COMPOUND_FINAL_MAP, COMPOUND_FINAL_DECOMP, VOWEL_COMBO,
-    is_hangul, compose_syllable
+    CHOSUNG_LIST,
+    JUNGSUNG_LIST,
+    JONGSUNG_LIST,
+    CONSONANT_MAP,
+    VOWEL_MAP,
+    CONSONANT_RMAP,
+    VOWEL_RMAP,
+    DOUBLE_INITIAL_MAP,
+    COMPOUND_FINAL_MAP,
+    COMPOUND_FINAL_DECOMP,
+    VOWEL_COMBO,
+    is_hangul,
+    compose_syllable,
 )
 
-def enko(eng_text, allowDoubleConsonant=False):
+
+class _EnkoState(TypedDict):
+    cho: Optional[str]
+    jung: Optional[str]
+    jong: str
+    jong_combined: bool
+
+
+def enko(eng_text: str, allowDoubleConsonant: bool = False) -> str:
     """
     영문 키보드 입력값을 한글 자모 조합으로 변환합니다.
-    
+
     :param eng_text: 변환할 영문 문자열
     :param allowDoubleConsonant: 두 개의 초성 결합(쌍자음) 허용 여부
     :return: 한글 자판 입력 문자열
     """
-    result = []
-    state = {'cho': None, 'jung': None, 'jong': "", 'jong_combined': False}
-    
-    def flush():
+    result: List[str] = []
+    state: _EnkoState = {"cho": None, "jung": None, "jong": "", "jong_combined": False}
+
+    def flush() -> None:
         nonlocal state, result
-        if state['cho'] is not None:
-            if state['jung'] is not None:
-                syll = compose_syllable(state['cho'], state['jung'], state['jong'] or "")
+        if state["cho"] is not None:
+            if state["jung"] is not None:
+                syll = compose_syllable(state["cho"], state["jung"], state["jong"] or "")
                 result.append(syll)
             else:
-                result.append(state['cho'])
-        state = {'cho': None, 'jung': None, 'jong': "", 'jong_combined': False}
+                result.append(state["cho"])
+        state = {"cho": None, "jung": None, "jong": "", "jong_combined": False}
     
     i = 0
     N = len(eng_text)
     while i < N:
         # 공백 문자면 현재 음절 flush 후 공백 추가
-        if eng_text[i] == ' ':
+        if eng_text[i] == " ":
             flush()
             result.append(' ')
             i += 1
@@ -40,8 +59,8 @@ def enko(eng_text, allowDoubleConsonant=False):
 
         token = None
         # 두 글자 조합(예: "hk", "nj" 등)으로 된 모음 먼저 처리
-        if i + 1 < N and eng_text[i:i+2] in VOWEL_MAP:
-            token = VOWEL_MAP[eng_text[i:i+2]]
+        if i + 1 < N and eng_text[i : i + 2] in VOWEL_MAP:
+            token = VOWEL_MAP[eng_text[i : i + 2]]
             i += 2
         else:
             ch = eng_text[i]
@@ -98,14 +117,14 @@ def enko(eng_text, allowDoubleConsonant=False):
     flush()
     return "".join(result)
 
-def koen(kor_text):
+def koen(kor_text: str) -> str:
     """
     한글(자판 입력값)을 영문 키보드 입력값으로 변환합니다.
-    
+
     :param kor_text: 변환할 한글 문자열
     :return: 영문 키보드 입력 문자열
     """
-    result = []
+    result: List[str] = []
     for ch in kor_text:
         # 공백은 그대로 추가
         if ch == ' ':
@@ -140,20 +159,20 @@ def koen(kor_text):
             result.append(ch)
     return "".join(result)
 
-def autofix(text, allowDoubleConsonant=False):
+def autofix(text: str, allowDoubleConsonant: bool = False) -> str:
     """
     입력 문자열의 각 구간(한글, 영문, 기타)을 분리하여
     한글인 부분은 koen, 영문인 부분은 enko를 적용합니다.
-    
+
     :param text: 변환할 문자열
     :param allowDoubleConsonant: 두 개의 초성 허용 여부
     :return: 변환된 문자열
     """
-    result = []
+    result: List[str] = []
     current_segment = ""
-    current_type = None  # 'hangul', 'roman', 'other'
-    
-    def flush_segment(seg, seg_type):
+    current_type: Optional[str] = None  # 'hangul', 'roman', 'other'
+
+    def flush_segment(seg: str, seg_type: Optional[str]):
         if not seg:
             return ""
         if seg_type == 'hangul':
@@ -162,7 +181,7 @@ def autofix(text, allowDoubleConsonant=False):
             return enko(seg, allowDoubleConsonant=allowDoubleConsonant)
         else:
             return seg
-    
+
     for ch in text:
         # 한글 여부 판단: 단일 문자에 대해 is_hangul() 사용
         if is_hangul(ch):
@@ -171,7 +190,7 @@ def autofix(text, allowDoubleConsonant=False):
             ch_type = 'roman'
         else:
             ch_type = 'other'
-        
+
         if current_type is None:
             current_type = ch_type
             current_segment = ch
