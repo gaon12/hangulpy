@@ -222,16 +222,14 @@ VOWEL_RMAP = {
 
 # [6] 한글 관련 함수들
 
-def is_hangul(text, spaces=False):
+def is_hangul(text: str, spaces: bool = False) -> bool:
     """
     입력된 문자열의 모든 문자가 한글 완성형(또는 띄어쓰기)인지 확인합니다.
-    
+
     :param text: 검사할 문자열 또는 문자
     :param spaces: True인 경우 띄어쓰기도 한글로 허용합니다.
     :return: 모든 문자가 한글(또는 spaces True 시 띄어쓰기 포함)이면 True, 그렇지 않으면 False.
     """
-    if not isinstance(text, str):
-        return False
     for char in text:
         if char == ' ' and spaces:
             continue
@@ -240,10 +238,10 @@ def is_hangul(text, spaces=False):
             return False
     return True
 
-def compose_syllable(cho, jung, jong):
+def compose_syllable(cho: str, jung: str, jong: str = '') -> str:
     """
     초성, 중성, (선택적) 종성을 결합하여 완성형 한글 음절을 생성합니다.
-    
+
     :param cho: 초성 (예: 'ㄱ')
     :param jung: 중성 (예: 'ㅏ')
     :param jong: 종성 (예: 'ㄴ'); 받침이 없으면 빈 문자열('')
@@ -256,10 +254,10 @@ def compose_syllable(cho, jung, jong):
         raise Exception(f"Error: '{jung}' is not a valid medial vowel.")
     if jong and jong not in JONGSUNG_LIST:
         raise Exception(f"Error: '{jong}' is not a valid final consonant.")
-    
+
     cho_index = CHOSUNG_LIST.index(cho)
     jung_index = JUNGSUNG_LIST.index(jung)
     jong_index = JONGSUNG_LIST.index(jong) if jong else 0
-    
+
     code = HANGUL_BEGIN_UNICODE + (cho_index * 21 + jung_index) * 28 + jong_index
     return chr(code)

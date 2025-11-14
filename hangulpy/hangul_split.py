@@ -1,19 +1,19 @@
 # hangul_split.py
 
-import warnings
+from typing import List
 from hangulpy.utils import (
     CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE,
     JUNGSUNG_LIST, JUNGSUNG_DECOMPOSE, JONGSUNG_LIST, JONGSUNG_DECOMPOSE, JUNGSUNG_BASE
 )
 
-def split_hangul_string(s):
+def split_hangul_string(s: str) -> List[str]:
     """
     주어진 문자열의 각 한글 음절을 초성, 중성, 종성으로 분해하여 배열 형태로 반환합니다.
 
     :param s: 문자열
     :return: 각 한글 음절을 초성, 중성, 종성으로 분해한 결과를 포함하는 배열
     """
-    result = []
+    result: List[str] = []
     for char in s:
         if is_hangul(char):
             # 한글 음절의 유니코드 값을 기준으로 각 성분의 인덱스를 계산합니다.
