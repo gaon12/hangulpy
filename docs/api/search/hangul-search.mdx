@@ -1,0 +1,45 @@
+---
+title: 검색 위치 찾기 (hangul_search, hangul_search_all)
+description: 한글 검색 위치 찾기
+---
+
+## hangul_search
+
+첫 번째 매칭 위치를 반환합니다.
+
+```python
+hangul_search(word: str, pattern: str, notallowempty: bool = False) -> int
+```
+
+`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴이면 `0` 을 반환합니다.
+
+## hangul_search_all
+
+모든 매칭 위치를 리스트로 반환합니다.
+
+```python
+hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> list[int]
+```
+
+`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴이면 시작 위치 `[0]` 을 반환합니다.
+
+## 예시
+
+```python
+from hangulpy import hangul_search, hangul_search_all
+
+print(hangul_search("가나다가", "ㄱ"))  # 0
+print(hangul_search_all("가나다가", "ㄱ"))  # [0, 9]
+print(hangul_search("사과는 맛있다", "ㅁ"))  # 11
+print(hangul_search("사과", ""))  # 0
+print(hangul_search("사과", "", notallowempty=True))  # -1
+print(hangul_search_all("사과", ""))  # [0]
+print(hangul_search_all("사과", "", notallowempty=True))  # []
+```
+
+반환값은 원본 글자 인덱스가 아니라 내부 분해 기준 위치입니다. 불리언 여부만 필요하면 `hangul_contains` 가 더 직관적입니다.
+
+## 같이 보기
+
+- [hangul_contains](hangul-contains)
+- [HangulSearcher](hangul-searcher)

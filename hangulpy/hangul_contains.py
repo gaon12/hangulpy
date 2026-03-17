@@ -1,7 +1,9 @@
 # hangul_contains.py
 
 from functools import lru_cache
-from typing import List
+from typing import List, Tuple
+
+from hangulpy.utils import CHOSUNG_LIST, is_hangul
 from hangulpy.hangul_split import split_hangul_string
 
 
@@ -13,7 +15,39 @@ def _decompose_cached(text: str) -> str:
     :param text: String to decompose
     :return: Decomposed string
     """
-    return ''.join(''.join(split_hangul_string(char)) for char in text)
+    return "".join("".join(split_hangul_string(char)) for char in text)
+
+
+def _is_chosung_pattern(pattern: str) -> bool:
+    return bool(pattern) and all(char in CHOSUNG_LIST for char in pattern)
+
+
+@lru_cache(maxsize=1024)
+def _chosung_search_data(text: str) -> Tuple[str, Tuple[int, ...]]:
+    chosung_parts: List[str] = []
+    positions: List[int] = []
+    decomposed_index = 0
+
+    for char in text:
+        split = split_hangul_string(char)
+        if is_hangul(char):
+            chosung_parts.append(split[0])
+            positions.append(decomposed_index)
+        elif char in CHOSUNG_LIST:
+            chosung_parts.append(char)
+            positions.append(decomposed_index)
+
+        decomposed_index += len(split)
+
+    return "".join(chosung_parts), tuple(positions)
+
+
+def _get_search_basis(word: str, pattern: str) -> Tuple[str, str, Tuple[int, ...]]:
+    if _is_chosung_pattern(pattern):
+        chosung_word, positions = _chosung_search_data(word)
+        return chosung_word, pattern, positions
+
+    return _decompose_cached(word), _decompose_cached(pattern), ()
 
 
 def hangul_contains(word: str, pattern: str, notallowempty: bool = False) -> bool:
@@ -28,9 +62,7 @@ def hangul_contains(word: str, pattern: str, notallowempty: bool = False) -> boo
     if not pattern:
         return not notallowempty
 
-    # Use cached decomposition for better performance
-    word_split = _decompose_cached(word)
-    pattern_split = _decompose_cached(pattern)
+    word_split, pattern_split, _ = _get_search_basis(word, pattern)
 
     return pattern_split in word_split
 
@@ -47,10 +79,16 @@ def hangul_search(word: str, pattern: str, notallowempty: bool = False) -> int:
     if not pattern:
         return -1 if notallowempty else 0
 
-    word_split = _decompose_cached(word)
-    pattern_split = _decompose_cached(pattern)
+    word_split, pattern_split, positions = _get_search_basis(word, pattern)
+    index = word_split.find(pattern_split)
 
-    return word_split.find(pattern_split)
+    if index == -1:
+        return -1
+
+    if positions:
+        return positions[index]
+
+    return index
 
 
 def hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> List[int]:
@@ -65,8 +103,7 @@ def hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> L
     if not pattern:
         return [] if notallowempty else [0]
 
-    word_split = _decompose_cached(word)
-    pattern_split = _decompose_cached(pattern)
+    word_split, pattern_split, positions = _get_search_basis(word, pattern)
 
     indices: List[int] = []
     start = 0
@@ -74,7 +111,7 @@ def hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> L
         index = word_split.find(pattern_split, start)
         if index == -1:
             break
-        indices.append(index)
+        indices.append(positions[index] if positions else index)
         start = index + 1
 
     return indices
@@ -93,7 +130,16 @@ class HangulSearcher:
         :param pattern: 검색할 패턴
         """
         self.pattern = pattern
-        self.pattern_split = _decompose_cached(pattern) if pattern else ''
+        self.is_chosung_pattern = _is_chosung_pattern(pattern)
+        self.pattern_split = (
+            pattern if self.is_chosung_pattern else _decompose_cached(pattern) if pattern else ""
+        )
+
+    def _get_word_basis(self, word: str) -> Tuple[str, Tuple[int, ...]]:
+        if self.is_chosung_pattern:
+            return _chosung_search_data(word)
+
+        return _decompose_cached(word), ()
 
     def search(self, word: str, notallowempty: bool = False) -> bool:
         """
@@ -106,7 +152,7 @@ class HangulSearcher:
         if not self.pattern:
             return not notallowempty
 
-        word_split = _decompose_cached(word)
+        word_split, _ = self._get_word_basis(word)
         return self.pattern_split in word_split
 
     def find_index(self, word: str, notallowempty: bool = False) -> int:
@@ -120,8 +166,16 @@ class HangulSearcher:
         if not self.pattern:
             return -1 if notallowempty else 0
 
-        word_split = _decompose_cached(word)
-        return word_split.find(self.pattern_split)
+        word_split, positions = self._get_word_basis(word)
+        index = word_split.find(self.pattern_split)
+
+        if index == -1:
+            return -1
+
+        if positions:
+            return positions[index]
+
+        return index
 
     def find_all(self, word: str, notallowempty: bool = False) -> List[int]:
         """
@@ -134,14 +188,14 @@ class HangulSearcher:
         if not self.pattern:
             return [] if notallowempty else [0]
 
-        word_split = _decompose_cached(word)
+        word_split, positions = self._get_word_basis(word)
         indices: List[int] = []
         start = 0
         while True:
             index = word_split.find(self.pattern_split, start)
             if index == -1:
                 break
-            indices.append(index)
+            indices.append(positions[index] if positions else index)
             start = index + 1
 
         return indices

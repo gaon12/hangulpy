@@ -1,0 +1,23 @@
+---
+title: 한글 숫자 복원 (hangul_to_number)
+description: 한글 숫자 문자열을 숫자로 변환
+---
+
+한글 숫자 문자열을 다시 `int` 또는 `float` 으로 바꿉니다.
+
+```python
+hangul_to_number(text: str) -> int | float
+```
+
+## 예시
+
+```python
+from hangulpy import hangul_to_number
+
+print(hangul_to_number("천이백삼십사"))  # 1234
+print(hangul_to_number("삼점일사"))  # 3.14
+```
+
+## 같이 보기
+
+- [number_to_hangul / float_to_hangul](number-to-hangul)

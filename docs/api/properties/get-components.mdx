@@ -1,0 +1,46 @@
+---
+title: 구성요소 추출 (get_chosung, get_jungsung, get_jongsung, get_hangul_components)
+description: 완성형 한글 음절에서 초중종성 추출
+---
+
+## get_chosung
+
+```python
+get_chosung(char: str) -> str | None
+```
+
+## get_jungsung
+
+```python
+get_jungsung(char: str) -> str | None
+```
+
+## get_jongsung
+
+```python
+get_jongsung(char: str) -> str | None
+```
+
+받침이 없으면 빈 문자열을 반환합니다.
+
+## get_hangul_components
+
+```python
+get_hangul_components(char: str) -> tuple[str, str, str] | None
+```
+
+## 예시
+
+```python
+from hangulpy import get_chosung, get_jungsung, get_jongsung, get_hangul_components
+
+print(get_chosung("강"))  # ㄱ
+print(get_jungsung("강"))  # ㅏ
+print(get_jongsung("강"))  # ㅇ
+print(get_jongsung("가"))  # ""
+print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
+```
+
+## 같이 보기
+
+- [decompose_hangul_string](../assembly/decompose-hangul-string)

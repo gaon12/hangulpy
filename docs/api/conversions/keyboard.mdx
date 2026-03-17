@@ -1,0 +1,50 @@
+---
+title: 키보드 변환과 오타 교정 (koen, enko, autofix)
+description: 한영 키보드 입력 변환과 오타 교정
+---
+
+## koen
+
+한글 입력을 영문 키 시퀀스로 변환합니다.
+
+```python
+koen(text: str) -> str
+```
+
+## enko
+
+영문 키 시퀀스를 한글 입력으로 조합합니다.
+
+```python
+enko(text: str, allowDoubleConsonant: bool = False) -> str
+```
+
+`allowDoubleConsonant` 를 생략하면 기본값은 `False` 이고, 두 개의 초성을 자동으로 쌍자음으로 합치지 않습니다.
+
+## autofix
+
+한글과 영문이 뒤바뀐 입력을 자동 보정합니다.
+
+```python
+autofix(text: str, allowDoubleConsonant: bool = False) -> str
+```
+
+`allowDoubleConsonant` 를 생략하면 기본값은 `False` 이고, 쌍자음 후보를 보수적으로 처리합니다.
+
+## 예시
+
+```python
+from hangulpy import autofix, enko, koen
+
+print(koen("한글"))  # gksrmf
+print(enko("gksrmf"))  # 한글
+print(enko("rrk"))  # ㄱ가
+print(enko("rrk", allowDoubleConsonant=True))  # 까
+print(autofix("gksrmf"))  # 한글
+print(autofix("rrk"))  # ㄱ가
+print(autofix("rrk", allowDoubleConsonant=True))  # 까
+```
+
+## 같이 보기
+
+- [romanize / Romanizer](romanize)

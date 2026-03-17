@@ -1,0 +1,28 @@
+---
+title: 패턴 목록 필터링 (match_hangul_pattern)
+description: 한글 패턴으로 단어 목록 필터링
+---
+
+목록 안에서 패턴에 맞는 단어만 골라냅니다.
+
+```python
+match_hangul_pattern(words: list[str], pattern: str) -> list[str]
+```
+
+## 예시
+
+```python
+from hangulpy import match_hangul_pattern
+
+words = ["가구", "나무", "가방"]
+
+print(match_hangul_pattern(words, "ㄱ*"))  # ['가구', '가방']
+print(match_hangul_pattern(words, "*ㅜ"))  # ['가구', '나무']
+```
+
+`*` 는 와일드카드처럼 동작합니다.
+
+## 같이 보기
+
+- [get_chosung_string / chosungIncludes](get-chosung)
+- [hangul_contains](hangul-contains)

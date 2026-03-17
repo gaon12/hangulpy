@@ -1,0 +1,37 @@
+---
+title: 포함 여부 확인 (hangul_contains)
+description: 초성, 부분 음절, 완성형 패턴 포함 여부 확인
+---
+
+`hangul_contains` 는 입력을 자모 단위로 분해해 비교합니다. 그래서 초성 검색과 부분 음절 검색을 같은 함수로 처리할 수 있습니다.
+
+```python
+hangul_contains(word: str, pattern: str, notallowempty: bool = False) -> bool
+```
+
+`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴을 허용합니다.
+
+## 예시
+
+```python
+from hangulpy import hangul_contains
+
+print(hangul_contains("사과", "ㅅ"))  # True
+print(hangul_contains("사과", "삭"))  # True
+print(hangul_contains("사과", "ㅅㄱ"))  # True
+print(hangul_contains("사과", "삽"))  # False
+```
+
+## 빈 문자열 처리
+
+```python
+from hangulpy import hangul_contains
+
+print(hangul_contains("사과", ""))  # True
+print(hangul_contains("사과", "", notallowempty=True))  # False
+```
+
+## 같이 보기
+
+- [hangul_search / hangul_search_all](hangul-search)
+- [HangulSearcher](hangul-searcher)

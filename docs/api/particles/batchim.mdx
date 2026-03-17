@@ -1,0 +1,48 @@
+---
+title: 받침 판별 (has_jongsung, ends_with_consonant)
+description: 받침 유무와 자음 끝 여부 확인
+---
+
+## has_jongsung
+
+완성형 한글 음절에 받침이 있는지 확인합니다.
+
+```python
+has_jongsung(char: str) -> bool
+```
+
+### 예시
+
+```python
+from hangulpy import has_jongsung
+
+print(has_jongsung("각"))  # True
+print(has_jongsung("가"))  # False
+```
+
+## ends_with_consonant
+
+음절뿐 아니라 자모 입력까지 포함해서 자음으로 끝나는지 확인합니다.
+
+```python
+ends_with_consonant(char: str) -> bool
+```
+
+### 예시
+
+```python
+from hangulpy import ends_with_consonant
+
+print(ends_with_consonant("각"))  # True
+print(ends_with_consonant("가"))  # False
+print(ends_with_consonant("ㄱ"))  # True
+```
+
+## 차이점
+
+- `has_jongsung` 은 완성형 음절의 받침 여부에 초점이 있습니다.
+- `ends_with_consonant` 는 자모 입력까지 함께 다룰 때 편합니다.
+
+## 같이 보기
+
+- [josa](josa)
