@@ -1,102 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-hangulpy v1.3.0 Quickstart Examples
-==================================
+"""Quickstart examples for hangulpy."""
 
-This file demonstrates the key features of hangulpy v1.3.0.
-"""
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from hangulpy import (
-    # Josa (Particles)
-    josa,
-    # Search functions
-    hangul_contains,
-    hangul_search,
     HangulSearcher,
-    # Character properties
-    is_complete_hangul,
+    autofix,
     get_hangul_components,
-    # Assembly/Disassembly
-    split_syllables,
     join_jamos,
-    # Romanization
+    josa,
+    number_to_hangul,
     romanize,
 )
 
 
 def main() -> None:
-    print("=" * 60)
-    print("hangulpy v1.3.0 - Quickstart Examples")
-    print("=" * 60)
+    print("hangulpy quickstart")
+    print("=" * 40)
+    print(f"조사 붙이기: {josa('사과', '을/를')}")
 
-    # 1. Josa (Particles)
-    print("\n1. Josa (Particles)")
-    print("-" * 40)
-    print(f"��� + ��/�� = {josa('���', '��/��')}")
-    print(f"å + ��/�� = {josa('å', '��/��')}")
-    print(f"1 + ��/�� = {josa('1', '��/��')}")
+    searcher = HangulSearcher("ㅅㄱ")
+    print(f"초성 검색: {searcher.search('사과는 맛있다')}")
 
-    # 2. Search Functions
-    print("\n2. Search Functions")
-    print("-" * 40)
-    print(f"'���'�� '��' ����? {hangul_contains('���', '��')}")
-    print(f"'����� ���ִ�'���� '��' ��ġ: {hangul_search('����� ���ִ�', '��')}")
-
-    # HangulSearcher for repeated searches
-    searcher = HangulSearcher("��")
-    print(f"\nSearcher('��')�� �˻�:")
-    print(f"  '������' �˻�: {searcher.search('������')}")
-    print(f"  '�ٳ���' �˻�: {searcher.search('�ٳ���')}")
-
-    # 3. Character Properties
-    print("\n3. Character Properties")
-    print("-" * 40)
-    print(f"'��'�� �ϼ���? {is_complete_hangul('��')}")
-    print(f"'��'�� �ϼ���? {is_complete_hangul('��')}")
-
-    components = get_hangul_components("��")
-    if components is not None:
-        cho, jung, jong = components
-        print(f"'��'�� ����: �ʼ�={cho}, �߼�={jung}, ����={jong}")
-
-    # 4. Assembly/Disassembly
-    print("\n4. Assembly/Disassembly")
-    print("-" * 40)
-    jamos = split_syllables("�ѱ�")
-    print(f"'�ѱ�' ����: {jamos}")
-
-    assembled = join_jamos(["��", "��", "��"])
-    print(f"['��', '��', '��'] ����: {assembled}")
-
-    # 5. Romanization
-    print("\n5. Romanization")
-    print("-" * 40)
-    print(f"'�ѱ�' �� Revised: {romanize('�ѱ�', 'revised')}")
-    print(f"'�ѱ�' �� Yale: {romanize('�ѱ�', 'yale')}")
-    print(f"'�ȳ��ϼ���' �� Revised: {romanize('�ȳ��ϼ���', 'revised')}")
-
-    # 6. Real-world Example: Auto-complete Search
-    print("\n6. Real-world Example: Auto-complete Search")
-    print("-" * 40)
-    items = ["���", "����", "����", "�ٳ���", "������"]
-    query = "��"
-    searcher = HangulSearcher(query)
-    results = [item for item in items if searcher.search(item)]
-    print(f"'{query}' �˻� ���: {results}")
-
-    # 7. Real-world Example: Dynamic Sentence Building
-    print("\n7. Real-world Example: Dynamic Sentence Building")
-    print("-" * 40)
-    fruits = ["���", "�ٳ���", "������"]
-    for fruit in fruits:
-        sentence = f"{fruit}{josa(fruit, '��/��')} �Ծ����ϴ�."
-        print(f"  {sentence}")
-
-    print("\n" + "=" * 60)
-    print("For more examples, see: https://wiki.uiharu.dev/w/hangulpy")
-    print("=" * 60)
+    print(f"음절 성분 추출: {get_hangul_components('한')}")
+    print(f"자모 조합: {join_jamos(['ㅎ', 'ㅏ', 'ㄴ', 'ㄱ', 'ㅡ', 'ㄹ'])}")
+    print(f"로마자 표기: {romanize('한글', 'revised')}")
+    print(f"숫자 읽기: {number_to_hangul(1234)}")
+    print(f"한영타 교정: {autofix('gksrmf')}")
+    print()
+    print("자세한 문서는 docs/index.mdx 와 docs/quickstart.mdx 를 확인하세요.")
 
 
 if __name__ == "__main__":
     main()
-

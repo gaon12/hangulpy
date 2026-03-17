@@ -1,0 +1,36 @@
+---
+title: 초성/종성 사용 가능 여부 (can_be_chosung, can_be_jongsung)
+description: 자모를 초성이나 종성으로 사용할 수 있는지 확인
+---
+
+## can_be_chosung
+
+초성 테이블에 들어갈 수 있는 자모인지 확인합니다.
+
+```python
+can_be_chosung(char: str) -> bool
+```
+
+## can_be_jongsung
+
+종성 테이블에 들어갈 수 있는 자모인지 확인합니다.
+
+```python
+can_be_jongsung(char: str) -> bool
+```
+
+## 예시
+
+```python
+from hangulpy import can_be_chosung, can_be_jongsung
+
+print(can_be_chosung("ㄸ"))  # True
+print(can_be_chosung("ㄳ"))  # False
+print(can_be_jongsung("ㄳ"))  # True
+print(can_be_jongsung("ㄸ"))  # False
+```
+
+## 같이 보기
+
+- [완성형과 자모 판별](syllable-types)
+- [hangul_syllable](../assembly/hangul-syllable)

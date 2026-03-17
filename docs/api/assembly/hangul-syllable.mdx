@@ -1,0 +1,28 @@
+---
+title: 단일 음절 생성 (hangul_syllable)
+description: 초성 중성 종성으로 단일 음절 생성
+---
+
+하나의 완성형 한글 음절을 직접 만듭니다.
+
+```python
+hangul_syllable(cho: str, jung: str, jong: str = "") -> str
+```
+
+`jong` 을 생략하면 기본값은 `""` 이고, 받침 없는 음절을 만듭니다.
+
+## 예시
+
+```python
+from hangulpy import hangul_syllable
+
+print(hangul_syllable("ㄱ", "ㅏ"))  # 가
+print(hangul_syllable("ㄱ", "ㅏ", "ㄱ"))  # 각
+```
+
+정확히 한 음절을 만들고 싶을 때 가장 직접적인 함수입니다.
+
+## 같이 보기
+
+- [join_jamos / assemble](join-jamos)
+- [초성/종성 사용 가능 여부](../properties/jamo-roles)

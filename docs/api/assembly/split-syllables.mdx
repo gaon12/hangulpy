@@ -1,0 +1,38 @@
+---
+title: 자모 분해 (split_syllables, disassemble)
+description: 고수준 자모 분해 API
+---
+
+## split_syllables
+
+고수준 자모 분해 API입니다.
+
+```python
+split_syllables(text: str, output_format: str = "list") -> list[str] | str
+```
+
+`output_format` 으로 `list` 또는 `string` 을 선택할 수 있습니다.
+
+`output_format` 을 생략하면 기본값은 `list` 입니다.
+
+## disassemble
+
+`split_syllables` 의 별칭입니다.
+
+```python
+disassemble(text: str, output_format: str = "list") -> list[str] | str
+```
+
+## 예시
+
+```python
+from hangulpy import disassemble, split_syllables
+
+print(split_syllables("한글"))  # ['ㅎ', 'ㅏ', 'ㄴ', 'ㄱ', 'ㅡ', 'ㄹ']
+print(split_syllables("한글", output_format="string"))  # ㅎㅏㄴㄱㅡㄹ
+print(disassemble("한글", output_format="string"))  # ㅎㅏㄴㄱㅡㄹ
+```
+
+## 같이 보기
+
+- [join_jamos / assemble](join-jamos)

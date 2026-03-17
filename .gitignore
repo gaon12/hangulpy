@@ -60,3 +60,7 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
+# Mintlify local cache
+.mintlify/
+.mintlify-last/
+

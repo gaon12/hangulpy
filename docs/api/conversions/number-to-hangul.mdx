@@ -1,0 +1,36 @@
+---
+title: 숫자를 한글로 읽기 (number_to_hangul, float_to_hangul)
+description: 숫자를 한글 읽기로 변환
+---
+
+## number_to_hangul
+
+정수와 소수를 한글 읽기로 변환합니다.
+
+```python
+number_to_hangul(num: int | float) -> str
+```
+
+## float_to_hangul
+
+소수를 한글 읽기로 변환합니다.
+
+```python
+float_to_hangul(num: float) -> str
+```
+
+## 예시
+
+```python
+from hangulpy import float_to_hangul, number_to_hangul
+
+print(number_to_hangul(1234))  # 천이백삼십사
+print(number_to_hangul(1))  # 일
+print(float_to_hangul(3.14))  # 삼 점 일사
+```
+
+소수는 `점` 뒤를 자리별로 읽습니다.
+
+## 같이 보기
+
+- [hangul_to_number](hangul-to-number)

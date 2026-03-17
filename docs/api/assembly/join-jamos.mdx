@@ -1,0 +1,34 @@
+---
+title: 자모 조합 (join_jamos, assemble)
+description: 자모를 다시 완성형 음절로 조합
+---
+
+## join_jamos
+
+자모 리스트나 자모 문자열을 완성형 음절로 조합합니다.
+
+```python
+join_jamos(jamos: list[str] | str) -> str
+```
+
+## assemble
+
+`join_jamos` 의 별칭입니다.
+
+```python
+assemble(jamos: list[str] | str) -> str
+```
+
+## 예시
+
+```python
+from hangulpy import assemble, join_jamos
+
+print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
+print(assemble("ㅎㅏㄴㄱㅡㄹ"))  # 한글
+```
+
+## 같이 보기
+
+- [split_syllables / disassemble](split-syllables)
+- [hangul_syllable](hangul-syllable)

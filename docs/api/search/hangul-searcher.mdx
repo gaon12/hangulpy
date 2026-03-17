@@ -1,0 +1,50 @@
+---
+title: 재사용 검색기 (HangulSearcher)
+description: 같은 패턴을 여러 문자열에 반복 검색할 때 쓰는 클래스
+---
+
+`HangulSearcher` 는 동일한 패턴으로 여러 단어를 검색할 때 재사용하기 좋은 클래스입니다.
+
+```python
+class HangulSearcher(pattern: str)
+```
+
+## 메서드
+
+```python
+search(word: str, notallowempty: bool = False) -> bool
+find_index(word: str, notallowempty: bool = False) -> int
+find_all(word: str, notallowempty: bool = False) -> list[int]
+```
+
+세 메서드의 `notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 패턴도 허용합니다.
+
+## 예시
+
+```python
+from hangulpy import HangulSearcher
+
+searcher = HangulSearcher("ㄹㅁ")
+
+print(searcher.search("라면"))  # True
+print(searcher.find_index("라면이 맛있다"))  # 0
+print(searcher.find_all("라면라면"))  # [0, 6]
+
+empty_searcher = HangulSearcher("")
+print(empty_searcher.search("라면"))  # True
+print(empty_searcher.search("라면", notallowempty=True))  # False
+print(empty_searcher.find_index("라면"))  # 0
+print(empty_searcher.find_index("라면", notallowempty=True))  # -1
+print(empty_searcher.find_all("라면"))  # [0]
+print(empty_searcher.find_all("라면", notallowempty=True))  # []
+```
+
+## 언제 쓰나
+
+- 자동완성 후보를 여러 개 순회할 때
+- 동일한 사용자 입력을 여러 문장에 검사할 때
+
+## 같이 보기
+
+- [hangul_contains](hangul-contains)
+- [hangul_search / hangul_search_all](hangul-search)
