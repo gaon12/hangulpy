@@ -1,0 +1,48 @@
+---
+title: 초성 추출과 초성 비교 (get_chosung_string, chosungIncludes)
+description: 초성 추출과 초성 기반 포함 여부 확인
+---
+
+## get_chosung_string
+
+문자열에서 초성만 추출합니다.
+
+```python
+get_chosung_string(text: str, keep_spaces: bool = False) -> str
+```
+
+`keep_spaces` 를 생략하면 기본값은 `False` 이고, 공백을 제거한 초성 문자열을 반환합니다.
+
+### 예시
+
+```python
+from hangulpy import get_chosung_string
+
+print(get_chosung_string("라면"))  # ㄹㅁ
+print(get_chosung_string("띄어 쓰기"))  # ㄸㅇㅆㄱ
+print(get_chosung_string("띄어 쓰기", keep_spaces=True))  # ㄸㅇ ㅆㄱ
+```
+
+`keep_spaces=True` 를 사용하면 공백 위치를 유지한 채 초성 문자열을 만들 수 있습니다.
+
+## chosungIncludes
+
+초성 문자열이 특정 패턴을 포함하는지 확인합니다.
+
+```python
+chosungIncludes(word: str, pattern: str) -> bool
+```
+
+### 예시
+
+```python
+from hangulpy import chosungIncludes
+
+print(chosungIncludes("라면", "ㄹㅁ"))  # True
+print(chosungIncludes("사과", "ㅅㄱ"))  # True
+```
+
+## 같이 보기
+
+- [hangul_contains](hangul-contains)
+- [HangulSearcher](hangul-searcher)

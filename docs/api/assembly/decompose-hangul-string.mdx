@@ -1,0 +1,25 @@
+---
+title: 구조 분해 (decompose_hangul_string)
+description: 문자열을 초중종성 구조로 분해
+---
+
+문자열을 음절 단위로 순회하면서 각 글자를 초성, 중성, 종성 구조에 맞춰 분해합니다.
+
+```python
+decompose_hangul_string(text: str) -> list[tuple[str, object, object]]
+```
+
+## 예시
+
+```python
+from hangulpy import decompose_hangul_string
+
+print(decompose_hangul_string("값"))  # [('ㄱ', ('ㅏ',), ('ㅂ', 'ㅅ'))]
+print(decompose_hangul_string("한글"))  # [('ㅎ', ('ㅏ',), ('ㄴ',)), ('ㄱ', ('ㅡ',), ('ㄹ',))]
+```
+
+구조를 유지한 분해 결과가 필요할 때 적합합니다.
+
+## 같이 보기
+
+- [split_hangul_string](split-hangul-string)

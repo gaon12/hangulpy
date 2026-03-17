@@ -1,0 +1,26 @@
+---
+title: 자립명사 결합 (jarip_noun)
+description: 율률, 열렬 같은 자립명사형 결합 처리
+---
+
+특정 명사형 교체 규칙이 필요한 경우에 사용합니다.
+
+```python
+jarip_noun(word: str, particle: str) -> str
+```
+
+## 예시
+
+```python
+from hangulpy import jarip_noun
+
+print(jarip_noun("확", "율/률"))  # 확률
+print(jarip_noun("직", "열/렬"))  # 직렬
+print(jarip_noun("명", "영/령"))  # 명령
+print(jarip_noun("신", "염/념"))  # 신념
+print(jarip_noun("범", "예/례"))  # 범례
+```
+
+## 같이 보기
+
+- [josa](josa)

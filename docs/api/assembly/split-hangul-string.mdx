@@ -1,0 +1,26 @@
+---
+title: 평탄 분해 (split_hangul_string)
+description: 문자열을 평탄한 자모 배열로 분해
+---
+
+문자열을 자모 배열로 평탄하게 분해합니다.
+
+```python
+split_hangul_string(text: str) -> list[str]
+```
+
+## 예시
+
+```python
+from hangulpy import split_hangul_string
+
+print(split_hangul_string("값"))  # ['ㄱ', 'ㅏ', 'ㅂ', 'ㅅ']
+print(split_hangul_string("한글"))  # ['ㅎ', 'ㅏ', 'ㄴ', 'ㄱ', 'ㅡ', 'ㄹ']
+```
+
+복합 모음과 겹받침도 가능한 범위에서 풀어낸 결과를 반환합니다.
+
+## 같이 보기
+
+- [decompose_hangul_string](decompose-hangul-string)
+- [split_syllables / disassemble](split-syllables)

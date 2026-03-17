@@ -1,0 +1,70 @@
+---
+title: 빠른 시작
+description: hangulpy 핵심 기능을 빠르게 익히는 가이드
+---
+
+짧은 예제로 `hangulpy`의 주요 흐름을 먼저 익히고, 필요한 함수의 상세 페이지로 이동하면 됩니다.
+
+## 설치
+
+```bash
+pip install hangulpy
+```
+
+## 1. 조사 자동 선택
+
+```python
+from hangulpy import josa
+
+print(josa("사과", "을/를"))  # 사과를
+print(josa("책", "이/가"))    # 책이
+print(josa("3", "이/가"))     # 3이
+```
+
+## 2. 초성/부분 음절 검색
+
+```python
+from hangulpy import HangulSearcher, hangul_contains
+
+print(hangul_contains("사과", "ㅅ"))   # True
+print(hangul_contains("사과", "삭"))  # True
+
+searcher = HangulSearcher("ㄹㅁ")
+print(searcher.search("라면"))  # True
+```
+
+## 3. 한글 속성 확인
+
+```python
+from hangulpy import get_hangul_components, is_complete_hangul
+
+print(is_complete_hangul("한"))  # True
+print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
+```
+
+## 4. 자모 분해와 조합
+
+```python
+from hangulpy import join_jamos, split_syllables
+
+print(split_syllables("한글", output_format="string"))  # ㅎㅏㄴㄱㅡㄹ
+print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
+```
+
+## 5. 변환 기능
+
+```python
+from hangulpy import autofix, number_to_hangul, romanize
+
+print(romanize("한글", "revised"))  # hangeul
+print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
+print(number_to_hangul(1234))  # 천이백삼십사
+print(autofix("gksrmf"))  # 한글
+```
+
+## 다음 단계
+
+- [API 개요](api/overview): 함수군별 진입점
+- [검색 API](api/search/hangul-contains): 검색 관련 함수 자세히 보기
+- [조사 API](api/particles/josa): 조사 자동 선택 자세히 보기
+- [분해와 조합 API](api/assembly/split-syllables): 자모 분해와 조합 자세히 보기

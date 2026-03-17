@@ -1,0 +1,25 @@
+---
+title: 한글 정렬 (sort_hangul)
+description: 한글 문자열 목록 정렬
+---
+
+한글 문자열 목록을 자모 분해 순서를 기준으로 정렬합니다.
+
+```python
+sort_hangul(words: list[str], reverse: bool = False) -> list[str]
+```
+
+`reverse` 를 생략하면 기본값은 `False` 이고, 오름차순으로 정렬합니다.
+
+## 예시
+
+```python
+from hangulpy import sort_hangul
+
+print(sort_hangul(["다라", "가나", "나가"]))  # ['가나', '나가', '다라']
+print(sort_hangul(["다라", "가나", "나가"], reverse=True))  # ['다라', '나가', '가나']
+```
+
+## 같이 보기
+
+- [split_hangul_string](../assembly/split-hangul-string)

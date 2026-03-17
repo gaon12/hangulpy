@@ -1,0 +1,160 @@
+---
+title: 로마자 표기 변환 (romanize, Romanizer)
+description: 한글을 로마자 표기로 변환
+---
+
+## romanize
+
+문자열 전체를 로마자로 변환하는 편의 함수입니다. 기본 `revised` 모드는 프로젝트 루트의 `로마자_표기법_규정.pdf`를 기준으로 구현한 국어의 로마자 표기법을 따릅니다.
+
+```python
+romanize(
+    text: str,
+    system: str = "revised",
+    mode: str = "general",
+    capitalize: bool = False,
+    disambiguate: bool = False,
+    name_hyphen: bool = False,
+    admin_omit_suffix: bool = False,
+) -> str
+```
+
+## Romanizer
+
+여러 문자열을 같은 규칙으로 반복 변환할 때 쓰는 클래스입니다.
+
+```python
+class Romanizer(
+    system: str = "revised",
+    mode: str = "general",
+    capitalize: bool = False,
+    disambiguate: bool = False,
+    name_hyphen: bool = False,
+    admin_omit_suffix: bool = False,
+)
+```
+
+### 메서드
+
+```python
+romanize(text: str) -> str
+romanize_char(char: str) -> str
+```
+
+## revised 모드
+
+- `general`: 일반 문자열 기준, 발음 변화를 반영한 기본 모드
+- `proper`: 고유 명사에서 `ㄱ, ㄷ, ㅂ + ㅎ` 예외를 다루는 모드
+- `name`: 인명처럼 내부 음운 변화를 반영하지 않고 적는 모드
+- `admin`: `-do`, `-si`, `-gun` 같은 행정 구역 단위를 붙임표와 함께 적는 모드
+
+추가 옵션은 아래처럼 활용할 수 있습니다.
+
+- `capitalize=True`: 각 단어 첫 글자를 대문자로 변환
+- `disambiguate=True`: 혼동 방지용 붙임표 사용
+- `name_hyphen=True`: 인명 모드에서 이름 음절 사이에 붙임표 사용
+- `admin_omit_suffix=True`: 행정 구역 모드에서 `시`, `군`, `읍` 생략
+
+생략 가능한 인수는 모두 아래처럼 동작합니다.
+
+- `system` 생략 시: `revised`
+- `mode` 생략 시: `general`
+- `capitalize` 생략 시: `False`
+- `disambiguate` 생략 시: `False`
+- `name_hyphen` 생략 시: `False`
+- `admin_omit_suffix` 생략 시: `False`
+
+같은 기본값이 `Romanizer(...)` 생성자에도 그대로 적용됩니다.
+
+## 지원 규칙
+
+- `revised`
+- `mr`
+- `mccune`
+- `yale`
+- `academic`
+
+## system별 예시와 결과
+
+```python
+from hangulpy import romanize
+
+print(romanize("한글", "revised"))  # hangeul
+print(romanize("한글", "mr"))  # hankŭl
+print(romanize("한글", "mccune"))  # hankŭl
+print(romanize("한글", "yale"))  # hankul
+print(romanize("한글", "academic"))  # hankul
+```
+
+## mode별 예시와 결과
+
+```python
+from hangulpy import romanize
+
+print(romanize("오죽헌", "revised"))  # ojukeon
+print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
+print(romanize("민용하", "revised", mode="name", capitalize=True))  # Min Yongha
+print(romanize("충청북도", "revised", mode="admin"))  # chungcheongbuk-do
+```
+
+## 옵션별 예시와 결과
+
+```python
+from hangulpy import romanize
+
+print(romanize("부산 세종", "revised"))  # busan sejong
+print(romanize("부산 세종", "revised", capitalize=True))  # Busan Sejong
+print(romanize("중앙", "revised"))  # jungang
+print(romanize("중앙", "revised", disambiguate=True))  # jung-ang
+print(romanize("민용하", "revised", mode="name", capitalize=True))  # Min Yongha
+print(romanize("민용하", "revised", mode="name", capitalize=True, name_hyphen=True))  # Min Yong-ha
+print(romanize("청주시", "revised", mode="admin"))  # cheongju-si
+print(romanize("청주시", "revised", mode="admin", admin_omit_suffix=True))  # cheongju
+```
+
+## 예시
+
+```python
+from hangulpy import Romanizer, romanize
+
+print(romanize("한글", "revised"))  # hangeul
+print(romanize("광희문", "revised"))  # gwanghuimun
+print(romanize("신문로", "revised"))  # sinmunno
+print(romanize("묵호", "revised", mode="proper"))  # mukho
+print(romanize("민용하", "revised", mode="name", capitalize=True))  # Min Yongha
+print(romanize("민용하", "revised", mode="name", capitalize=True, name_hyphen=True))  # Min Yong-ha
+print(romanize("충청북도", "revised", mode="admin"))  # chungcheongbuk-do
+print(romanize("청주시", "revised", mode="admin", admin_omit_suffix=True))  # cheongju
+print(romanize("해운대", "revised", disambiguate=True))  # hae-undae
+
+romanizer = Romanizer("revised")
+print(romanizer.romanize("감사합니다"))  # gamsahamnida
+print(romanizer.romanize_char("각"))  # gak
+```
+
+## 규정 예시와 대응
+
+```python
+from hangulpy import romanize
+
+print(romanize("백마", "revised"))      # baengma
+print(romanize("왕십리", "revised"))    # wangsimni
+print(romanize("별내", "revised"))      # byeollae
+print(romanize("학여울", "revised"))    # hangnyeoul
+print(romanize("해돋이", "revised"))    # haedoji
+print(romanize("좋고", "revised"))      # joko
+print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
+```
+
+## 주의할 점
+
+- `general` 은 일반 문자열용입니다.
+- 인명, 행정 구역, 일부 고유 명사는 규정의 예외가 있으므로 `mode` 를 맞춰 쓰는 편이 정확합니다.
+- `capitalize=True` 를 주면 각 단어의 첫 글자를 대문자로 바꿉니다.
+- `disambiguate=True` 를 주면 `중앙 -> jung-ang`, `세운 -> se-un`처럼 혼동을 줄이기 위한 붙임표를 넣을 수 있습니다.
+- `name_hyphen=True` 를 주면 `Min Yongha` 대신 `Min Yong-ha`처럼 적을 수 있습니다.
+- `admin_omit_suffix=True` 를 주면 `Cheongju-si` 대신 `Cheongju`처럼 적을 수 있습니다.
+
+## 같이 보기
+
+- [koen / enko / autofix](keyboard)

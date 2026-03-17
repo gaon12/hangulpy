@@ -1,0 +1,55 @@
+---
+title: 한글 여부 판별 (is_hangul, is_hangul_consonant, is_hangul_vowel)
+description: 문자열과 단일 문자 기준의 기본 한글 판별 함수
+---
+
+## is_hangul
+
+문자열 전체가 한글인지 검사합니다.
+
+```python
+is_hangul(text: str, spaces: bool = False) -> bool
+```
+
+`spaces` 를 생략하면 기본값은 `False` 이고, 공백이 포함된 문자열은 `False` 로 판정합니다.
+
+### 예시
+
+```python
+from hangulpy import is_hangul
+
+print(is_hangul("반가워요"))  # True
+print(is_hangul("안녕 하세요"))  # False
+print(is_hangul("안녕 하세요", spaces=True))  # True
+```
+
+## is_hangul_consonant
+
+기본 한글 자음인지 확인합니다.
+
+```python
+is_hangul_consonant(char: str) -> bool
+```
+
+## is_hangul_vowel
+
+기본 한글 모음인지 확인합니다.
+
+```python
+is_hangul_vowel(char: str) -> bool
+```
+
+### 예시
+
+```python
+from hangulpy import is_hangul_consonant, is_hangul_vowel
+
+print(is_hangul_consonant("ㄱ"))  # True
+print(is_hangul_consonant("ㅏ"))  # False
+print(is_hangul_vowel("ㅏ"))  # True
+print(is_hangul_vowel("ㄱ"))  # False
+```
+
+## 같이 보기
+
+- [완성형과 자모 판별](syllable-types)

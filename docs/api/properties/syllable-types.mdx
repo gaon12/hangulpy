@@ -1,0 +1,52 @@
+---
+title: 음절과 자모 판별 (is_complete_hangul, is_chosung, is_jungsung, is_jongsung)
+description: 완성형 음절과 자모 역할 판별
+---
+
+## is_complete_hangul
+
+완성형 한글 음절인지 확인합니다.
+
+```python
+is_complete_hangul(char: str) -> bool
+```
+
+## is_chosung
+
+초성 자모인지 확인합니다.
+
+```python
+is_chosung(char: str) -> bool
+```
+
+## is_jungsung
+
+중성 자모인지 확인합니다.
+
+```python
+is_jungsung(char: str) -> bool
+```
+
+## is_jongsung
+
+종성 자모인지 확인합니다.
+
+```python
+is_jongsung(char: str) -> bool
+```
+
+## 예시
+
+```python
+from hangulpy import is_complete_hangul, is_chosung, is_jungsung, is_jongsung
+
+print(is_complete_hangul("한"))  # True
+print(is_chosung("ㄱ"))  # True
+print(is_jungsung("ㅏ"))  # True
+print(is_jongsung("ㄳ"))  # True
+```
+
+## 같이 보기
+
+- [기본 한글 판별](is-hangul)
+- [초성/종성 사용 가능 여부](jamo-roles)
