@@ -1,5 +1,5 @@
 ---
-title: 자모 조합 (join_jamos, assemble)
+title: 자모 조합
 description: 자모를 다시 완성형 음절로 조합
 ---
 
@@ -19,13 +19,67 @@ join_jamos(jamos: list[str] | str) -> str
 assemble(jamos: list[str] | str) -> str
 ```
 
+## combine_vowels
+
+두 모음을 복합 모음으로 결합합니다. 결합할 수 없으면 `None` 을 반환합니다.
+
+```python
+combine_vowels(vowel1: str, vowel2: str) -> str | None
+```
+
+## combine_character
+
+초성, 중성, 종성을 완성형 한글 음절로 결합합니다.
+
+```python
+combine_character(cho: str, jung: str, jong: str = "") -> str
+```
+
+## disassemble_to_groups
+
+문자열을 글자별 자모 그룹으로 분해합니다.
+
+```python
+disassemble_to_groups(text: str) -> list[list[str]]
+```
+
+## disassemble_complete_character
+
+완성형 한글 한 글자를 초성, 중성, 종성 문자열로 분해합니다.
+
+```python
+disassemble_complete_character(char: str) -> dict[str, str] | None
+```
+
+## remove_last_character
+
+마지막 글자의 마지막 자모를 제거합니다.
+
+```python
+remove_last_character(text: str) -> str
+```
+
 ## 예시
 
 ```python
-from hangulpy import assemble, join_jamos
+from hangulpy import (
+    assemble,
+    combine_character,
+    combine_vowels,
+    disassemble_complete_character,
+    disassemble_to_groups,
+    join_jamos,
+    remove_last_character,
+)
 
 print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
 print(assemble("ㅎㅏㄴㄱㅡㄹ"))  # 한글
+print(join_jamos("ㄱㅏㄴㅏ"))  # 가나
+print(combine_vowels("ㅗ", "ㅏ"))  # ㅘ
+print(combine_character("ㄱ", "ㅏ", "ㅂ"))  # 갑
+print(disassemble_to_groups("사과"))  # [["ㅅ", "ㅏ"], ["ㄱ", "ㅗ", "ㅏ"]]
+print(disassemble_complete_character("값"))  # {"choseong": "ㄱ", "jungseong": "ㅏ", "jongseong": "ㅂㅅ"}
+print(remove_last_character("전화"))  # 전호
 ```
 
 ## 같이 보기
