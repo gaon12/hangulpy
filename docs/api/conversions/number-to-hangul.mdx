@@ -1,14 +1,14 @@
 ---
-title: 숫자를 한글로 읽기 (number_to_hangul, float_to_hangul)
-description: 숫자를 한글 읽기로 변환
+title: 숫자를 한글로 읽기
+description: 숫자 읽기, 혼합 표기, 순우리말 수사 변환
 ---
 
 ## number_to_hangul
 
-정수와 소수를 한글 읽기로 변환합니다.
+정수와 소수를 한자어 한글 읽기로 변환합니다. `spacing=True` 를 주면 4자리 단위 사이에 공백을 넣습니다.
 
 ```python
-number_to_hangul(num: int | float) -> str
+number_to_hangul(num: int | float, spacing: bool = False) -> str
 ```
 
 ## float_to_hangul
@@ -19,14 +19,58 @@ number_to_hangul(num: int | float) -> str
 float_to_hangul(num: float) -> str
 ```
 
+## number_to_hangul_mixed
+
+숫자와 한글 단위를 섞어 4자리 그룹 기준으로 표기합니다.
+
+```python
+number_to_hangul_mixed(num: int | float, spacing: bool = False) -> str
+```
+
+## amount_to_hangul
+
+금액처럼 숫자와 기호가 섞인 문자열에서 숫자를 읽습니다.
+
+```python
+amount_to_hangul(amount: str | int | float) -> str
+```
+
+## susa / seosusa / days
+
+순우리말 수사, 서수사, 날짜 수를 반환합니다.
+
+```python
+susa(num: int, classifier: bool = False) -> str
+seosusa(num: int) -> str
+days(num: int) -> str
+```
+
 ## 예시
 
 ```python
-from hangulpy import float_to_hangul, number_to_hangul
+from hangulpy import (
+    amount_to_hangul,
+    days,
+    float_to_hangul,
+    number_to_hangul,
+    number_to_hangul_mixed,
+    seosusa,
+    susa,
+)
 
 print(number_to_hangul(1234))  # 천이백삼십사
-print(number_to_hangul(1))  # 일
-print(float_to_hangul(3.14))  # 삼 점 일사
+print(number_to_hangul(100000))  # 십만
+print(number_to_hangul(-12345.678))  # 마이너스만이천삼백사십오점육칠팔
+print(number_to_hangul(123456780, spacing=True))  # 일억 이천삼백사십오만 육천칠백팔십
+print(float_to_hangul(3.14))  # 삼점일사
+
+print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
+print(amount_to_hangul("120,030원"))  # 십이만삼십
+
+print(susa(21))  # 스물하나
+print(susa(21, classifier=True))  # 스물한
+print(seosusa(21))  # 스물한째
+print(days(29))  # 스무아흐레
 ```
 
 소수는 `점` 뒤를 자리별로 읽습니다.
