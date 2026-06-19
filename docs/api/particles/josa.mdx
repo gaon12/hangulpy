@@ -9,15 +9,25 @@ description: 받침 유무에 맞는 조사를 자동으로 고르는 함수
 josa(word: str, particle: str) -> str
 ```
 
+## josa_pick
+
+단어에 붙일 조사 형태만 반환합니다.
+
+```python
+josa_pick(word: str, particle: str) -> str
+```
+
 ## 예시
 
 ```python
-from hangulpy import josa
+from hangulpy import josa, josa_pick
 
 print(josa("사과", "을/를"))  # 사과를
 print(josa("책", "이/가"))  # 책이
 print(josa("나무", "으로/로"))  # 나무로
+print(josa("서울", "으로/로"))  # 서울로
 print(josa("3", "이/가"))  # 3이
+print(josa_pick("사과", "이/가"))  # 가
 ```
 
 ## 지원 범위
@@ -31,9 +41,12 @@ print(josa("3", "이/가"))  # 3이
 | `은/는` | `josa("사과", "은/는")` | `사과는` |
 | `와/과` | `josa("책", "와/과")` | `책과` |
 | `으로/로` | `josa("나무", "으로/로")` | `나무로` |
+| `이라/라` | `josa("사과", "이라/라")` | `사과라` |
 | `이나/나` | `josa("책", "이나/나")` | `책이나` |
 | `이에요/예요` | `josa("사과", "이에요/예요")` | `사과예요` |
 | `이라고/라고` | `josa("책", "이라고/라고")` | `책이라고` |
+
+`으로/로` 계열 조사는 `ㄹ` 받침 뒤에서 `로` 를 선택합니다. 예를 들어 `서울`, `길` 은 각각 `서울로`, `길로` 가 됩니다.
 
 ## 같이 보기
 
