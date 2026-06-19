@@ -29,15 +29,15 @@ hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> list[
 from hangulpy import hangul_search, hangul_search_all
 
 print(hangul_search("가나다가", "ㄱ"))  # 0
-print(hangul_search_all("가나다가", "ㄱ"))  # [0, 9]
-print(hangul_search("사과는 맛있다", "ㅁ"))  # 11
+print(hangul_search_all("가나다가", "ㄱ"))  # [0, 3]
+print(hangul_search("사과는 맛있다", "맛"))  # 4
 print(hangul_search("사과", ""))  # 0
 print(hangul_search("사과", "", notallowempty=True))  # -1
 print(hangul_search_all("사과", ""))  # [0]
 print(hangul_search_all("사과", "", notallowempty=True))  # []
 ```
 
-반환값은 원본 글자 인덱스가 아니라 내부 분해 기준 위치입니다. 불리언 여부만 필요하면 `hangul_contains` 가 더 직관적입니다.
+반환값은 원본 문자열의 글자 인덱스입니다. 불리언 여부만 필요하면 `hangul_contains` 가 더 직관적입니다.
 
 ## 같이 보기
 
