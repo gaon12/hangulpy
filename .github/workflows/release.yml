@@ -1,44 +1,73 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - CI
     branches:
       - main
+    types:
+      - completed
+  workflow_dispatch:
 
 jobs:
-  detect-version:
+  inspect-release:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{ steps.version.outputs.should_release }}
-      version: ${{ steps.version.outputs.version }}
+      should_release: ${{ steps.release.outputs.should_release }}
+      version: ${{ steps.release.outputs.version }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Detect version bump
-        id: version
+      - name: Inspect release state
+        id: release
         shell: bash
         run: |
-          version="$(python - <<'PY'
+          metadata="$(python - <<'PY'
           import tomllib
+
           with open("pyproject.toml", "rb") as f:
-              print(tomllib.load(f)["project"]["version"])
+              project = tomllib.load(f)["project"]
+
+          print(project["name"])
+          print(project["version"])
           PY
           )"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
-          if git diff --unified=0 HEAD~1 HEAD -- pyproject.toml | grep -q '^[+-]version = '; then
-            echo "should_release=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_release=false" >> "$GITHUB_OUTPUT"
-          fi
+          name="$(printf '%s\n' "$metadata" | sed -n '1p')"
+          version="$(printf '%s\n' "$metadata" | sed -n '2p')"
+
+          should_release="$(python - "$name" "$version" <<'PY'
+          import sys
+          import urllib.error
+          import urllib.request
+
+          name, version = sys.argv[1], sys.argv[2]
+          url = f"https://pypi.org/pypi/{name}/{version}/json"
+
+          try:
+              urllib.request.urlopen(url, timeout=10).close()
+          except urllib.error.HTTPError as exc:
+              if exc.code == 404:
+                  print("true")
+                  sys.exit(0)
+              raise
+          else:
+              print("false")
+          PY
+          )"
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "should_release=${should_release}" >> "$GITHUB_OUTPUT"
 
   publish:
-    needs: detect-version
-    if: needs.detect-version.outputs.should_release == 'true'
+    needs: inspect-release
+    if: needs.inspect-release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -67,7 +96,7 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.detect-version.outputs.version }}
-          name: v${{ needs.detect-version.outputs.version }}
+          tag_name: v${{ needs.inspect-release.outputs.version }}
+          name: v${{ needs.inspect-release.outputs.version }}
           generate_release_notes: true
           files: dist/*
