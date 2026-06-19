@@ -1,5 +1,7 @@
 # tests/test_romanize.py
 
+from typing import List, Tuple
+
 import pytest
 
 from hangulpy import Romanizer, romanize
@@ -37,7 +39,7 @@ class TestRomanization:
 
     def test_romanize_revised_regulation_examples(self):
         """규정집 예시 표기 테스트"""
-        examples: list[tuple[str, str]] = [
+        examples: List[Tuple[str, str]] = [
             ("광희문", "gwanghuimun"),
             ("백마", "baengma"),
             ("종로", "jongno"),
