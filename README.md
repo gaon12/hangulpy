@@ -8,11 +8,11 @@
 
 ## 주요 기능
 
-- 조사 자동 선택: `josa`, `has_jongsung`
+- 조사 자동 선택: `josa`, `josa_pick`, `has_jongsung`
 - 초성/부분 음절 검색: `get_chosung_string`, `chosungIncludes`, `hangul_contains`, `hangul_search`, `HangulSearcher`
 - 한글 속성 검사: `is_hangul`, `is_complete_hangul`, `get_hangul_components`
-- 자모 분해/조합: `decompose_hangul_string`, `split_hangul_string`, `split_syllables`, `join_jamos`, `hangul_syllable`
-- 변환 기능: `romanize`, `Romanizer`, `number_to_hangul`, `hangul_to_number`, `koen`, `enko`, `autofix`
+- 자모 분해/조합: `decompose_hangul_string`, `split_hangul_string`, `split_syllables`, `join_jamos`, `combine_vowels`, `remove_last_character`
+- 변환 기능: `romanize`, `Romanizer`, `number_to_hangul`, `number_to_hangul_mixed`, `hangul_to_number`, `susa`, `days`, `koen`, `enko`, `autofix`
 
 ## 설치
 
@@ -31,9 +31,12 @@ pip install -U hangulpy
 ```python
 from hangulpy import (
     HangulSearcher,
+    days,
     get_hangul_components,
     join_jamos,
     josa,
+    number_to_hangul_mixed,
+    remove_last_character,
     romanize,
 )
 
@@ -44,6 +47,9 @@ print(searcher.search("사과는 맛있다"))  # True
 
 print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
 print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
+print(remove_last_character("전화"))  # 전호
+print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
+print(days(29))  # 스무아흐레
 print(romanize("광희문", "revised"))  # gwanghuimun
 print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
 print(romanize("충청북도", "revised", mode="admin"))  # chungcheongbuk-do

@@ -1,10 +1,19 @@
 # hangul_split.py
 
 from typing import List
+
 from hangulpy.utils import (
-    CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE,
-    JUNGSUNG_LIST, JUNGSUNG_DECOMPOSE, JONGSUNG_LIST, JONGSUNG_DECOMPOSE, JUNGSUNG_BASE
+    CHOSUNG_BASE,
+    CHOSUNG_LIST,
+    HANGUL_BEGIN_UNICODE,
+    JONGSUNG_DECOMPOSE,
+    JONGSUNG_LIST,
+    JUNGSUNG_BASE,
+    JUNGSUNG_DECOMPOSE,
+    JUNGSUNG_LIST,
+    is_hangul,
 )
+
 
 def split_hangul_string(s: str) -> List[str]:
     """
@@ -29,7 +38,11 @@ def split_hangul_string(s: str) -> List[str]:
             jungsung_decomposed = JUNGSUNG_DECOMPOSE.get(jungsung, [jungsung])
             jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, [jongsung])
 
-            result.extend([CHOSUNG_LIST[chosung_index]] + list(jungsung_decomposed) + list(jongsung_decomposed))
+            result.extend(
+                [CHOSUNG_LIST[chosung_index]]
+                + list(jungsung_decomposed)
+                + list(jongsung_decomposed)
+            )
         elif char in JUNGSUNG_DECOMPOSE:
             result.extend(JUNGSUNG_DECOMPOSE[char])
         elif char in JONGSUNG_DECOMPOSE:

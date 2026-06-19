@@ -14,20 +14,23 @@ pip install hangulpy
 ## 1. 조사 자동 선택
 
 ```python
-from hangulpy import josa
+from hangulpy import josa, josa_pick
 
 print(josa("사과", "을/를"))  # 사과를
 print(josa("책", "이/가"))    # 책이
+print(josa("서울", "으로/로"))  # 서울로
 print(josa("3", "이/가"))     # 3이
+print(josa_pick("사과", "이/가"))  # 가
 ```
 
 ## 2. 초성/부분 음절 검색
 
 ```python
-from hangulpy import HangulSearcher, hangul_contains
+from hangulpy import HangulSearcher, hangul_contains, hangul_search_all
 
 print(hangul_contains("사과", "ㅅ"))   # True
 print(hangul_contains("사과", "삭"))  # True
+print(hangul_search_all("가나다가", "ㄱ"))  # [0, 3]
 
 searcher = HangulSearcher("ㄹㅁ")
 print(searcher.search("라면"))  # True
@@ -45,20 +48,23 @@ print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
 ## 4. 자모 분해와 조합
 
 ```python
-from hangulpy import join_jamos, split_syllables
+from hangulpy import join_jamos, remove_last_character, split_syllables
 
 print(split_syllables("한글", output_format="string"))  # ㅎㅏㄴㄱㅡㄹ
 print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
+print(remove_last_character("전화"))  # 전호
 ```
 
 ## 5. 변환 기능
 
 ```python
-from hangulpy import autofix, number_to_hangul, romanize
+from hangulpy import autofix, convert_qwerty_to_hangul, number_to_hangul, number_to_hangul_mixed, romanize
 
 print(romanize("한글", "revised"))  # hangeul
 print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
 print(number_to_hangul(1234))  # 천이백삼십사
+print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
+print(convert_qwerty_to_hangul("ABC"))  # 뮻
 print(autofix("gksrmf"))  # 한글
 ```
 
