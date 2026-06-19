@@ -1,0 +1,17 @@
+---
+title: v1.3.2 릴리즈 노트
+description: hangulpy 1.3.2 릴리즈 노트
+---
+
+## 핵심 변경
+
+- 숫자 읽기와 역변환 로직을 다듬고, `number_to_hangul_mixed`, `amount_to_hangul`, `susa`, `seosusa`, `days` 를 추가했습니다.
+- 조사 처리에서 `josa_pick` 을 추가하고, `ㄹ + 으로/로` 예외와 숫자 뒤 조사 선택을 더 정확하게 맞췄습니다.
+- 검색 인덱스를 내부 분해 위치가 아니라 원본 문자열 인덱스로 반환하도록 정리했습니다.
+- 자모 조합과 키보드 변환에 `combine_vowels`, `combine_character`, `remove_last_character`, `convert_qwerty_to_hangul` 같은 헬퍼를 추가했습니다.
+
+## 배포와 자동화
+
+- `setup.py` 기반 보조 패키징을 제거하고 `pyproject.toml` 중심으로 패키징을 단순화했습니다.
+- GitHub Actions CI를 추가해 테스트, 린트, 타입 검사, 빌드를 자동 검증합니다.
+- `v*` 태그 푸시 시 PyPI 배포와 GitHub Release 생성을 자동으로 수행하도록 릴리즈 워크플로를 추가했습니다.
