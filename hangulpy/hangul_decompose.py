@@ -1,12 +1,23 @@
 # hangul_decompose.py
 
 from typing import List, Tuple, Union
+
 from hangulpy.utils import (
-    CHOSUNG_LIST, CHOSUNG_BASE, is_hangul, HANGUL_BEGIN_UNICODE,
-    JUNGSUNG_LIST, JUNGSUNG_DECOMPOSE, JONGSUNG_LIST, JONGSUNG_DECOMPOSE, JUNGSUNG_BASE
+    CHOSUNG_BASE,
+    CHOSUNG_LIST,
+    HANGUL_BEGIN_UNICODE,
+    JONGSUNG_DECOMPOSE,
+    JONGSUNG_LIST,
+    JUNGSUNG_BASE,
+    JUNGSUNG_DECOMPOSE,
+    JUNGSUNG_LIST,
+    is_hangul,
 )
 
-def decompose_hangul_string(s: str) -> List[Tuple[str, Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]]:
+
+def decompose_hangul_string(
+    s: str,
+) -> List[Tuple[str, Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]]:
     """
     주어진 문자열의 각 한글 음절을 초성, 중성, 종성으로 분해하여 배열 형태로 반환합니다.
 
@@ -31,6 +42,6 @@ def decompose_hangul_string(s: str) -> List[Tuple[str, Union[str, Tuple[str, ...
 
             result.append((CHOSUNG_LIST[chosung_index], jungsung_decomposed, jongsung_decomposed))
         else:
-            result.append((char, '', ''))  # 한글이 아니면 그대로 추가
+            result.append((char, "", ""))  # 한글이 아니면 그대로 추가
 
     return result

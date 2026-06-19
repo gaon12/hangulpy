@@ -3,17 +3,17 @@
 
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
+
 from hangulpy.utils import (
+    CHOSUNG_BASE,
+    CHOSUNG_LIST,
     HANGUL_BEGIN_UNICODE,
     HANGUL_END_UNICODE,
-    CHOSUNG_LIST,
-    JUNGSUNG_LIST,
-    JONGSUNG_LIST,
     JONGSUNG_DECOMPOSE,
-    CHOSUNG_BASE,
+    JONGSUNG_LIST,
     JUNGSUNG_BASE,
+    JUNGSUNG_LIST,
 )
-
 
 # Romanization tables for different standards
 

@@ -2,15 +2,16 @@
 # Advanced character property checking functions
 
 from typing import Optional, Tuple
+
 from hangulpy.utils import (
+    CHOSUNG_BASE,
+    CHOSUNG_LIST,
     HANGUL_BEGIN_UNICODE,
     HANGUL_END_UNICODE,
-    CHOSUNG_LIST,
-    JUNGSUNG_LIST,
-    JONGSUNG_LIST,
     JONGSUNG_COUNT,
-    CHOSUNG_BASE,
+    JONGSUNG_LIST,
     JUNGSUNG_BASE,
+    JUNGSUNG_LIST,
 )
 
 
@@ -62,7 +63,7 @@ def is_jongsung(char: str) -> bool:
     if len(char) != 1:
         return False
     # First element of JONGSUNG_LIST is empty string (no jongsung)
-    return char in JONGSUNG_LIST and char != ''
+    return char in JONGSUNG_LIST and char != ""
 
 
 def has_jongsung(char: str) -> bool:

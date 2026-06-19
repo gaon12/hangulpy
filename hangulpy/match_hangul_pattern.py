@@ -1,6 +1,8 @@
 import re
 from typing import List
+
 from hangulpy.hangul_decompose import decompose_hangul_string
+
 
 def match_hangul_pattern(words: List[str], pattern: str) -> List[str]:
     """
@@ -11,13 +13,13 @@ def match_hangul_pattern(words: List[str], pattern: str) -> List[str]:
     :return: 패턴에 매칭되는 단어 리스트
     """
     # 패턴을 정규식으로 변환
-    regex_pattern = re.compile(pattern.replace('*', '.*'))
+    regex_pattern = re.compile(pattern.replace("*", ".*"))
 
     matched_words: List[str] = []
     for word in words:
         decomposed = decompose_hangul_string(word)  # 한글 분해
-        decomposed_flat = ''.join(
-            chosung + ''.join(jungsung) + ''.join(jongsung)
+        decomposed_flat = "".join(
+            chosung + "".join(jungsung) + "".join(jongsung)
             for chosung, jungsung, jongsung in decomposed
         )  # 초성, 중성, 종성을 문자열로 결합
 

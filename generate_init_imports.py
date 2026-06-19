@@ -1,6 +1,6 @@
-import os
-import inspect
 import importlib
+import inspect
+import os
 from types import ModuleType
 from typing import List, Tuple
 
@@ -24,11 +24,7 @@ def main() -> None:
     import_statements: List[str] = []
 
     for filename in os.listdir(package_path):
-        if (
-            filename.endswith(".py")
-            and filename != "__init__.py"
-            and filename != "utils.py"
-        ):
+        if filename.endswith(".py") and filename != "__init__.py" and filename != "utils.py":
             module_name = filename[:-3]  # Remove .py extension
             module = importlib.import_module(f"{package_name}.{module_name}")
 
