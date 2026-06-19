@@ -1,5 +1,5 @@
 ---
-title: 키보드 변환과 오타 교정 (koen, enko, autofix)
+title: 키보드 변환과 오타 교정
 description: 한영 키보드 입력 변환과 오타 교정
 ---
 
@@ -31,10 +31,41 @@ autofix(text: str, allowDoubleConsonant: bool = False) -> str
 
 `allowDoubleConsonant` 를 생략하면 기본값은 `False` 이고, 쌍자음 후보를 보수적으로 처리합니다.
 
+## convert_hangul_to_qwerty
+
+한글을 QWERTY 자판 입력 문자열로 변환합니다. `koen` 과 같은 동작입니다.
+
+```python
+convert_hangul_to_qwerty(text: str) -> str
+```
+
+## convert_qwerty_to_hangul
+
+QWERTY 자판 입력을 한글로 조합합니다. 영문 대소문자와 이미 섞여 있는 한글 자모를 함께 처리합니다.
+
+```python
+convert_qwerty_to_hangul(text: str, allowDoubleConsonant: bool = False) -> str
+```
+
+## convert_qwerty_to_alphabet
+
+QWERTY 자판 입력을 조합하지 않고 한글 자모로 변환합니다.
+
+```python
+convert_qwerty_to_alphabet(text: str) -> str
+```
+
 ## 예시
 
 ```python
-from hangulpy import autofix, enko, koen
+from hangulpy import (
+    autofix,
+    convert_hangul_to_qwerty,
+    convert_qwerty_to_alphabet,
+    convert_qwerty_to_hangul,
+    enko,
+    koen,
+)
 
 print(koen("한글"))  # gksrmf
 print(enko("gksrmf"))  # 한글
@@ -43,6 +74,11 @@ print(enko("rrk", allowDoubleConsonant=True))  # 까
 print(autofix("gksrmf"))  # 한글
 print(autofix("rrk"))  # ㄱ가
 print(autofix("rrk", allowDoubleConsonant=True))  # 까
+
+print(convert_hangul_to_qwerty("뮻"))  # abc
+print(convert_qwerty_to_hangul("ABC"))  # 뮻
+print(convert_qwerty_to_hangul("RㅏㄱEㅜrl"))  # 깍뚜기
+print(convert_qwerty_to_alphabet("abc"))  # ㅁㅠㅊ
 ```
 
 ## 같이 보기
