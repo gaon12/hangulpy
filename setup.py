@@ -2,7 +2,7 @@
 # Maintained for backward compatibility
 # New installations should use pyproject.toml
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # Read version from pyproject.toml would be better, but for simplicity:
 setup(

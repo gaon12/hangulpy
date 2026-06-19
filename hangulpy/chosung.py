@@ -1,12 +1,17 @@
 # chosung.py
 
-from hangulpy.utils import is_hangul, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, CHOSUNG_BASE
+from hangulpy.utils import CHOSUNG_BASE, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, is_hangul
+
 
 def get_chosung_string(text: str, keep_spaces: bool = False) -> str:
     """
     문자열의 초성을 추출합니다.
     """
-    return ''.join(extract_chosung(c) if is_hangul(c) else c for c in text) if keep_spaces else ''.join(extract_chosung(c) if is_hangul(c) and not c.isspace() else '' for c in text)
+    return (
+        "".join(extract_chosung(c) if is_hangul(c) else c for c in text)
+        if keep_spaces
+        else "".join(extract_chosung(c) if is_hangul(c) and not c.isspace() else "" for c in text)
+    )
 
 
 def extract_chosung(c: str) -> str:
@@ -17,6 +22,7 @@ def extract_chosung(c: str) -> str:
     else:
         return c
 
+
 def chosungIncludes(word: str, pattern: str) -> bool:
     """
     초성으로 검색합니다.
@@ -25,5 +31,5 @@ def chosungIncludes(word: str, pattern: str) -> bool:
     :param pattern: 초성 패턴
     :return: 포함 여부
     """
-    word_chosung = ''.join(extract_chosung(c) for c in word if is_hangul(c))
+    word_chosung = "".join(extract_chosung(c) for c in word if is_hangul(c))
     return pattern in word_chosung
