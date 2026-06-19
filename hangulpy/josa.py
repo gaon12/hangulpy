@@ -3,85 +3,87 @@
 import re
 import unicodedata
 from typing import Optional
-from hangulpy.utils import is_hangul, HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT
-from hangulpy import number_to_hangul
+
+from hangulpy.hangul_number import number_to_hangul
+from hangulpy.utils import HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT, is_hangul
 
 # Josa rules table: maps particle pattern to (with_jongsung, without_jongsung)
 JOSA_RULES = {
-    '을/를': ('을', '를'),
-    '이/가': ('이', '가'),
-    '은/는': ('은', '는'),
-    '와/과': ('과', '와'),
-    '으로/로': ('으로', '로'),
-    '이나/나': ('이나', '나'),
-    '이에/에': ('이에', '에'),
-    '이란/란': ('이란', '란'),
-    '아/야': ('아', '야'),
-    '이랑/랑': ('이랑', '랑'),
-    '이에요/예요': ('이에요', '예요'),
-    '으로서/로서': ('으로서', '로서'),
-    '으로써/로써': ('으로써', '로써'),
-    '으로부터/로부터': ('으로부터', '로부터'),
-    '이여/여': ('이여', '여'),
-    '이야/야': ('이야', '야'),
-    '와서/와': ('와서', '와'),
-    '이라서/라서': ('이라서', '라서'),
-    '이든/든': ('이든', '든'),
-    '이며/며': ('이며', '며'),
-    '이라도/라도': ('이라도', '라도'),
-    '이니까/니까': ('이니까', '니까'),
-    '이지만/지만': ('이지만', '지만'),
-    '이랑은/랑은': ('이랑은', '랑은'),
-    '이라고/라고': ('이라고', '라고'),
-    '이라며/라며': ('이라며', '라며'),
-    '이라니/라니': ('이라니', '라니'),
-    '이라니까/라니까': ('이라니까', '라니까'),
-    '이라거든/라거든': ('이라거든', '라거든'),
-    '이라더니/라더니': ('이라더니', '라더니'),
-    '이라더군/라더군': ('이라더군', '라더군'),
-    '이라던데/라던데': ('이라던데', '라던데'),
-    '이라고는/라고는': ('이라고는', '라고는'),
-    '이라는데/라는데': ('이라는데', '라는데'),
-    '이라면/라면': ('이라면', '라면'),
-    '이라서야/라서야': ('이라서야', '라서야'),
-    '이라야/라야': ('이라야', '라야'),
-    '이라든가/라든가': ('이라든가', '라든가'),
-    '이든지/든지': ('이든지', '든지'),
-    '이거나/거나': ('이거나', '거나'),
-    '이라면야/라면야': ('이라면야', '라면야'),
-    '이라면말이지/라면말이지': ('이라면말이지', '라면말이지'),
-    '이라야만/라야만': ('이라야만', '라야만'),
-    '이었으면/였으면': ('이었으면', '였으면'),
-    '이라서도/라서도': ('이라서도', '라서도'),
-    '이므로/므로': ('이므로', '므로'),
-    '이기에/기에': ('이기에', '기에'),
-    '이니/니': ('이니', '니'),
-    '이라니깐/라니깐': ('이라니깐', '라니깐'),
-    '이면서/면서': ('이면서', '면서'),
-    '이자/자': ('이자', '자'),
-    '이면서도/면서도': ('이면서도', '면서도'),
-    '이라든지/라든지': ('이라든지', '라든지'),
-    '이었지만/였지만': ('이었지만', '였지만'),
-    '이었으나/였으나': ('이었으나', '였으나'),
-    '이긴 하지만/긴 하지만': ('이긴 하지만', '긴 하지만'),
-    '이야말로/야말로': ('이야말로', '야말로'),
-    '이어야/여야': ('이어야', '여야'),
-    '이었고/였고': ('이었고', '였고'),
-    '이었는데/였는데': ('이었는데', '였는데'),
-    '이었더니/였더니': ('이었더니', '였더니'),
-    '이었을 때/였을 때': ('이었을 때', '였을 때'),
-    '이었을지라도/였을지라도': ('이었을지라도', '였을지라도'),
-    '이었던/였던': ('이었던', '였던'),
-    '이었으니까/였으니까': ('이었으니까', '였으니까'),
-    '이라고도/라고도': ('이라고도', '라고도'),
-    '이라곤 해도/라곤 해도': ('이라곤 해도', '라곤 해도'),
-    '이라지/라지': ('이라지', '라지'),
-    '이라네/라네': ('이라네', '라네'),
-    '이거든/거든': ('이거든', '거든'),
-    '이시여/시여': ('이시여', '시여'),
-    '이어요/여요': ('이어요', '여요'),
-    '이었어요/였어요': ('이었어요', '였어요'),
-    '이었어/였어': ('이었어', '였어'),
+    "을/를": ("을", "를"),
+    "이/가": ("이", "가"),
+    "은/는": ("은", "는"),
+    "와/과": ("과", "와"),
+    "으로/로": ("으로", "로"),
+    "이나/나": ("이나", "나"),
+    "이에/에": ("이에", "에"),
+    "이란/란": ("이란", "란"),
+    "아/야": ("아", "야"),
+    "이랑/랑": ("이랑", "랑"),
+    "이에요/예요": ("이에요", "예요"),
+    "이라/라": ("이라", "라"),
+    "으로서/로서": ("으로서", "로서"),
+    "으로써/로써": ("으로써", "로써"),
+    "으로부터/로부터": ("으로부터", "로부터"),
+    "이여/여": ("이여", "여"),
+    "이야/야": ("이야", "야"),
+    "와서/와": ("와서", "와"),
+    "이라서/라서": ("이라서", "라서"),
+    "이든/든": ("이든", "든"),
+    "이며/며": ("이며", "며"),
+    "이라도/라도": ("이라도", "라도"),
+    "이니까/니까": ("이니까", "니까"),
+    "이지만/지만": ("이지만", "지만"),
+    "이랑은/랑은": ("이랑은", "랑은"),
+    "이라고/라고": ("이라고", "라고"),
+    "이라며/라며": ("이라며", "라며"),
+    "이라니/라니": ("이라니", "라니"),
+    "이라니까/라니까": ("이라니까", "라니까"),
+    "이라거든/라거든": ("이라거든", "라거든"),
+    "이라더니/라더니": ("이라더니", "라더니"),
+    "이라더군/라더군": ("이라더군", "라더군"),
+    "이라던데/라던데": ("이라던데", "라던데"),
+    "이라고는/라고는": ("이라고는", "라고는"),
+    "이라는데/라는데": ("이라는데", "라는데"),
+    "이라면/라면": ("이라면", "라면"),
+    "이라서야/라서야": ("이라서야", "라서야"),
+    "이라야/라야": ("이라야", "라야"),
+    "이라든가/라든가": ("이라든가", "라든가"),
+    "이든지/든지": ("이든지", "든지"),
+    "이거나/거나": ("이거나", "거나"),
+    "이라면야/라면야": ("이라면야", "라면야"),
+    "이라면말이지/라면말이지": ("이라면말이지", "라면말이지"),
+    "이라야만/라야만": ("이라야만", "라야만"),
+    "이었으면/였으면": ("이었으면", "였으면"),
+    "이라서도/라서도": ("이라서도", "라서도"),
+    "이므로/므로": ("이므로", "므로"),
+    "이기에/기에": ("이기에", "기에"),
+    "이니/니": ("이니", "니"),
+    "이라니깐/라니깐": ("이라니깐", "라니깐"),
+    "이면서/면서": ("이면서", "면서"),
+    "이자/자": ("이자", "자"),
+    "이면서도/면서도": ("이면서도", "면서도"),
+    "이라든지/라든지": ("이라든지", "라든지"),
+    "이었지만/였지만": ("이었지만", "였지만"),
+    "이었으나/였으나": ("이었으나", "였으나"),
+    "이긴 하지만/긴 하지만": ("이긴 하지만", "긴 하지만"),
+    "이야말로/야말로": ("이야말로", "야말로"),
+    "이어야/여야": ("이어야", "여야"),
+    "이었고/였고": ("이었고", "였고"),
+    "이었는데/였는데": ("이었는데", "였는데"),
+    "이었더니/였더니": ("이었더니", "였더니"),
+    "이었을 때/였을 때": ("이었을 때", "였을 때"),
+    "이었을지라도/였을지라도": ("이었을지라도", "였을지라도"),
+    "이었던/였던": ("이었던", "였던"),
+    "이었으니까/였으니까": ("이었으니까", "였으니까"),
+    "이라고도/라고도": ("이라고도", "라고도"),
+    "이라곤 해도/라곤 해도": ("이라곤 해도", "라곤 해도"),
+    "이라지/라지": ("이라지", "라지"),
+    "이라네/라네": ("이라네", "라네"),
+    "이거든/거든": ("이거든", "거든"),
+    "이시여/시여": ("이시여", "시여"),
+    "이어요/여요": ("이어요", "여요"),
+    "이었어요/였어요": ("이었어요", "였어요"),
+    "이었어/였어": ("이었어", "였어"),
 }
 
 
@@ -111,13 +113,14 @@ def _get_last_valid_char(word: str) -> Optional[str]:
     :param word: 조사 판단에 사용할 단어 문자열
     :return: 한글 음절 문자(종성 기준), 숫자 변환 후 한글 음절, 혹은 None
     """
-    for char in reversed(word):
+    for index in range(len(word) - 1, -1, -1):
+        char = word[index]
         # 공백 무시
         if char.isspace():
             continue
         # 구두점(P*), 기호(S*) 무시
         cat = unicodedata.category(char)
-        if cat.startswith('P') or cat.startswith('S'):
+        if cat.startswith("P") or cat.startswith("S"):
             continue
         # 한글 완성형 음절
         if is_hangul(char) and len(char) == 1:
@@ -125,10 +128,10 @@ def _get_last_valid_char(word: str) -> Optional[str]:
         # 숫자
         if char.isdigit():
             # 문자열 끝의 숫자(및 소수점) 추출
-            match = re.search(r'(\d+(\.\d+)?)$', word)
+            match = re.search(r"(\d+(\.\d+)?)$", word[: index + 1])
             if match:
                 num_str = match.group(1)
-                num = float(num_str) if '.' in num_str else int(num_str)
+                num = float(num_str) if "." in num_str else int(num_str)
                 hangul_num = number_to_hangul(num)
                 # 한글 변환 결과에서 뒤에서부터 한글 문자 검색
                 for ch in reversed(hangul_num):
@@ -139,6 +142,34 @@ def _get_last_valid_char(word: str) -> Optional[str]:
         # 그 외 문자(알파벳, 한자 등)는 받침 없는 것으로 간주
         return None
     return None
+
+
+def _has_ro_exception(last_char: Optional[str]) -> bool:
+    if not last_char or not is_hangul(last_char):
+        return False
+    char_index = ord(last_char) - HANGUL_BEGIN_UNICODE
+    return (char_index % JONGSUNG_COUNT) == 8  # ㄹ
+
+
+def josa_pick(word: str, particle: str) -> str:
+    """
+    단어에 붙일 조사 형태만 반환합니다.
+
+    :param word: 조사 판단에 사용할 단어
+    :param particle: 조사 쌍
+    :return: 선택된 조사
+    """
+    if particle not in JOSA_RULES:
+        raise ValueError(f"Unsupported particle: {particle}")
+
+    last_char = _get_last_valid_char(word)
+    jongsung_exists = has_jongsung(last_char) if last_char else False
+    with_jongsung, without_jongsung = JOSA_RULES[particle]
+
+    if particle.startswith("으로/") and _has_ro_exception(last_char):
+        return without_jongsung
+
+    return with_jongsung if jongsung_exists else without_jongsung
 
 
 def josa(word: str, particle: str) -> str:
@@ -165,17 +196,6 @@ def josa(word: str, particle: str) -> str:
     :return: 적절한 조사가 붙은 단어 문자열
     """
     if not word:
-        return ''
+        return ""
 
-    # Check if particle is in the rules table
-    if particle not in JOSA_RULES:
-        raise ValueError(f"Unsupported particle: {particle}")
-
-    last_char = _get_last_valid_char(word)
-    jongsung_exists = has_jongsung(last_char) if last_char else False
-
-    # Get the appropriate josa form from the rules table
-    with_jongsung, without_jongsung = JOSA_RULES[particle]
-    selected_josa = with_jongsung if jongsung_exists else without_jongsung
-
-    return word + selected_josa
+    return word + josa_pick(word, particle)
