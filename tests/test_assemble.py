@@ -72,6 +72,19 @@ class TestHangulAssemble:
         result = split_syllables("abc")
         assert result == ["a", "b", "c"]
 
+    def test_combine_vowels_join_on_fail(self):
+        assert combine_vowels("ㅗ", "ㅏ") == "ㅘ"
+        assert combine_vowels("ㅏ", "ㅗ") is None
+        assert combine_vowels("ㅏ", "ㅗ", join_on_fail=True) == "ㅏㅗ"
+
+    def test_disassemble_to_groups_decomposes_compound_jamo(self):
+        assert disassemble_to_groups("값괜찮아") == [
+            ["ㄱ", "ㅏ", "ㅂ", "ㅅ"],
+            ["ㄱ", "ㅗ", "ㅐ", "ㄴ"],
+            ["ㅊ", "ㅏ", "ㄴ", "ㅎ"],
+            ["ㅇ", "ㅏ"],
+        ]
+
     def test_es_hangul_style_core_helpers(self):
         """es-hangul 스타일 핵심 헬퍼 테스트"""
         assert combine_vowels("ㅗ", "ㅏ") == "ㅘ"

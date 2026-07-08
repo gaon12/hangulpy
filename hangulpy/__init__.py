@@ -1,7 +1,7 @@
 # hangulpy/__init__.py
 
 # Original functions
-from .chosung import chosungIncludes, get_chosung_string
+from .chosung import chosung_includes, chosungIncludes, get_chosung_string
 from .hangul_assemble import (
     assemble,
     combine_character,
@@ -57,7 +57,7 @@ from .hangul_typoerror import (
     koen,
 )
 from .is_hangul import is_hangul
-from .josa import has_jongsung, josa, josa_pick
+from .josa import has_batchim, has_jongsung, josa, josa_pick
 from .match_hangul_pattern import match_hangul_pattern
 from .noun import jarip_noun
 from .romanize import (
@@ -68,6 +68,7 @@ from .romanize import (
 __all__ = [
     # Original exports
     "chosungIncludes",
+    "chosung_includes",
     "get_chosung_string",
     "is_hangul_consonant",
     "is_hangul_vowel",
@@ -94,6 +95,7 @@ __all__ = [
     "convert_qwerty_to_hangul",
     "convert_qwerty_to_alphabet",
     "is_hangul",
+    "has_batchim",
     "has_jongsung",
     "josa",
     "josa_pick",

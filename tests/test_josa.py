@@ -2,7 +2,7 @@
 
 import pytest
 
-from hangulpy import has_jongsung, josa, josa_pick
+from hangulpy import has_batchim, has_jongsung, josa, josa_pick
 
 
 class TestJosa:
@@ -45,6 +45,19 @@ class TestJosa:
         assert not has_jongsung("가")
         assert has_jongsung("한")
         assert not has_jongsung("나")
+
+    def test_has_batchim_text_and_options(self):
+        assert has_jongsung("사과!") is False
+        assert has_jongsung("책!") is True
+        assert has_jongsung("값", only="double") is True
+        assert has_jongsung("각", only="single") is True
+        assert has_jongsung("값", only="single") is False
+        assert has_batchim("값", only="double") is True
+        assert has_batchim("사과") is False
+        assert has_batchim("버전 1.2)") is False
+
+        with pytest.raises(ValueError):
+            has_batchim("각", only="invalid")
 
     def test_unsupported_particle(self):
         """지원하지 않는 조사 테스트"""

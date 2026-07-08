@@ -2,10 +2,18 @@
 
 import re
 import unicodedata
-from typing import Optional
+from typing import Literal, Optional
 
 from hangulpy.hangul_number import number_to_hangul
-from hangulpy.utils import HANGUL_BEGIN_UNICODE, JONGSUNG_COUNT, is_hangul
+from hangulpy.utils import (
+    HANGUL_BEGIN_UNICODE,
+    JONGSUNG_COUNT,
+    JONGSUNG_DECOMPOSE,
+    JONGSUNG_LIST,
+    is_hangul,
+)
+
+BatchimKind = Literal["single", "double"]
 
 # Josa rules table: maps particle pattern to (with_jongsung, without_jongsung)
 JOSA_RULES = {
@@ -87,19 +95,14 @@ JOSA_RULES = {
 }
 
 
-def has_jongsung(char: str) -> bool:
+def has_jongsung(text: str, only: Optional[BatchimKind] = None) -> bool:
     """
     주어진 한글 음절에 받침이 있는지 확인합니다.
 
     :param char: 한글 음절 문자
     :return: 받침이 있으면 True, 없으면 False
     """
-    if not char:
-        return False
-    if is_hangul(char):
-        char_index = ord(char) - HANGUL_BEGIN_UNICODE
-        return (char_index % JONGSUNG_COUNT) != 0
-    return False
+    return has_batchim(text, only=only)
 
 
 def _get_last_valid_char(word: str) -> Optional[str]:
@@ -142,6 +145,45 @@ def _get_last_valid_char(word: str) -> Optional[str]:
         # 그 외 문자(알파벳, 한자 등)는 받침 없는 것으로 간주
         return None
     return None
+
+
+def _get_jongsung_char(char: str) -> Optional[str]:
+    if len(char) != 1 or not is_hangul(char):
+        return None
+
+    jongsung_index = (ord(char) - HANGUL_BEGIN_UNICODE) % JONGSUNG_COUNT
+    if jongsung_index == 0:
+        return ""
+
+    return JONGSUNG_LIST[jongsung_index]
+
+
+def _has_jongsung_char(char: str, only: Optional[BatchimKind] = None) -> bool:
+    jongsung = _get_jongsung_char(char)
+    if not jongsung:
+        return False
+    if only == "single":
+        return jongsung not in JONGSUNG_DECOMPOSE
+    if only == "double":
+        return jongsung in JONGSUNG_DECOMPOSE
+    return True
+
+
+def has_batchim(text: str, only: Optional[BatchimKind] = None) -> bool:
+    """
+    문자열의 마지막 유효 한글 음절에 받침이 있는지 확인합니다.
+
+    공백, 문장부호, 기호는 뒤에서부터 건너뛰고, 숫자는 한글 수사로 읽은 뒤
+    마지막 음절의 받침을 기준으로 판단합니다.
+    """
+    if only not in (None, "single", "double"):
+        raise ValueError("only must be one of None, 'single', or 'double'")
+
+    last_char = _get_last_valid_char(text)
+    if not last_char:
+        return False
+
+    return _has_jongsung_char(last_char, only=only)
 
 
 def _has_ro_exception(last_char: Optional[str]) -> bool:

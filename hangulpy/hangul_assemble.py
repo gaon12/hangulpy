@@ -87,7 +87,7 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
     return "".join(result)
 
 
-def combine_vowels(vowel1: str, vowel2: str) -> Optional[str]:
+def combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> Optional[str]:
     """
     두 모음을 결합해 복합 모음을 만듭니다.
 
@@ -95,7 +95,12 @@ def combine_vowels(vowel1: str, vowel2: str) -> Optional[str]:
     :param vowel2: 두 번째 모음
     :return: 결합 가능한 경우 복합 모음, 아니면 None
     """
-    return VOWEL_COMBO.get((vowel1, vowel2))
+    combined = VOWEL_COMBO.get((vowel1, vowel2))
+    if combined is not None:
+        return combined
+    if join_on_fail:
+        return vowel1 + vowel2
+    return None
 
 
 def combine_character(cho: str, jung: str, jong: str = "") -> str:

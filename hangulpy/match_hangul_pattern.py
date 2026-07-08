@@ -4,7 +4,22 @@ from typing import List
 from hangulpy.hangul_decompose import decompose_hangul_string
 
 
-def match_hangul_pattern(words: List[str], pattern: str) -> List[str]:
+def _compile_pattern(pattern: str, wildcard: bool, regex: bool) -> re.Pattern[str]:
+    if regex:
+        return re.compile(pattern)
+
+    escaped = re.escape(pattern)
+    if wildcard:
+        escaped = escaped.replace(r"\*", ".*")
+    return re.compile(escaped)
+
+
+def match_hangul_pattern(
+    words: List[str],
+    pattern: str,
+    wildcard: bool = True,
+    regex: bool = False,
+) -> List[str]:
     """
     주어진 단어 리스트에서 특정 초성, 중성, 종성 패턴에 매칭되는 단어를 찾습니다.
 
@@ -13,7 +28,7 @@ def match_hangul_pattern(words: List[str], pattern: str) -> List[str]:
     :return: 패턴에 매칭되는 단어 리스트
     """
     # 패턴을 정규식으로 변환
-    regex_pattern = re.compile(pattern.replace("*", ".*"))
+    regex_pattern = _compile_pattern(pattern, wildcard=wildcard, regex=regex)
 
     matched_words: List[str] = []
     for word in words:

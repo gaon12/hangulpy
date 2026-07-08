@@ -92,6 +92,10 @@ JONGSUNG_LIST = [
 ]
 JONGSUNG_COUNT = 28
 
+CHOSUNG_INDEX = {char: index for index, char in enumerate(CHOSUNG_LIST)}
+JUNGSUNG_INDEX = {char: index for index, char in enumerate(JUNGSUNG_LIST)}
+JONGSUNG_INDEX = {char: index for index, char in enumerate(JONGSUNG_LIST)}
+
 # [3] 복합 자모 분해 및 결합 정보
 
 # 복합 중성 분해 정보
@@ -364,6 +368,9 @@ def is_hangul(text: str, spaces: bool = False) -> bool:
     :param spaces: True인 경우 띄어쓰기도 한글로 허용합니다.
     :return: 모든 문자가 한글(또는 spaces True 시 띄어쓰기 포함)이면 True, 그렇지 않으면 False.
     """
+    if not text:
+        return False
+
     for char in text:
         if char == " " and spaces:
             continue
@@ -383,16 +390,16 @@ def compose_syllable(cho: str, jung: str, jong: str = "") -> str:
     :return: 완성형 한글 음절 (예: '간')
     :raises Exception: 유효하지 않은 자모 입력 시 예외 발생
     """
-    if cho not in CHOSUNG_LIST:
+    if cho not in CHOSUNG_INDEX:
         raise Exception(f"Error: '{cho}' is not a valid initial consonant.")
-    if jung not in JUNGSUNG_LIST:
+    if jung not in JUNGSUNG_INDEX:
         raise Exception(f"Error: '{jung}' is not a valid medial vowel.")
-    if jong and jong not in JONGSUNG_LIST:
+    if jong and jong not in JONGSUNG_INDEX:
         raise Exception(f"Error: '{jong}' is not a valid final consonant.")
 
-    cho_index = CHOSUNG_LIST.index(cho)
-    jung_index = JUNGSUNG_LIST.index(jung)
-    jong_index = JONGSUNG_LIST.index(jong) if jong else 0
+    cho_index = CHOSUNG_INDEX[cho]
+    jung_index = JUNGSUNG_INDEX[jung]
+    jong_index = JONGSUNG_INDEX[jong] if jong else 0
 
     code = HANGUL_BEGIN_UNICODE + (cho_index * 21 + jung_index) * 28 + jong_index
     return chr(code)
