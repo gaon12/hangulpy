@@ -33,3 +33,10 @@ def chosungIncludes(word: str, pattern: str) -> bool:
     """
     word_chosung = "".join(extract_chosung(c) for c in word if is_hangul(c))
     return pattern in word_chosung
+
+
+def chosung_includes(word: str, pattern: str) -> bool:
+    """
+    ``chosungIncludes`` 의 Python 스타일 별칭입니다.
+    """
+    return chosungIncludes(word, pattern)

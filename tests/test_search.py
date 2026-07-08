@@ -2,14 +2,19 @@
 
 from hangulpy import (
     HangulSearcher,
+    chosung_includes,
     hangul_contains,
     hangul_search,
     hangul_search_all,
+    match_hangul_pattern,
 )
 
 
 class TestHangulSearch:
     """한글 검색 기능 테스트"""
+
+    def test_chosung_includes_alias(self):
+        assert chosung_includes("사과", "ㅅㄱ")
 
     def test_hangul_contains_basic(self):
         """기본 포함 여부 테스트"""
@@ -82,3 +87,14 @@ class TestHangulSearch:
 
         assert searcher.search("사과")
         assert searcher.find_index("사과") == 0
+
+    def test_match_hangul_pattern_wildcard_escapes_regex_chars(self):
+        words = ["가구", "가방", "나무", "("]
+
+        assert match_hangul_pattern(words, "ㄱ*") == ["가구", "가방"]
+        assert match_hangul_pattern(words, "(") == ["("]
+
+    def test_match_hangul_pattern_regex_mode(self):
+        words = ["가구", "가방", "나무"]
+
+        assert match_hangul_pattern(words, r"ㄱㅏ(ㄱㅜ|ㅂㅏㅇ)", regex=True) == ["가구", "가방"]

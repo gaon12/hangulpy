@@ -7,6 +7,7 @@ from hangulpy import (
     get_jungsung,
     is_chosung,
     is_complete_hangul,
+    is_hangul,
     is_jongsung,
     is_jungsung,
 )
@@ -23,6 +24,9 @@ class TestHangulProperties:
         assert not is_complete_hangul("ㅏ")
         assert not is_complete_hangul("a")
         assert not is_complete_hangul("")
+
+    def test_is_hangul_empty_string(self):
+        assert not is_hangul("")
 
     def test_is_chosung(self):
         """초성 확인 테스트"""
