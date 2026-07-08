@@ -1,0 +1,20 @@
+---
+title: v1.4.0 릴리즈 노트
+description: hangulpy 1.4.0 릴리즈 노트
+---
+
+## 주요 변경
+
+- `standardize_pronunciation`을 추가해 주요 표준 발음 규칙을 반영한 한글 표기로 변환할 수 있습니다.
+- `has_batchim`을 추가하고 `has_jongsung`이 문자열의 마지막 유효 한글 음절을 기준으로 동작하도록 개선했습니다.
+- `has_jongsung`과 `has_batchim`에 `only="single"` 및 `only="double"` 옵션을 추가했습니다.
+- `match_hangul_pattern`은 기본적으로 `*`만 와일드카드로 처리하고, 정규식은 `regex=True`를 명시해야 사용하도록 안전하게 바꿨습니다.
+- `combine_vowels`에 결합 실패 시 두 모음을 이어 반환하는 `join_on_fail` 옵션을 추가했습니다.
+- `is_hangul("")`이 `False`를 반환하도록 수정했습니다.
+- `chosungIncludes`의 Python 스타일 별칭인 `chosung_includes`를 추가했습니다.
+
+## 문서와 품질
+
+- 문서 URL에서 `/docs` prefix가 붙어 404가 나던 라우팅 구성을 수정했습니다.
+- 표준 발음 변환, 받침 판별 옵션, 패턴 검색 옵션, 복합 자모 분해 계약을 문서에 추가했습니다.
+- 자모 조합 내부에서 반복 인덱스 탐색을 줄이도록 작은 최적화를 적용했습니다.
