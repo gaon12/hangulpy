@@ -37,65 +37,66 @@
       {
         "group": "소개",
         "pages": [
-          "docs/index",
-          "docs/installation",
-          "docs/quickstart",
-          "docs/api/overview"
+          "index",
+          "installation",
+          "quickstart",
+          "api/overview"
         ]
       },
       {
         "group": "검색과 매칭",
         "pages": [
-          "docs/api/search/get-chosung",
-          "docs/api/search/hangul-contains",
-          "docs/api/search/hangul-search",
-          "docs/api/search/hangul-searcher",
-          "docs/api/search/match-hangul-pattern"
+          "api/search/get-chosung",
+          "api/search/hangul-contains",
+          "api/search/hangul-search",
+          "api/search/hangul-searcher",
+          "api/search/match-hangul-pattern"
         ]
       },
       {
         "group": "조사와 받침",
         "pages": [
-          "docs/api/particles/josa",
-          "docs/api/particles/batchim",
-          "docs/api/particles/jarip-noun"
+          "api/particles/josa",
+          "api/particles/batchim",
+          "api/particles/jarip-noun"
         ]
       },
       {
         "group": "한글 판별과 추출",
         "pages": [
-          "docs/api/properties/is-hangul",
-          "docs/api/properties/syllable-types",
-          "docs/api/properties/jamo-roles",
-          "docs/api/properties/get-components"
+          "api/properties/is-hangul",
+          "api/properties/syllable-types",
+          "api/properties/jamo-roles",
+          "api/properties/get-components"
         ]
       },
       {
         "group": "분해와 조합",
         "pages": [
-          "docs/api/assembly/decompose-hangul-string",
-          "docs/api/assembly/split-hangul-string",
-          "docs/api/assembly/split-syllables",
-          "docs/api/assembly/join-jamos",
-          "docs/api/assembly/hangul-syllable"
+          "api/assembly/decompose-hangul-string",
+          "api/assembly/split-hangul-string",
+          "api/assembly/split-syllables",
+          "api/assembly/join-jamos",
+          "api/assembly/hangul-syllable"
         ]
       },
       {
         "group": "변환과 정렬",
         "pages": [
-          "docs/api/conversions/number-to-hangul",
-          "docs/api/conversions/hangul-to-number",
-          "docs/api/conversions/romanize",
-          "docs/api/conversions/keyboard",
-          "docs/api/conversions/sort-hangul"
+          "api/conversions/number-to-hangul",
+          "api/conversions/hangul-to-number",
+          "api/conversions/romanize",
+          "api/conversions/keyboard",
+          "api/conversions/sort-hangul",
+          "api/conversions/standardize-pronunciation"
         ]
       },
       {
         "group": "참고 자료",
         "pages": [
-          "docs/implemented-features",
-          "docs/releases/v1-3-2",
-          "docs/releases/v1-3-1"
+          "implemented-features",
+          "releases/v1-3-2",
+          "releases/v1-3-1"
         ]
       }
     ]

@@ -12,6 +12,7 @@ is_hangul(text: str, spaces: bool = False) -> bool
 ```
 
 `spaces` 를 생략하면 기본값은 `False` 이고, 공백이 포함된 문자열은 `False` 로 판정합니다.
+빈 문자열은 한글 문자열로 보지 않으므로 `False` 를 반환합니다.
 
 ### 예시
 
@@ -21,6 +22,7 @@ from hangulpy import is_hangul
 print(is_hangul("반가워요"))  # True
 print(is_hangul("안녕 하세요"))  # False
 print(is_hangul("안녕 하세요", spaces=True))  # True
+print(is_hangul(""))  # False
 ```
 
 ## is_hangul_consonant

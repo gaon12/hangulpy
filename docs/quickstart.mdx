@@ -58,10 +58,11 @@ print(remove_last_character("전화"))  # 전호
 ## 5. 변환 기능
 
 ```python
-from hangulpy import autofix, convert_qwerty_to_hangul, number_to_hangul, number_to_hangul_mixed, romanize
+from hangulpy import autofix, convert_qwerty_to_hangul, number_to_hangul, number_to_hangul_mixed, romanize, standardize_pronunciation
 
 print(romanize("한글", "revised"))  # hangeul
 print(romanize("오죽헌", "revised", mode="proper", capitalize=True))  # Ojukheon
+print(standardize_pronunciation("굳이"))  # 구지
 print(number_to_hangul(1234))  # 천이백삼십사
 print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
 print(convert_qwerty_to_hangul("ABC"))  # 뮻

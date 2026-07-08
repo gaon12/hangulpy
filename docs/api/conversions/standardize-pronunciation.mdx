@@ -1,0 +1,44 @@
+---
+title: 표준 발음 변환 (standardize_pronunciation)
+description: 주요 표준 발음 규칙을 반영한 한글 표기로 변환
+---
+
+`standardize_pronunciation`은 한글 문자열에 자주 쓰이는 표준 발음 규칙을 적용해 발음에 가까운 한글 표기로 변환합니다.
+
+```python
+standardize_pronunciation(text: str) -> str
+```
+
+## 처리하는 규칙
+
+- 연음
+- 구개음화
+- ㅎ 축약과 거센소리되기
+- 비음화
+- 유음화
+- ㄴ 첨가
+- 겹받침 단순화
+- 된소리되기 일부
+- 자주 쓰이는 예외
+
+## 예시
+
+```python
+from hangulpy import standardize_pronunciation
+
+print(standardize_pronunciation("굳이"))  # 구지
+print(standardize_pronunciation("같이"))  # 가치
+print(standardize_pronunciation("놓고"))  # 노코
+print(standardize_pronunciation("담요"))  # 담뇨
+print(standardize_pronunciation("신라"))  # 실라
+print(standardize_pronunciation("읽고"))  # 일꼬
+```
+
+## 참고
+
+표준 발음은 예외와 어휘 의존성이 큰 영역입니다. 이 함수는 일반적인 규칙과 대표 예외를 다루며, 모든 사전식 발음을 완전히 대체하지는 않습니다.
+
+## 같이 보기
+
+- [romanize](romanize)
+- [keyboard](keyboard)

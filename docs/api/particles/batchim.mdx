@@ -1,23 +1,29 @@
 ---
-title: 받침 판별 (has_jongsung, ends_with_consonant)
-description: 받침 유무와 자음 끝 여부 확인
+title: 받침 판별 (has_jongsung, has_batchim, ends_with_consonant)
+description: 문자열의 마지막 한글 음절 받침과 자음 끝 여부 확인
 ---
 
-## has_jongsung
+## has_jongsung / has_batchim
 
-완성형 한글 음절에 받침이 있는지 확인합니다.
+문자열의 마지막 유효 한글 음절에 받침이 있는지 확인합니다. `has_batchim`은 `has_jongsung`과 같은 동작을 하는 별칭입니다.
 
 ```python
-has_jongsung(char: str) -> bool
+has_jongsung(text: str, only: "single" | "double" | None = None) -> bool
+has_batchim(text: str, only: "single" | "double" | None = None) -> bool
 ```
+
+`only="single"`은 홑받침만, `only="double"`은 겹받침만 확인합니다.
 
 ### 예시
 
 ```python
-from hangulpy import has_jongsung
+from hangulpy import has_batchim, has_jongsung
 
 print(has_jongsung("각"))  # True
 print(has_jongsung("가"))  # False
+print(has_jongsung("책!"))  # True
+print(has_batchim("값", only="double"))  # True
+print(has_batchim("각", only="single"))  # True
 ```
 
 ## ends_with_consonant
@@ -40,7 +46,7 @@ print(ends_with_consonant("ㄱ"))  # True
 
 ## 차이점
 
-- `has_jongsung` 은 완성형 음절의 받침 여부에 초점이 있습니다.
+- `has_jongsung` 과 `has_batchim` 은 문자열의 마지막 유효 한글 음절을 기준으로 받침을 확인합니다.
 - `ends_with_consonant` 는 자모 입력까지 함께 다룰 때 편합니다.
 
 ## 같이 보기
