@@ -6,8 +6,16 @@ description: 한글 패턴으로 단어 목록 필터링
 목록 안에서 패턴에 맞는 단어만 골라냅니다.
 
 ```python
-match_hangul_pattern(words: list[str], pattern: str) -> list[str]
+match_hangul_pattern(
+    words: list[str],
+    pattern: str,
+    wildcard: bool = True,
+    regex: bool = False,
+) -> list[str]
 ```
+
+기본값에서는 `*` 만 와일드카드로 처리하고 나머지 정규식 메타 문자는 문자 그대로 검색합니다.
+정규식을 직접 쓰려면 `regex=True` 를 명시합니다.
 
 ## 예시
 
@@ -18,9 +26,11 @@ words = ["가구", "나무", "가방"]
 
 print(match_hangul_pattern(words, "ㄱ*"))  # ['가구', '가방']
 print(match_hangul_pattern(words, "*ㅜ"))  # ['가구', '나무']
+print(match_hangul_pattern(["("], "("))  # ['(']
+print(match_hangul_pattern(words, r"ㄱㅏ(ㄱㅜ|ㅂㅏㅇ)", regex=True))  # ['가구', '가방']
 ```
 
-`*` 는 와일드카드처럼 동작합니다.
+`wildcard=False` 를 넘기면 `*` 도 문자 그대로 검색합니다.
 
 ## 같이 보기
 
