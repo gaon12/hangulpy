@@ -1,10 +1,10 @@
 import re
-from typing import List
+from typing import List, Pattern
 
 from hangulpy.hangul_decompose import decompose_hangul_string
 
 
-def _compile_pattern(pattern: str, wildcard: bool, regex: bool) -> re.Pattern[str]:
+def _compile_pattern(pattern: str, wildcard: bool, regex: bool) -> Pattern[str]:
     if regex:
         return re.compile(pattern)
 
