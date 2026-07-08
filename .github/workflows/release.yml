@@ -11,17 +11,38 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
   inspect-release:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
+      ci_passed: ${{ steps.ci.outputs.ci_passed }}
       should_release: ${{ steps.release.outputs.should_release }}
       version: ${{ steps.release.outputs.version }}
 
     steps:
+      - name: Verify CI succeeded for this commit
+        id: ci
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          WORKFLOW_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
+            conclusion="${WORKFLOW_RUN_CONCLUSION}"
+          else
+            conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${TARGET_SHA}&status=completed&per_page=1" --jq '.workflow_runs[0].conclusion // "missing"')"
+          fi
+
+          if [[ "${conclusion}" == "success" ]]; then
+            echo "ci_passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ci_passed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -70,7 +91,7 @@ jobs:
 
   publish:
     needs: inspect-release
-    if: needs.inspect-release.outputs.should_release == 'true'
+    if: needs.inspect-release.outputs.ci_passed == 'true' && needs.inspect-release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -78,6 +99,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
