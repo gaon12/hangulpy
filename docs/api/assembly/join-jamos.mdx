@@ -21,10 +21,11 @@ assemble(jamos: list[str] | str) -> str
 
 ## combine_vowels
 
-두 모음을 복합 모음으로 결합합니다. 결합할 수 없으면 `None` 을 반환합니다.
+두 모음을 복합 모음으로 결합합니다. 결합할 수 없으면 기본적으로 `None` 을 반환합니다.
+`join_on_fail=True` 를 넘기면 결합할 수 없는 두 모음을 그대로 이어서 반환합니다.
 
 ```python
-combine_vowels(vowel1: str, vowel2: str) -> str | None
+combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> str | None
 ```
 
 ## combine_character
@@ -37,7 +38,7 @@ combine_character(cho: str, jung: str, jong: str = "") -> str
 
 ## disassemble_to_groups
 
-문자열을 글자별 자모 그룹으로 분해합니다.
+문자열을 글자별 자모 그룹으로 분해합니다. 겹받침과 복합 모음은 가능한 가장 작은 자모 단위로 확실히 풀어서 반환합니다.
 
 ```python
 disassemble_to_groups(text: str) -> list[list[str]]
@@ -80,6 +81,17 @@ print(combine_character("ㄱ", "ㅏ", "ㅂ"))  # 갑
 print(disassemble_to_groups("사과"))  # [["ㅅ", "ㅏ"], ["ㄱ", "ㅗ", "ㅏ"]]
 print(disassemble_complete_character("값"))  # {"choseong": "ㄱ", "jungseong": "ㅏ", "jongseong": "ㅂㅅ"}
 print(remove_last_character("전화"))  # 전호
+```
+
+## 추가 예시
+
+```python
+from hangulpy import combine_vowels, disassemble_to_groups
+
+print(combine_vowels("ㅏ", "ㅗ"))  # None
+print(combine_vowels("ㅏ", "ㅗ", join_on_fail=True))  # ㅏㅗ
+print(disassemble_to_groups("값괜찮아"))
+# [["ㄱ", "ㅏ", "ㅂ", "ㅅ"], ["ㄱ", "ㅗ", "ㅐ", "ㄴ"], ["ㅊ", "ㅏ", "ㄴ", "ㅎ"], ["ㅇ", "ㅏ"]]
 ```
 
 ## 같이 보기
