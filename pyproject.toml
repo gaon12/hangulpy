@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hangulpy"
-version = "1.4.0"
+version = "1.4.1"
 description = "A comprehensive Python library for Korean language processing, inspired by es-hangul"
 readme = "README.md"
 # Keep the legacy table while Python 3.8 requires setuptools<77; use "MIT"
