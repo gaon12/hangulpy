@@ -64,6 +64,7 @@ from .hangul_properties import (
     is_jongsung,
     is_jungsung,
 )
+from .hangul_replace import hangul_partition, hangul_replace, hangul_rpartition, hangul_split
 from .hangul_role import can_be_chosung, can_be_jongsung
 from .hangul_sort import sort_hangul
 from .hangul_split import split_hangul_string
@@ -106,6 +107,10 @@ __all__ = [
     "hangul_similarity",
     "HangulIndex",
     "HangulSearchResult",
+    "hangul_replace",
+    "hangul_split",
+    "hangul_partition",
+    "hangul_rpartition",
     "map_hangul",
     "is_hanja",
     "split_hanja",

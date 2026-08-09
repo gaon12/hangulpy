@@ -1,0 +1,55 @@
+---
+title: 한글 인식 치환과 분할
+description: 초성·자모 패턴으로 원문을 치환하고 나누는 API
+---
+
+## `hangul_replace`
+
+`hangul_replace(text, pattern, replacement, count=-1)`는 `hangul_contains`와 같은 한글 인식 규칙으로 찾은 원문 구간을 치환합니다. `replacement`에는 문자열이나 `HangulMatch`를 받는 함수를 전달할 수 있습니다.
+
+```python
+from hangulpy import hangul_replace
+
+hangul_replace("가나다가", "ㄱ", "X")
+# "X나다X"
+
+hangul_replace(
+    "가나다가",
+    "ㄱ",
+    lambda match: f"<{match.text}:{match.start}>",
+    count=1,
+)
+# "<가:0>나다가"
+```
+
+치환하지 않은 부분은 원문 그대로 유지됩니다. 따라서 NFD로 입력한 텍스트도 매치 바깥에서 NFC로 강제 변환되지 않습니다. 부분 자모 패턴이 음절에 매치되면 그 음절의 원문 구간 전체가 치환됩니다.
+
+## `hangul_split`
+
+`hangul_split(text, pattern, maxsplit=-1)`는 같은 매칭 규칙으로 문자열을 나눕니다.
+
+```python
+from hangulpy import hangul_split
+
+hangul_split("가나다가", "ㄱ")
+# ["", "나다", ""]
+
+hangul_split("가나다가", "ㄱ", maxsplit=1)
+# ["", "나다가"]
+```
+
+## `hangul_partition`, `hangul_rpartition`
+
+두 함수는 각각 첫 번째 또는 마지막 매치를 기준으로 `(앞, 매치, 뒤)` 튜플을 반환합니다. 매치가 없을 때의 결과는 Python `str.partition`, `str.rpartition`과 같습니다.
+
+```python
+from hangulpy import hangul_partition, hangul_rpartition
+
+hangul_partition("가나다가", "ㄱ")
+# ("", "가", "나다가")
+
+hangul_rpartition("가나다가", "ㄱ")
+# ("가나다", "가", "")
+```
+
+빈 패턴은 무한 매치처럼 해석하지 않고 `ValueError`를 발생시킵니다. `count`와 `maxsplit`은 `-1` 또는 0 이상의 정수여야 합니다.

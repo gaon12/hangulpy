@@ -50,6 +50,7 @@
           "api/search/hangul-contains",
           "api/search/hangul-search",
           "api/search/hangul-searcher",
+          "api/search/hangul-replace",
           "api/search/fuzzy-search",
           "api/search/match-hangul-pattern"
         ]
