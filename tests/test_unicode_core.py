@@ -4,8 +4,12 @@ import pytest
 
 from hangulpy import (
     can_be_jongsung,
+    can_be_jungsung,
     disassemble,
     ends_with_consonant,
+    extract_chosung,
+    extract_jongsung,
+    extract_jungsung,
     get_hangul_components,
     hangul_contains,
     hangul_search,
@@ -89,3 +93,31 @@ def test_properties_and_search_accept_nfd():
 
 def test_empty_string_is_not_a_jongsung():
     assert not can_be_jongsung("")
+
+
+def test_jamo_role_checks_accept_composed_and_decomposed_medials_and_finals():
+    assert can_be_jungsung("ㅏ")
+    assert can_be_jungsung("ㅘ")
+    assert can_be_jungsung("ㅗㅏ")
+    assert can_be_jungsung("ᅩᅡ")
+    assert not can_be_jungsung("ㅏㅗ")
+    assert not can_be_jungsung("ㄱㅅ")
+
+    assert can_be_jongsung("ㄱ")
+    assert can_be_jongsung("ㄳ")
+    assert can_be_jongsung("ㄱㅅ")
+    assert can_be_jongsung("ᆨᆺ")
+    assert not can_be_jongsung("ㄱㄱ")
+
+
+def test_extract_components_from_complete_nfd_and_mixed_text():
+    nfd = unicodedata.normalize("NFD", "한글")
+
+    assert extract_chosung("한글") == "ㅎㄱ"
+    assert extract_chosung(nfd) == "ㅎㄱ"
+    assert extract_jungsung("사과") == "ㅏㅘ"
+    assert extract_jungsung("띄어 쓰기") == "ㅢㅓ ㅡㅣ"
+    assert extract_jongsung("한글") == "ㄴㄹ"
+    assert extract_jongsung("값 사과") == "ㅄ "
+    assert extract_jongsung("ㄴㅈ") == ""
+    assert extract_chosung("A한!", keep_non_hangul=True) == "Aㅎ!"

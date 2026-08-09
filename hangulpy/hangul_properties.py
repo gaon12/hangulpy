@@ -1,12 +1,16 @@
 # hangul_properties.py
 # Advanced character property checking functions
 
-from typing import Optional, Tuple
+import unicodedata
+from typing import List, Optional, Tuple
 
 from hangulpy.utils import (
     CHOSUNG_INDEX,
+    CHOSUNG_LIST,
     JONGSUNG_INDEX,
+    JONGSUNG_LIST,
     JUNGSUNG_INDEX,
+    JUNGSUNG_LIST,
     decompose_syllable,
     is_complete_hangul_char,
 )
@@ -140,3 +144,62 @@ def get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
     if composed is None:
         return None
     return decompose_syllable(composed)
+
+
+def _keep_extraction_separator(char: str, keep_non_hangul: bool) -> bool:
+    if char.isspace():
+        return True
+    code = ord(char)
+    is_modern_jamo = (
+        0x1100 <= code <= 0x1112
+        or 0x1161 <= code <= 0x1175
+        or 0x11A8 <= code <= 0x11C2
+        or char in CHOSUNG_INDEX
+        or char in JUNGSUNG_INDEX
+        or char in JONGSUNG_INDEX
+    )
+    return keep_non_hangul and not is_modern_jamo
+
+
+def extract_chosung(text: str, *, keep_non_hangul: bool = False) -> str:
+    """Extract initial consonants from every Hangul syllable in *text*.
+
+    Whitespace and standalone compatibility choseong are retained. Other text
+    is retained only when ``keep_non_hangul`` is true.
+    """
+    result: List[str] = []
+    for char in unicodedata.normalize("NFD", text):
+        code = ord(char)
+        if 0x1100 <= code <= 0x1112:
+            result.append(CHOSUNG_LIST[code - 0x1100])
+        elif char in CHOSUNG_INDEX:
+            result.append(char)
+        elif _keep_extraction_separator(char, keep_non_hangul):
+            result.append(char)
+    return "".join(result)
+
+
+def extract_jungsung(text: str, *, keep_non_hangul: bool = False) -> str:
+    """Extract medial vowels from every Hangul syllable in *text*."""
+    result: List[str] = []
+    for char in unicodedata.normalize("NFD", text):
+        code = ord(char)
+        if 0x1161 <= code <= 0x1175:
+            result.append(JUNGSUNG_LIST[code - 0x1161])
+        elif char in JUNGSUNG_INDEX:
+            result.append(char)
+        elif _keep_extraction_separator(char, keep_non_hangul):
+            result.append(char)
+    return "".join(result)
+
+
+def extract_jongsung(text: str, *, keep_non_hangul: bool = False) -> str:
+    """Extract final consonants from every Hangul syllable in *text*."""
+    result: List[str] = []
+    for char in unicodedata.normalize("NFD", text):
+        code = ord(char)
+        if 0x11A8 <= code <= 0x11C2:
+            result.append(JONGSUNG_LIST[code - 0x11A7])
+        elif _keep_extraction_separator(char, keep_non_hangul):
+            result.append(char)
+    return "".join(result)

@@ -55,6 +55,9 @@ from .hangul_pronunciation import (
 
 # New enhanced functions
 from .hangul_properties import (
+    extract_chosung,
+    extract_jongsung,
+    extract_jungsung,
     get_chosung,
     get_hangul_components,
     get_jongsung,
@@ -65,7 +68,7 @@ from .hangul_properties import (
     is_jungsung,
 )
 from .hangul_replace import hangul_partition, hangul_replace, hangul_rpartition, hangul_split
-from .hangul_role import can_be_chosung, can_be_jongsung
+from .hangul_role import can_be_chosung, can_be_jongsung, can_be_jungsung
 from .hangul_sort import sort_hangul
 from .hangul_split import split_hangul_string
 from .hangul_syllable import hangul_syllable
@@ -133,6 +136,7 @@ __all__ = [
     "to_jamo",
     "to_compat_jamo",
     "can_be_chosung",
+    "can_be_jungsung",
     "can_be_jongsung",
     "sort_hangul",
     "split_hangul_string",
@@ -164,6 +168,9 @@ __all__ = [
     "get_jungsung",
     "get_jongsung",
     "get_hangul_components",
+    "extract_chosung",
+    "extract_jungsung",
+    "extract_jongsung",
     "standardize_pronunciation",
     "PronunciationResult",
     "PronunciationRuleStep",
