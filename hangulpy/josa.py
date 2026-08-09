@@ -149,6 +149,13 @@ def _get_last_valid_char(word: str) -> Optional[str]:
     :param word: 조사 판단에 사용할 단어 문자열
     :return: 한글 음절 문자(종성 기준), 숫자 변환 후 한글 음절, 혹은 None
     """
+    if not word:
+        return None
+
+    char = word[-1]
+    if is_complete_hangul_char(char):
+        return char
+
     end = len(word)
     while end:
         char = word[end - 1]
@@ -194,14 +201,17 @@ def _number_last_char(number_text: str) -> Optional[str]:
 
 
 def _get_jongsung_char(char: str) -> Optional[str]:
-    normalized = char if is_complete_hangul_char(char) else normalize_hangul(char, "NFC")
+    if len(char) == 1:
+        code = ord(char)
+        if HANGUL_BEGIN_UNICODE <= code <= 0xD7A3:
+            jongsung_index = (code - HANGUL_BEGIN_UNICODE) % JONGSUNG_COUNT
+            return JONGSUNG_LIST[jongsung_index]
+
+    normalized = normalize_hangul(char, "NFC")
     if not is_complete_hangul_char(normalized):
         return None
 
     jongsung_index = (ord(normalized) - HANGUL_BEGIN_UNICODE) % JONGSUNG_COUNT
-    if jongsung_index == 0:
-        return ""
-
     return JONGSUNG_LIST[jongsung_index]
 
 
@@ -233,12 +243,6 @@ def has_batchim(text: str, only: Optional[BatchimKind] = None) -> bool:
     return _has_jongsung_char(last_char, only=only)
 
 
-def _has_ro_exception(last_char: Optional[str]) -> bool:
-    if not last_char:
-        return False
-    return _get_jongsung_char(last_char) == "ㄹ"
-
-
 def josa_pick(word: str, particle: str) -> str:
     """
     단어에 붙일 조사 형태만 반환합니다.
@@ -252,13 +256,13 @@ def josa_pick(word: str, particle: str) -> str:
         raise ValueError(f"Unsupported particle: {particle}")
 
     last_char = _get_last_valid_char(word)
-    jongsung_exists = _has_jongsung_char(last_char) if last_char else False
+    jongsung = _get_jongsung_char(last_char) if last_char else None
     with_jongsung, without_jongsung = rule
 
-    if particle.startswith("으로/") and _has_ro_exception(last_char):
+    if particle.startswith("으로/") and jongsung == "ㄹ":
         return without_jongsung
 
-    return with_jongsung if jongsung_exists else without_jongsung
+    return with_jongsung if jongsung else without_jongsung
 
 
 def josa(word: str, particle: str) -> str:
