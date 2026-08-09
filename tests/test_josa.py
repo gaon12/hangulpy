@@ -1,8 +1,10 @@
 # tests/test_josa.py
 
+import unicodedata
+
 import pytest
 
-from hangulpy import has_batchim, has_jongsung, josa, josa_pick
+from hangulpy import has_batchim, has_jongsung, jarip_noun, josa, josa_pick
 
 
 class TestJosa:
@@ -83,3 +85,14 @@ class TestJosa:
     def test_number_with_trailing_punctuation(self):
         """문장부호 뒤 숫자 조사 판단 테스트"""
         assert josa("버전 1.2)", "이/가") == "버전 1.2)가"
+
+    def test_formatted_and_high_precision_numbers(self):
+        assert josa("1,000,000,000,000", "이/가") == "1,000,000,000,000가"
+        assert josa("1.0000000000000000002", "이/가") == "1.0000000000000000002가"
+
+    def test_nfd_batchim_and_nieun_exception(self):
+        nfd_gak = unicodedata.normalize("NFD", "각")
+        assert has_batchim(nfd_gak)
+        assert josa(nfd_gak, "이/가").endswith("이")
+        assert jarip_noun("백분", "율/률") == "백분율"
+        assert jarip_noun("합격", "율/률") == "합격률"

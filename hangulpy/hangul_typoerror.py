@@ -1,7 +1,9 @@
 # hangul_typoerror.py
 
-from typing import List, Optional, TypedDict
+import unicodedata
+from typing import List, Optional, TypedDict, overload
 
+from hangulpy._deprecated import resolve_legacy_bool
 from hangulpy.utils import (
     CHOSUNG_LIST,
     COMPOUND_FINAL_DECOMP,
@@ -26,14 +28,36 @@ class _EnkoState(TypedDict):
     jong_combined: bool
 
 
-def enko(eng_text: str, allowDoubleConsonant: bool = False) -> str:
+_LEGACY_DOUBLE_CONSONANT = "allowDoubleConsonant"
+
+
+@overload
+def enko(eng_text: str, allow_double_consonant: bool = False) -> str: ...
+
+
+@overload
+def enko(eng_text: str, *, allowDoubleConsonant: bool) -> str: ...
+
+
+def enko(
+    eng_text: str,
+    allow_double_consonant: Optional[bool] = None,
+    **legacy_kwargs: object,
+) -> str:
     """
     영문 키보드 입력값을 한글 자모 조합으로 변환합니다.
 
     :param eng_text: 변환할 영문 문자열
-    :param allowDoubleConsonant: 두 개의 초성 결합(쌍자음) 허용 여부
+    :param allow_double_consonant: 두 개의 초성 결합(쌍자음) 허용 여부
     :return: 한글 자판 입력 문자열
     """
+    allow_double = resolve_legacy_bool(
+        allow_double_consonant,
+        legacy_kwargs,
+        _LEGACY_DOUBLE_CONSONANT,
+        "allow_double_consonant",
+    )
+
     result: List[str] = []
     state: _EnkoState = {"cho": None, "jung": None, "jong": "", "jong_combined": False}
 
@@ -76,42 +100,53 @@ def enko(eng_text: str, allowDoubleConsonant: bool = False) -> str:
             i += 1
 
         if token in JUNGSUNG_LIST:
+            current_jung = state["jung"]
             if state["cho"] is None:
                 # 중성이 들어왔는데 초성이 없으면 기본 초성 'ㅇ' 사용
                 state["cho"] = "ㅇ"
                 state["jung"] = token
-            elif state["jung"] is None:
+            elif current_jung is None:
                 state["jung"] = token
             elif state["jong"]:
-                # ★ 최종 자음이 있으면 우선 flush하여 최종 자음을 새 음절의 초성으로 이동
-                temp = state["jong"]
+                # 겹받침은 첫 자음만 받침으로 남기고 둘째 자음을 다음 초성으로 옮긴다.
+                current_jong = state["jong"]
                 assert state["cho"] is not None
-                assert state["jung"] is not None
-                syll = compose_syllable(state["cho"], state["jung"], "")
+                if state["jong_combined"] and current_jong in COMPOUND_FINAL_DECOMP:
+                    remaining_jong, next_cho = COMPOUND_FINAL_DECOMP[current_jong]
+                else:
+                    remaining_jong, next_cho = "", current_jong
+                syll = compose_syllable(state["cho"], current_jung, remaining_jong)
                 result.append(syll)
-                state = {"cho": temp, "jung": token, "jong": "", "jong_combined": False}
-            elif state["jung"] is not None and (state["jung"], token) in VOWEL_COMBO:
-                jung = state["jung"]
-                state["jung"] = VOWEL_COMBO[(jung, token)]
+                state = {
+                    "cho": next_cho,
+                    "jung": token,
+                    "jong": "",
+                    "jong_combined": False,
+                }
+            elif (current_jung, token) in VOWEL_COMBO:
+                state["jung"] = VOWEL_COMBO[(current_jung, token)]
             else:
                 assert state["cho"] is not None
-                assert state["jung"] is not None
-                syll = compose_syllable(state["cho"], state["jung"], "")
+                syll = compose_syllable(state["cho"], current_jung, "")
                 result.append(syll)
                 state = {"cho": "ㅇ", "jung": token, "jong": "", "jong_combined": False}
         else:  # token이 자음인 경우
             if state["cho"] is None:
                 state["cho"] = token
             elif state["jung"] is None:
-                if allowDoubleConsonant and (state["cho"], token) in DOUBLE_INITIAL_MAP:
+                if allow_double and (state["cho"], token) in DOUBLE_INITIAL_MAP:
                     state["cho"] = DOUBLE_INITIAL_MAP[(state["cho"], token)]
                 else:
                     flush()
                     state["cho"] = token
             else:
                 if not state["jong"]:
-                    state["jong"] = token
-                    state["jong_combined"] = False
+                    if token in JONGSUNG_LIST[1:]:
+                        state["jong"] = token
+                        state["jong_combined"] = False
+                    else:
+                        flush()
+                        state["cho"] = token
                 else:
                     if (state["jong"], token) in COMPOUND_FINAL_MAP:
                         state["jong"] = COMPOUND_FINAL_MAP[(state["jong"], token)]
@@ -133,16 +168,35 @@ def _normalize_qwerty_case(text: str) -> str:
     return "".join(normalized)
 
 
-def convert_qwerty_to_hangul(text: str, allowDoubleConsonant: bool = False) -> str:
+@overload
+def convert_qwerty_to_hangul(text: str, allow_double_consonant: bool = False) -> str: ...
+
+
+@overload
+def convert_qwerty_to_hangul(text: str, *, allowDoubleConsonant: bool) -> str: ...
+
+
+def convert_qwerty_to_hangul(
+    text: str,
+    allow_double_consonant: Optional[bool] = None,
+    **legacy_kwargs: object,
+) -> str:
     """
     QWERTY 자판 입력을 한글 문장으로 변환합니다.
 
     :param text: 변환할 QWERTY 문자열
-    :param allowDoubleConsonant: 두 개의 초성 허용 여부
+    :param allow_double_consonant: 두 개의 초성 허용 여부
     :return: 한글 문자열
     """
-    if allowDoubleConsonant:
-        return enko(_normalize_qwerty_case(text), allowDoubleConsonant=True)
+    allow_double = resolve_legacy_bool(
+        allow_double_consonant,
+        legacy_kwargs,
+        _LEGACY_DOUBLE_CONSONANT,
+        "allow_double_consonant",
+    )
+
+    if allow_double:
+        return enko(_normalize_qwerty_case(text), allow_double_consonant=True)
 
     from hangulpy.hangul_assemble import join_jamos
 
@@ -167,6 +221,17 @@ def convert_qwerty_to_alphabet(text: str) -> str:
     return "".join(result)
 
 
+def _canonical_jamo_to_compat(char: str) -> str:
+    code = ord(char)
+    if 0x1100 <= code <= 0x1112:
+        return CHOSUNG_LIST[code - 0x1100]
+    if 0x1161 <= code <= 0x1175:
+        return JUNGSUNG_LIST[code - 0x1161]
+    if 0x11A8 <= code <= 0x11C2:
+        return JONGSUNG_LIST[code - 0x11A7]
+    return char
+
+
 def koen(kor_text: str) -> str:
     """
     한글(자판 입력값)을 영문 키보드 입력값으로 변환합니다.
@@ -175,14 +240,18 @@ def koen(kor_text: str) -> str:
     :return: 영문 키보드 입력 문자열
     """
     result: List[str] = []
-    for ch in kor_text:
+    for ch in unicodedata.normalize("NFC", kor_text):
         # 공백은 그대로 추가
         if ch == " ":
             result.append(ch)
             continue
+        ch = _canonical_jamo_to_compat(ch)
         # 단독 자모이면 바로 매핑 처리
         if ch in CONSONANT_RMAP:
             result.append(CONSONANT_RMAP[ch])
+            continue
+        if ch in COMPOUND_FINAL_DECOMP:
+            result.extend(CONSONANT_RMAP[part] for part in COMPOUND_FINAL_DECOMP[ch])
             continue
         if ch in VOWEL_RMAP:
             result.append(VOWEL_RMAP[ch])
@@ -220,26 +289,45 @@ def convert_hangul_to_qwerty(text: str) -> str:
     return koen(text)
 
 
-def autofix(text: str, allowDoubleConsonant: bool = False) -> str:
+@overload
+def autofix(text: str, allow_double_consonant: bool = False) -> str: ...
+
+
+@overload
+def autofix(text: str, *, allowDoubleConsonant: bool) -> str: ...
+
+
+def autofix(
+    text: str,
+    allow_double_consonant: Optional[bool] = None,
+    **legacy_kwargs: object,
+) -> str:
     """
     입력 문자열의 각 구간(한글, 영문, 기타)을 분리하여
     한글인 부분은 koen, 영문인 부분은 enko를 적용합니다.
 
     :param text: 변환할 문자열
-    :param allowDoubleConsonant: 두 개의 초성 허용 여부
+    :param allow_double_consonant: 두 개의 초성 허용 여부
     :return: 변환된 문자열
     """
+    allow_double = resolve_legacy_bool(
+        allow_double_consonant,
+        legacy_kwargs,
+        _LEGACY_DOUBLE_CONSONANT,
+        "allow_double_consonant",
+    )
+
     result: List[str] = []
     current_segment = ""
     current_type: Optional[str] = None  # 'hangul', 'roman', 'other'
 
-    def flush_segment(seg: str, seg_type: Optional[str]):
+    def flush_segment(seg: str, seg_type: Optional[str]) -> str:
         if not seg:
             return ""
         if seg_type == "hangul":
             return koen(seg)
         elif seg_type == "roman":
-            return enko(seg, allowDoubleConsonant=allowDoubleConsonant)
+            return enko(seg, allow_double_consonant=allow_double)
         else:
             return seg
 

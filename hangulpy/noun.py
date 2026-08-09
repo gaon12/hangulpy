@@ -1,5 +1,7 @@
 # noun.py
 
+from hangulpy.hangul_normalize import normalize_hangul
+from hangulpy.hangul_properties import get_jongsung
 from hangulpy.josa import has_jongsung
 
 
@@ -15,13 +17,13 @@ def jarip_noun(word: str, particle: str) -> str:
         return ""
 
     # 단어의 마지막 글자를 가져옵니다.
-    word_ending = word[-1]
+    word_ending = normalize_hangul(word, "NFC")[-1]
 
     # 마지막 글자의 받침 유무를 확인합니다.
     jongsung_exists = has_jongsung(word_ending)
 
     if particle == "율/률":
-        return word + ("율" if not jongsung_exists else "률")
+        return word + ("율" if not jongsung_exists or get_jongsung(word_ending) == "ㄴ" else "률")
     elif particle == "열/렬":
         return word + ("열" if not jongsung_exists else "렬")
     elif particle == "영/령":

@@ -25,9 +25,12 @@ from .hangul_ends_with_consonant import ends_with_consonant
 from .hangul_normalize import normalize_hangul, to_compat_jamo, to_jamo
 from .hangul_number import (
     amount_to_hangul,
+    counter,
     days,
     float_to_hangul,
     hangul_to_number,
+    months,
+    native_korean_to_number,
     number_to_hangul,
     number_to_hangul_mixed,
     seosusa,
@@ -82,6 +85,9 @@ __all__ = [
     "number_to_hangul",
     "number_to_hangul_mixed",
     "amount_to_hangul",
+    "counter",
+    "months",
+    "native_korean_to_number",
     "susa",
     "seosusa",
     "days",
