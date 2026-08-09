@@ -1,11 +1,15 @@
 # tests/test_search.py
 
+import unicodedata
+
 import pytest
 
 from hangulpy import (
+    HangulMatch,
     HangulSearcher,
     chosung_includes,
     chosungIncludes,
+    find_hangul_spans,
     hangul_contains,
     hangul_search,
     hangul_search_all,
@@ -103,6 +107,66 @@ class TestHangulSearch:
 
         assert searcher.search("사과")
         assert searcher.find_index("사과") == 0
+
+    def test_find_hangul_spans_returns_source_ranges(self):
+        matches = find_hangul_spans("간장공장공장장", "공장")
+
+        assert matches == [
+            HangulMatch(2, 4, "공장"),
+            HangulMatch(4, 6, "공장"),
+        ]
+        assert matches[0].span() == (2, 4)
+        assert find_hangul_spans("값", "ㅏㅂ") == [HangulMatch(0, 1, "값")]
+        assert find_hangul_spans("한글", "") == []
+
+    def test_find_hangul_spans_can_include_overlapping_matches(self):
+        assert find_hangul_spans("가가가", "ㄱㄱ") == [HangulMatch(0, 2, "가가")]
+        assert find_hangul_spans("가가가", "ㄱㄱ", overlap=True) == [
+            HangulMatch(0, 2, "가가"),
+            HangulMatch(1, 3, "가가"),
+        ]
+
+    def test_searcher_finditer_reuses_the_compiled_pattern(self):
+        searcher = HangulSearcher("공장")
+
+        assert list(searcher.finditer("간장공장공장장")) == [
+            HangulMatch(2, 4, "공장"),
+            HangulMatch(4, 6, "공장"),
+        ]
+        assert list(HangulSearcher("").finditer("한글")) == []
+
+    def test_single_chosung_falls_back_to_a_jamo_match(self):
+        assert hangul_contains("악", "ㄱ")
+        assert hangul_search("악", "ㄱ") == 0
+        assert hangul_search_all("악", "ㄱ") == [0]
+        assert find_hangul_spans("악", "ㄱ") == [HangulMatch(0, 1, "악")]
+
+        searcher = HangulSearcher("ㄱ")
+        assert searcher.search("악")
+        assert searcher.find_index("악") == 0
+        assert list(searcher.finditer("악")) == [HangulMatch(0, 1, "악")]
+
+        # 초성 매치가 하나라도 있으면 기존 초성 검색 의미를 우선합니다.
+        assert hangul_search_all("가악", "ㄱ") == [0]
+
+    def test_canonical_initial_and_final_patterns_match_hcj_search_data(self):
+        canonical_initial = "ᄀ"
+        canonical_final = "ᆨ"
+
+        assert hangul_search("가", canonical_initial) == 0
+        assert hangul_search("악", canonical_final) == 0
+        assert find_hangul_spans("악", canonical_final) == [HangulMatch(0, 1, "악")]
+        assert HangulSearcher(canonical_initial).find_index("가") == 0
+        assert list(HangulSearcher(canonical_final).finditer("악")) == [HangulMatch(0, 1, "악")]
+
+    def test_nfd_matches_use_original_codepoint_offsets(self):
+        text = "A" + unicodedata.normalize("NFD", "한글")
+        expected_text = unicodedata.normalize("NFD", "글")
+
+        assert hangul_search(text, "글") == 4
+        assert hangul_search_all(text, "글") == [4]
+        assert find_hangul_spans(text, "글") == [HangulMatch(4, 7, expected_text)]
+        assert list(HangulSearcher("글").finditer(text)) == [HangulMatch(4, 7, expected_text)]
 
     def test_match_hangul_pattern_wildcard_escapes_regex_chars(self):
         words = ["가구", "가방", "나무", "("]

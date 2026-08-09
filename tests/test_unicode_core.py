@@ -84,7 +84,7 @@ def test_properties_and_search_accept_nfd():
     assert ends_with_consonant("한글")
     assert ends_with_consonant(nfd_gak)
     assert hangul_contains("한글", unicodedata.normalize("NFD", "한"))
-    assert hangul_search(unicodedata.normalize("NFD", "한글"), "글") == 1
+    assert hangul_search(unicodedata.normalize("NFD", "한글"), "글") == 3
 
 
 def test_empty_string_is_not_a_jongsung():
