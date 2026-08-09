@@ -8,20 +8,52 @@ description: 한글 검색 위치 찾기
 첫 번째 매칭 위치를 반환합니다.
 
 ```python
-hangul_search(word: str, pattern: str, notallowempty: bool = False) -> int
+hangul_search(word: str, pattern: str, not_allow_empty: bool = False) -> int
 ```
 
-`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴이면 `0` 을 반환합니다.
+`not_allow_empty`를 생략하면 기본값은 `False`이고, 빈 문자열 패턴이면 `0`을 반환합니다.
 
 ## hangul_search_all
 
 모든 매칭 위치를 리스트로 반환합니다.
 
 ```python
-hangul_search_all(word: str, pattern: str, notallowempty: bool = False) -> list[int]
+hangul_search_all(word: str, pattern: str, not_allow_empty: bool = False) -> list[int]
 ```
 
-`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴이면 시작 위치 `[0]` 을 반환합니다.
+`not_allow_empty`를 생략하면 기본값은 `False`이고, 빈 문자열 패턴이면 시작 위치 `[0]`을 반환합니다.
+
+<Warning>
+  기존 `notallowempty` 이름은 v1.5에서 제거됩니다. `not_allow_empty`로
+  마이그레이션하세요.
+</Warning>
+
+## find_hangul_spans / HangulMatch
+
+일치한 위치뿐 아니라 원문 조각까지 필요하면 `find_hangul_spans`를 사용합니다.
+
+```python
+find_hangul_spans(
+    text: str,
+    pattern: str,
+    overlap: bool = False,
+) -> list[HangulMatch]
+```
+
+각 `HangulMatch`는 `start`, 배타적 `end`, `text`를 가지며 `span()`으로
+`(start, end)`를 반환합니다. 빈 패턴은 빈 리스트를 반환합니다. NFD 입력도
+정규화된 문자열이 아니라 원문의 코드포인트 위치와 조각을 보존합니다.
+
+```python
+from hangulpy import find_hangul_spans
+
+matches = find_hangul_spans("간장공장공장장", "공장")
+print([match.span() for match in matches])  # [(2, 4), (4, 6)]
+print([match.text for match in matches])  # ["공장", "공장"]
+
+overlapping = find_hangul_spans("가가가", "ㄱㄱ", overlap=True)
+print([match.span() for match in overlapping])  # [(0, 2), (1, 3)]
+```
 
 ## 예시
 
@@ -32,9 +64,9 @@ print(hangul_search("가나다가", "ㄱ"))  # 0
 print(hangul_search_all("가나다가", "ㄱ"))  # [0, 3]
 print(hangul_search("사과는 맛있다", "맛"))  # 4
 print(hangul_search("사과", ""))  # 0
-print(hangul_search("사과", "", notallowempty=True))  # -1
+print(hangul_search("사과", "", not_allow_empty=True))  # -1
 print(hangul_search_all("사과", ""))  # [0]
-print(hangul_search_all("사과", "", notallowempty=True))  # []
+print(hangul_search_all("사과", "", not_allow_empty=True))  # []
 ```
 
 반환값은 원본 문자열의 글자 인덱스입니다. 불리언 여부만 필요하면 `hangul_contains` 가 더 직관적입니다.

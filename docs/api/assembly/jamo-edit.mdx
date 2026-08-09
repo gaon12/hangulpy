@@ -1,0 +1,57 @@
+---
+title: 자모 단위 편집
+description: 타건 자모 기준 길이, 슬라이스, 입력 단계 계산
+---
+
+복합 모음과 겹받침까지 키보드 입력 자모 단위로 세면서 원래 음절 경계를
+보존합니다. 비한글 결합문자와 이모지 그래핌은 한 단위로 다룹니다.
+
+## jamo_len
+
+```python
+jamo_len(text: str) -> int
+```
+
+```python
+from hangulpy import jamo_len
+
+print(jamo_len("가과값"))  # 9
+print(jamo_len("👍🏽"))  # 1
+```
+
+## jamo_slice
+
+```python
+jamo_slice(
+    text: str,
+    start: Optional[int] = None,
+    stop: Optional[int] = None,
+) -> str
+```
+
+일반 Python 슬라이스처럼 `start`는 포함하고 `stop`은 제외하며 음수 인덱스도
+지원합니다. 잘린 자모는 같은 원본 음절 안에서만 다시 조합합니다.
+
+```python
+from hangulpy import jamo_slice
+
+print(jamo_slice("가나", 0, 3))  # 가ㄴ
+print(jamo_slice("값", 0, 3))  # 갑
+print(jamo_slice("가나", -2, None))  # 나
+```
+
+## typing_steps
+
+```python
+typing_steps(text: str) -> list[str]
+```
+
+각 자모 또는 그래핌을 입력한 직후 화면에 보이는 전체 문자열을 차례로
+반환합니다.
+
+```python
+from hangulpy import typing_steps
+
+print(typing_steps("값"))  # ["ㄱ", "가", "갑", "값"]
+print(typing_steps("가나"))  # ["ㄱ", "가", "가ㄴ", "가나"]
+```

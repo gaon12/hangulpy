@@ -8,10 +8,10 @@
 
 ## 주요 기능
 
-- 조사 자동 선택: `josa`, `josa_pick`, `has_jongsung`, `has_batchim`
-- 초성/부분 음절 검색: `get_chosung_string`, `chosung_includes`, `chosungIncludes`, `hangul_contains`, `hangul_search`, `HangulSearcher`
-- 한글 속성 검사: `is_hangul`, `is_complete_hangul`, `get_hangul_components`
-- 자모 분해/조합: `decompose_hangul_string`, `split_hangul_string`, `split_syllables`, `join_jamos`, `combine_vowels`, `remove_last_character`
+- 조사 자동 선택: `josa`, `josa_pick`, `format_josa`, `has_jongsung`, `has_batchim`
+- 초성·구간·퍼지 검색: `hangul_search`, `find_hangul_spans`, `HangulSearcher`, `HangulIndex`, `hangul_similarity`
+- 한글·한자 속성 검사: `is_hangul`, `is_complete_hangul`, `get_hangul_components`, `is_hanja`, `split_hanja`
+- 자모 분해·조합·편집: `split_syllables`, `join_jamos`, `jamo_len`, `jamo_slice`, `typing_steps`, `map_hangul`
 - 변환 기능: `romanize`, `Romanizer`, `standardize_pronunciation`, `number_to_hangul`, `number_to_hangul_mixed`, `hangul_to_number`, `susa`, `days`, `koen`, `enko`, `autofix`
 
 ## 설치
@@ -61,6 +61,7 @@ print(romanize("충청북도", "revised", mode="admin"))  # chungcheongbuk-do
 
 - [공식 문서](https://hangulpy.uiharu.dev)
 - [로마자 표기 문서](https://hangulpy.uiharu.dev/api/conversions/romanize)
+- [v1.5 마이그레이션](https://hangulpy.uiharu.dev/migration-v1-5): `chosungIncludes`, `notallowempty`, `allowDoubleConsonant` 제거 예정
 
 ## 예제
 

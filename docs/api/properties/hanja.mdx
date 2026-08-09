@@ -1,0 +1,48 @@
+---
+title: 한자 판별과 구간 분리
+description: Unicode 한자를 판별하고 연속 구간으로 나누는 함수
+---
+
+## is_hanja
+
+```python
+is_hanja(char: str) -> bool
+```
+
+정확히 한 글자인 CJK 통합 한자, 주요 확장 영역, 호환 한자를 판별합니다. 빈
+문자열이나 여러 글자는 `False`이고, 문자열이 아닌 값은 `TypeError`입니다.
+
+```python
+from hangulpy import is_hanja
+
+print(is_hanja("字"))  # True
+print(is_hanja("𠀀"))  # True (CJK Extension B)
+print(is_hanja("한"))  # False
+print(is_hanja("漢字"))  # False: 한 번에 한 글자만 검사
+```
+
+## split_hanja / HanjaRun
+
+```python
+split_hanja(text: str) -> list[HanjaRun]
+```
+
+문자열을 연속한 한자와 비한자 구간으로 나눕니다. 반환되는 불변
+`HanjaRun`에는 구간의 `text`와 판별 결과 `is_hanja`가 들어 있습니다.
+
+```python
+from hangulpy import split_hanja
+
+for run in split_hanja("한字ABC𠀀끝"):
+    print(run.text, run.is_hanja)
+
+# 한 False
+# 字 True
+# ABC False
+# 𠀀 True
+# 끝 False
+```
+
+<Note>
+  부수, 획, 반복 부호 같은 한자 주변 기호는 한자로 분류하지 않습니다.
+</Note>

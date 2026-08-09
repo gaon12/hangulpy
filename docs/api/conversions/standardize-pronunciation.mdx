@@ -6,7 +6,7 @@ description: 주요 표준 발음 규칙을 반영한 한글 표기로 변환
 `standardize_pronunciation`은 한글 문자열에 자주 쓰이는 표준 발음 규칙을 적용해 발음에 가까운 한글 표기로 변환합니다.
 
 ```python
-standardize_pronunciation(text: str) -> str
+standardize_pronunciation(text: str, *, explain: bool = False) -> str | PronunciationResult
 ```
 
 ## 처리하는 규칙
@@ -32,6 +32,21 @@ print(standardize_pronunciation("놓고"))  # 노코
 print(standardize_pronunciation("담요"))  # 담뇨
 print(standardize_pronunciation("신라"))  # 실라
 print(standardize_pronunciation("읽고"))  # 일꼬
+```
+
+## 적용 규칙 추적
+
+`explain=True`이면 발음 문자열과 실제 적용된 규칙 단계를 담은 불변
+`PronunciationResult`를 반환합니다. `pronunciation`은 최종 발음이고, 각
+`PronunciationRuleStep`에는 `rule`, `before`, `after`가 들어 있습니다.
+
+```python
+from hangulpy import standardize_pronunciation
+
+result = standardize_pronunciation("국물", explain=True)
+print(result.pronunciation)  # 궁물
+for step in result.steps:
+    print(step.rule, step.before, "->", step.after)
 ```
 
 ## 참고

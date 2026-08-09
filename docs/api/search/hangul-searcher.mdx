@@ -12,12 +12,18 @@ class HangulSearcher(pattern: str)
 ## 메서드
 
 ```python
-search(word: str, notallowempty: bool = False) -> bool
-find_index(word: str, notallowempty: bool = False) -> int
-find_all(word: str, notallowempty: bool = False) -> list[int]
+search(word: str, not_allow_empty: bool = False) -> bool
+find_index(word: str, not_allow_empty: bool = False) -> int
+find_all(word: str, not_allow_empty: bool = False) -> list[int]
+finditer(text: str, overlap: bool = False) -> Iterator[HangulMatch]
 ```
 
-세 메서드의 `notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 패턴도 허용합니다.
+세 메서드의 `not_allow_empty`를 생략하면 기본값은 `False`이고, 빈 패턴도 허용합니다.
+
+<Warning>
+  기존 `notallowempty` 이름은 v1.5에서 제거됩니다. `not_allow_empty`로
+  마이그레이션하세요.
+</Warning>
 
 ## 예시
 
@@ -28,16 +34,21 @@ searcher = HangulSearcher("ㄹㅁ")
 
 print(searcher.search("라면"))  # True
 print(searcher.find_index("라면이 맛있다"))  # 0
-print(searcher.find_all("라면라면"))  # [0, 6]
+print(searcher.find_all("라면라면"))  # [0, 2]
+print([match.span() for match in searcher.finditer("라면라면")])  # [(0, 2), (2, 4)]
 
 empty_searcher = HangulSearcher("")
 print(empty_searcher.search("라면"))  # True
-print(empty_searcher.search("라면", notallowempty=True))  # False
+print(empty_searcher.search("라면", not_allow_empty=True))  # False
 print(empty_searcher.find_index("라면"))  # 0
-print(empty_searcher.find_index("라면", notallowempty=True))  # -1
+print(empty_searcher.find_index("라면", not_allow_empty=True))  # -1
 print(empty_searcher.find_all("라면"))  # [0]
-print(empty_searcher.find_all("라면", notallowempty=True))  # []
+print(empty_searcher.find_all("라면", not_allow_empty=True))  # []
+print(list(empty_searcher.finditer("라면")))  # []
 ```
+
+`finditer`는 `HangulMatch` 반복자를 반환합니다. `overlap=True`를 주면 겹치는
+일치도 포함하고, NFD 원문에서도 원래 코드포인트 위치를 유지합니다.
 
 ## 언제 쓰나
 

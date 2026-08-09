@@ -1,0 +1,47 @@
+---
+title: 한글 Unicode 정규화
+description: 완성형, canonical Jamo, 호환 자모 사이의 안전한 변환
+---
+
+## normalize_hangul
+
+```python
+normalize_hangul(
+    text: str,
+    form: Literal["NFC", "NFD", "HCJ"] = "NFC",
+) -> str
+```
+
+`NFC`는 조합된 완성형, `NFD`는 Unicode canonical Jamo, `HCJ`는 호환 자모
+형태를 반환합니다. 호환 자모가 들어 있는 입력은 문맥상 조합 가능한 부분만
+먼저 조합합니다.
+
+```python
+import unicodedata
+
+from hangulpy import normalize_hangul
+
+nfd = unicodedata.normalize("NFD", "한글")
+print(normalize_hangul(nfd))  # 한글
+print(normalize_hangul("ㅎㅏㄴㄱㅡㄹ"))  # 한글
+print(normalize_hangul("한글", "HCJ"))  # ㅎㅏㄴㄱㅡㄹ
+```
+
+## to_jamo / to_compat_jamo
+
+```python
+to_jamo(text: str, compatibility: bool = False) -> str
+to_compat_jamo(text: str) -> str
+```
+
+`to_jamo`는 기본적으로 NFD canonical Jamo를 반환하고,
+`compatibility=True`이면 호환 자모를 반환합니다. `to_compat_jamo`는 완성형과
+canonical Jamo를 바로 호환 자모로 변환하는 단축 함수입니다.
+
+```python
+from hangulpy import to_compat_jamo, to_jamo
+
+print(to_jamo("한"))  # 한
+print(to_jamo("한", compatibility=True))  # ㅎㅏㄴ
+print(to_compat_jamo("한"))  # ㅎㅏㄴ
+```
