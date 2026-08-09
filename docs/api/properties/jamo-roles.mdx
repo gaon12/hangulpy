@@ -1,6 +1,6 @@
 ---
-title: 초성/종성 사용 가능 여부 (can_be_chosung, can_be_jongsung)
-description: 자모를 초성이나 종성으로 사용할 수 있는지 확인
+title: 초·중·종성 사용 가능 여부
+description: 자모를 초성, 중성, 종성으로 사용할 수 있는지 확인
 ---
 
 ## can_be_chosung
@@ -11,9 +11,19 @@ description: 자모를 초성이나 종성으로 사용할 수 있는지 확인
 can_be_chosung(char: str) -> bool
 ```
 
+## can_be_jungsung
+
+중성으로 쓸 수 있는 단일 모음이나 분해된 복합 모음인지 확인합니다. `ㅘ`와
+`ㅗㅏ`를 모두 허용하고, 순서가 잘못된 `ㅏㅗ`는 허용하지 않습니다.
+
+```python
+can_be_jungsung(char: str) -> bool
+```
+
 ## can_be_jongsung
 
-종성 테이블에 들어갈 수 있는 자모인지 확인합니다.
+종성으로 쓸 수 있는 자모인지 확인합니다. `ㄳ`처럼 합쳐진 겹받침과 `ㄱㅅ`처럼
+분해된 겹받침을 모두 허용합니다.
 
 ```python
 can_be_jongsung(char: str) -> bool
@@ -22,11 +32,15 @@ can_be_jongsung(char: str) -> bool
 ## 예시
 
 ```python
-from hangulpy import can_be_chosung, can_be_jongsung
+from hangulpy import can_be_chosung, can_be_jongsung, can_be_jungsung
 
 print(can_be_chosung("ㄸ"))  # True
 print(can_be_chosung("ㄳ"))  # False
+print(can_be_jungsung("ㅘ"))  # True
+print(can_be_jungsung("ㅗㅏ"))  # True
+print(can_be_jungsung("ㅏㅗ"))  # False
 print(can_be_jongsung("ㄳ"))  # True
+print(can_be_jongsung("ㄱㅅ"))  # True
 print(can_be_jongsung("ㄸ"))  # False
 ```
 

@@ -1,6 +1,6 @@
 ---
-title: 구성요소 추출 (get_chosung, get_jungsung, get_jongsung, get_hangul_components)
-description: 완성형 한글 음절에서 초중종성 추출
+title: 초·중·종성 구성요소 추출
+description: 한 음절의 속성 조회와 문자열 전체의 구성요소 추출
 ---
 
 ## get_chosung
@@ -40,6 +40,30 @@ print(get_jongsung("강"))  # ㅇ
 print(get_jongsung("가"))  # ""
 print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
 ```
+
+## 문자열 전체에서 추출
+
+`extract_*` 함수는 문자열의 모든 한글 음절을 훑습니다. NFC와 NFD를 모두
+처리하고 공백은 기본으로 보존합니다. `keep_non_hangul=True`이면 숫자와 기호
+같은 비한글 문자도 보존합니다.
+
+```python
+extract_chosung(text: str, *, keep_non_hangul: bool = False) -> str
+extract_jungsung(text: str, *, keep_non_hangul: bool = False) -> str
+extract_jongsung(text: str, *, keep_non_hangul: bool = False) -> str
+```
+
+```python
+from hangulpy import extract_chosung, extract_jongsung, extract_jungsung
+
+print(extract_chosung("한글"))  # ㅎㄱ
+print(extract_jungsung("사과"))  # ㅏㅘ
+print(extract_jongsung("한글"))  # ㄴㄹ
+print(extract_jungsung("띄어 쓰기"))  # ㅢㅓ ㅡㅣ
+```
+
+`get_*` 함수는 정확히 한 음절의 속성을 반환하고, `extract_*` 함수는 문자열
+전체에서 같은 위치의 자모를 모은다는 차이가 있습니다.
 
 ## 같이 보기
 
