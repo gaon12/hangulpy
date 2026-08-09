@@ -14,12 +14,18 @@ permissions:
   actions: read
   contents: read
 
+concurrency:
+  group: hangulpy-release
+  cancel-in-progress: false
+
 jobs:
   inspect-release:
     runs-on: ubuntu-latest
     outputs:
       ci_passed: ${{ steps.ci.outputs.ci_passed }}
-      should_release: ${{ steps.release.outputs.should_release }}
+      github_release_complete: ${{ steps.release.outputs.github_release_complete }}
+      pypi_exists: ${{ steps.release.outputs.pypi_exists }}
+      target_sha: ${{ steps.ci.outputs.target_sha }}
       version: ${{ steps.release.outputs.version }}
 
     steps:
@@ -37,6 +43,7 @@ jobs:
             conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${TARGET_SHA}&status=completed&per_page=1" --jq '.workflow_runs[0].conclusion // "missing"')"
           fi
 
+          echo "target_sha=${TARGET_SHA}" >> "$GITHUB_OUTPUT"
           if [[ "${conclusion}" == "success" ]]; then
             echo "ci_passed=true" >> "$GITHUB_OUTPUT"
           else
@@ -46,11 +53,18 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ steps.ci.outputs.target_sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Inspect release state
         id: release
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           metadata="$(python - <<'PY'
           import tomllib
@@ -65,8 +79,9 @@ jobs:
 
           name="$(printf '%s\n' "$metadata" | sed -n '1p')"
           version="$(printf '%s\n' "$metadata" | sed -n '2p')"
+          tag="v${version}"
 
-          should_release="$(python - "$name" "$version" <<'PY'
+          pypi_exists="$(python - "$name" "$version" <<'PY'
           import sys
           import urllib.error
           import urllib.request
@@ -78,29 +93,40 @@ jobs:
               urllib.request.urlopen(url, timeout=10).close()
           except urllib.error.HTTPError as exc:
               if exc.code == 404:
-                  print("true")
+                  print("false")
                   sys.exit(0)
               raise
           else:
-              print("false")
+              print("true")
           PY
           )"
 
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "should_release=${should_release}" >> "$GITHUB_OUTPUT"
+          expected_sdist="${name}-${version}.tar.gz"
+          expected_wheel="${name//-/_}-${version}-py3-none-any.whl"
+          github_release_complete=false
+          if assets="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null)"; then
+            if grep -Fxq "$expected_sdist" <<< "$assets" && grep -Fxq "$expected_wheel" <<< "$assets"; then
+              github_release_complete=true
+            fi
+          fi
 
-  publish:
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "pypi_exists=${pypi_exists}" >> "$GITHUB_OUTPUT"
+          echo "github_release_complete=${github_release_complete}" >> "$GITHUB_OUTPUT"
+
+  build:
     needs: inspect-release
-    if: needs.inspect-release.outputs.ci_passed == 'true' && needs.inspect-release.outputs.should_release == 'true'
+    if: >-
+      needs.inspect-release.outputs.ci_passed == 'true' &&
+      (needs.inspect-release.outputs.pypi_exists != 'true' ||
+      needs.inspect-release.outputs.github_release_complete != 'true')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ needs.inspect-release.outputs.target_sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -108,10 +134,33 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tools
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade pip build twine
 
-      - name: Build distribution packages
-        run: python -m build
+      - name: Build and validate distribution packages
+        run: python -m build && python -m twine check dist/*
+
+      - name: Upload distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/*
+          retention-days: 7
+
+  publish-pypi:
+    needs:
+      - inspect-release
+      - build
+    if: >-
+      needs.inspect-release.outputs.ci_passed == 'true' &&
+      needs.inspect-release.outputs.pypi_exists != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -119,10 +168,45 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+  github-release:
+    needs:
+      - inspect-release
+      - build
+      - publish-pypi
+    if: >-
+      always() &&
+      needs.inspect-release.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.inspect-release.outputs.ci_passed == 'true' &&
+      needs.inspect-release.outputs.github_release_complete != 'true' &&
+      (needs.inspect-release.outputs.pypi_exists == 'true' ||
+      needs.publish-pypi.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
         with:
-          tag_name: v${{ needs.inspect-release.outputs.version }}
-          name: v${{ needs.inspect-release.outputs.version }}
-          generate_release_notes: true
-          files: dist/*
+          name: python-dist
+          path: dist
+
+      - name: Create or repair GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ needs.inspect-release.outputs.version }}
+          TARGET_SHA: ${{ needs.inspect-release.outputs.target_sha }}
+        run: |
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$TARGET_SHA" \
+              --title "$TAG" \
+              --generate-notes
+          fi
+
+          gh release upload "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber

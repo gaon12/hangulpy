@@ -54,8 +54,31 @@ jobs:
       - name: Run Black
         run: python -m black --check .
 
-      - name: Run mypy
-        run: python -m mypy hangulpy
+      - name: Run mypy in strict mode
+        run: python -m mypy --strict hangulpy
+
+      - name: Run Pyright in strict mode
+        run: python -m pyright
+
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate Mintlify documentation
+        run: python scripts/mintlify_validate.py
 
   build:
     runs-on: ubuntu-latest
@@ -70,13 +93,46 @@ jobs:
           python-version: "3.12"
 
       - name: Install build tools
-        run: python -m pip install --upgrade pip build
+        run: python -m pip install --upgrade pip build twine
 
       - name: Build sdist and wheel
         run: python -m build
+
+      - name: Validate distribution metadata
+        run: python -m twine check dist/*
+
+      - name: Smoke-test the installed wheel
+        shell: bash
+        run: |
+          python -m venv "${RUNNER_TEMP}/wheel-smoke"
+          smoke_python="${RUNNER_TEMP}/wheel-smoke/bin/python"
+          "${smoke_python}" -m pip install --upgrade pip
+          "${smoke_python}" -m pip install --no-deps dist/*.whl
+          "${smoke_python}" -m pip check
+
+          cd "${RUNNER_TEMP}"
+          "${smoke_python}" - <<'PY'
+          import importlib.metadata
+          import sys
+          from pathlib import Path
+
+          import hangulpy
+
+          package_file = Path(hangulpy.__file__).resolve()
+          environment = Path(sys.prefix).resolve()
+          distribution = importlib.metadata.distribution("hangulpy")
+
+          assert environment in package_file.parents, package_file
+          assert package_file.with_name("py.typed").is_file()
+          assert distribution.version
+          assert any(Path(file).name == "LICENSE" for file in distribution.files or ())
+          assert hangulpy.romanize("한글") == "hangeul"
+          assert hangulpy.josa("사과", "을/를") == "사과를"
+          PY
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: python-dist
           path: dist/*
+          retention-days: 7
