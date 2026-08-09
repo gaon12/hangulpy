@@ -36,7 +36,11 @@ from .hangul_number import (
     seosusa,
     susa,
 )
-from .hangul_pronunciation import standardize_pronunciation
+from .hangul_pronunciation import (
+    PronunciationResult,
+    PronunciationRuleStep,
+    standardize_pronunciation,
+)
 
 # New enhanced functions
 from .hangul_properties import (
@@ -126,6 +130,8 @@ __all__ = [
     "get_jongsung",
     "get_hangul_components",
     "standardize_pronunciation",
+    "PronunciationResult",
+    "PronunciationRuleStep",
     # New assembly functions
     "split_syllables",
     "join_jamos",

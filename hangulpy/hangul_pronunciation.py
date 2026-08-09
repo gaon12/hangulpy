@@ -1,6 +1,9 @@
-from dataclasses import dataclass
-from typing import List, Optional, Union
+"""Rule-based modern Korean pronunciation normalization."""
 
+from dataclasses import dataclass
+from typing import List, Literal, Optional, Tuple, Union, overload
+
+from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.utils import (
     CHOSUNG_BASE,
     CHOSUNG_LIST,
@@ -19,31 +22,31 @@ class _Syllable:
     cho: str
     jung: str
     jong: str
+    source: str
+    force_tense_next: bool = False
 
 
-_Token = Union[str, _Syllable]
+@dataclass(frozen=True)
+class PronunciationRuleStep:
+    """한 발음 규칙이 바꾼 전후 문자열입니다."""
 
-SPECIAL_PRONUNCIATIONS = {
-    "굳이": "구지",
-    "같이": "가치",
-    "닫히다": "다치다",
-    "놓고": "노코",
-    "좋다": "조타",
-    "담요": "담뇨",
-    "신라": "실라",
-    "설날": "설랄",
-    "국물": "궁물",
-    "백로": "뱅노",
-    "읽고": "일꼬",
-    "맑게": "말께",
-    "값도": "갑또",
-    "밟다": "밥따",
-}
+    rule: str
+    before: str
+    after: str
 
-IOTIZED_VOWELS = {"ㅑ", "ㅕ", "ㅛ", "ㅠ", "ㅒ", "ㅖ"}
+
+@dataclass(frozen=True)
+class PronunciationResult:
+    """발음 표기와 실제로 적용된 규칙 추적입니다."""
+
+    pronunciation: str
+    steps: Tuple[PronunciationRuleStep, ...]
+
+
+LEXICAL_PRONUNCIATIONS = {"디귿이": "디그시"}
+N_INSERTION_PAIRS = {("담", "요"), ("학", "여"), ("한", "여"), ("알", "약")}
 H_FINAL_REMAINDER = {"ㅎ": "", "ㄶ": "ㄴ", "ㅀ": "ㄹ"}
-H_ASPIRATION = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅈ": "ㅊ"}
-FINAL_H_ASPIRATION = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
+ASPIRATE_ONSET = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
 PALATALIZATION = {"ㄷ": "ㅈ", "ㅌ": "ㅊ"}
 TENSE_CONSONANTS = {"ㄱ": "ㄲ", "ㄷ": "ㄸ", "ㅂ": "ㅃ", "ㅅ": "ㅆ", "ㅈ": "ㅉ"}
 FINAL_SIMPLIFICATION = {
@@ -87,58 +90,85 @@ def _is_complete_hangul(char: str) -> bool:
 
 
 def _decompose_char(char: str) -> _Syllable:
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
-    chosung_index = char_index // CHOSUNG_BASE
-    jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-    jongsung_index = char_index % JUNGSUNG_BASE
+    offset = ord(char) - HANGUL_BEGIN_UNICODE
     return _Syllable(
-        CHOSUNG_LIST[chosung_index],
-        JUNGSUNG_LIST[jungsung_index],
-        JONGSUNG_LIST[jongsung_index],
+        CHOSUNG_LIST[offset // CHOSUNG_BASE],
+        JUNGSUNG_LIST[(offset % CHOSUNG_BASE) // JUNGSUNG_BASE],
+        JONGSUNG_LIST[offset % JUNGSUNG_BASE],
+        char,
     )
 
 
-def _compose_token(token: _Token) -> str:
-    if isinstance(token, str):
-        return token
-    return compose_syllable(token.cho, token.jung, token.jong)
+def _compose_syllables(syllables: List[_Syllable]) -> str:
+    return "".join(compose_syllable(item.cho, item.jung, item.jong) for item in syllables)
 
 
 def _representative_final(jong: str) -> str:
     return REPRESENTATIVE_FINAL.get(jong, jong)
 
 
-def _apply_h_assimilation(syllables: List[_Syllable]) -> None:
+def _record_rule(
+    rule: str,
+    syllables: List[_Syllable],
+    before: str,
+    steps: List[PronunciationRuleStep],
+) -> None:
+    after = _compose_syllables(syllables)
+    if before != after:
+        steps.append(PronunciationRuleStep(rule, before, after))
+
+
+def _apply_h_rules(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
 
-        if current.jong in H_FINAL_REMAINDER and following.cho in H_ASPIRATION:
-            current.jong = H_FINAL_REMAINDER[current.jong]
-            following.cho = H_ASPIRATION[following.cho]
+        if following.cho == "ㅇ" and current.jong in H_FINAL_REMAINDER:
+            remainder = H_FINAL_REMAINDER[current.jong]
+            current.jong = ""
+            if remainder:
+                following.cho = remainder
             continue
 
-        if current.jong in FINAL_H_ASPIRATION and following.cho == "ㅎ":
-            following.cho = FINAL_H_ASPIRATION[current.jong]
+        if current.jong in H_FINAL_REMAINDER and following.cho in ASPIRATE_ONSET:
+            current.jong = H_FINAL_REMAINDER[current.jong]
+            following.cho = ASPIRATE_ONSET[following.cho]
+            continue
+
+        if following.cho != "ㅎ" or not current.jong:
+            continue
+
+        if current.jong in JONGSUNG_DECOMPOSE:
+            first, second = JONGSUNG_DECOMPOSE[current.jong]
+            if second in ASPIRATE_ONSET:
+                current.jong = first
+                following.cho = ASPIRATE_ONSET[second]
+                if following.jung == "ㅣ" and following.cho == "ㅌ":
+                    following.cho = "ㅊ"
+                continue
+
+        representative = _representative_final(current.jong)
+        if representative in ASPIRATE_ONSET:
             current.jong = ""
+            following.cho = ASPIRATE_ONSET[representative]
+            if following.jung == "ㅣ" and following.cho == "ㅌ":
+                following.cho = "ㅊ"
 
 
 def _apply_palatalization(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
-
         if current.jong in PALATALIZATION and following.cho == "ㅇ" and following.jung == "ㅣ":
             following.cho = PALATALIZATION[current.jong]
             current.jong = ""
 
 
-def _apply_n_insertion(syllables: List[_Syllable]) -> None:
+def _apply_lexical_n_insertion(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
-
-        if current.jong and following.cho == "ㅇ" and following.jung in IOTIZED_VOWELS:
+        if (current.source, following.source) in N_INSERTION_PAIRS and following.cho == "ㅇ":
             following.cho = "ㄴ"
 
 
@@ -146,112 +176,158 @@ def _apply_liaison(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
-
-        if not current.jong or following.cho != "ㅇ" or current.jong == "ㅇ":
+        if not current.jong or current.jong == "ㅇ" or following.cho != "ㅇ":
             continue
 
         if current.jong in JONGSUNG_DECOMPOSE:
             first, second = JONGSUNG_DECOMPOSE[current.jong]
             current.jong = first
             following.cho = second
+            if second == "ㅅ":
+                current.force_tense_next = True
         else:
             following.cho = current.jong
             current.jong = ""
 
 
-def _apply_final_simplification_and_tensing(syllables: List[_Syllable]) -> None:
+def _apply_final_rules(syllables: List[_Syllable]) -> None:
     for index, current in enumerate(syllables):
-        original_jong = current.jong
         following: Optional[_Syllable] = (
             syllables[index + 1] if index + 1 < len(syllables) else None
         )
-
-        if following and original_jong == "ㄺ" and following.cho == "ㄱ":
-            current.jong = "ㄹ"
-            following.cho = "ㄲ"
+        original = current.jong
+        if not original:
             continue
 
-        if not following or following.cho != "ㅇ":
-            current.jong = FINAL_SIMPLIFICATION.get(current.jong, current.jong)
+        if following and following.cho in TENSE_CONSONANTS:
+            if original in JONGSUNG_DECOMPOSE or _representative_final(original) in {
+                "ㄱ",
+                "ㄷ",
+                "ㅂ",
+            }:
+                current.force_tense_next = True
 
-        representative = _representative_final(original_jong)
-        if following and representative in {"ㄱ", "ㄷ", "ㅂ"} and following.cho in TENSE_CONSONANTS:
-            following.cho = TENSE_CONSONANTS[following.cho]
+        if following and original == "ㄺ" and following.cho == "ㄱ":
+            current.jong = "ㄹ"
+        elif original == "ㄼ" and current.cho == "ㅂ" and current.jung == "ㅏ":
+            current.jong = "ㅂ"
+        else:
+            current.jong = FINAL_SIMPLIFICATION.get(original, original)
+
+        current.jong = _representative_final(current.jong)
 
 
 def _apply_nasal_and_liquid_assimilation(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
-        representative = _representative_final(current.jong)
-
-        if not representative:
-            continue
+        final = _representative_final(current.jong)
 
         if following.cho in {"ㄴ", "ㅁ"}:
-            if representative == "ㄱ":
+            if final == "ㄱ":
                 current.jong = "ㅇ"
-            elif representative == "ㄷ":
+            elif final == "ㄷ":
                 current.jong = "ㄴ"
-            elif representative == "ㅂ":
+            elif final == "ㅂ":
                 current.jong = "ㅁ"
+            elif final == "ㄹ" and following.cho == "ㄴ":
+                following.cho = "ㄹ"
             continue
 
         if following.cho == "ㄹ":
-            if current.jong == "ㄴ":
-                current.jong = "ㄹ"
-                following.cho = "ㄹ"
-            elif current.jong == "ㄹ":
-                following.cho = "ㄹ"
-            elif representative == "ㄱ":
+            if final == "ㄱ":
                 current.jong = "ㅇ"
                 following.cho = "ㄴ"
-            elif representative == "ㄷ":
+            elif final == "ㄷ":
                 current.jong = "ㄴ"
                 following.cho = "ㄴ"
-            elif representative == "ㅂ":
+            elif final == "ㅂ":
                 current.jong = "ㅁ"
                 following.cho = "ㄴ"
-            elif representative in {"ㅁ", "ㅇ"}:
+            elif final in {"ㅁ", "ㅇ"}:
                 following.cho = "ㄴ"
+            elif final in {"ㄴ", "ㄹ"}:
+                current.jong = "ㄹ"
+                following.cho = "ㄹ"
 
 
-def _standardize_segment(segment: str) -> str:
-    if segment in SPECIAL_PRONUNCIATIONS:
-        return SPECIAL_PRONUNCIATIONS[segment]
-
-    syllables = [_decompose_char(char) for char in segment]
-    _apply_h_assimilation(syllables)
-    _apply_palatalization(syllables)
-    _apply_n_insertion(syllables)
-    _apply_liaison(syllables)
-    _apply_final_simplification_and_tensing(syllables)
-    _apply_nasal_and_liquid_assimilation(syllables)
-    return "".join(_compose_token(syllable) for syllable in syllables)
+def _apply_tensing(syllables: List[_Syllable]) -> None:
+    for index in range(len(syllables) - 1):
+        current = syllables[index]
+        following = syllables[index + 1]
+        if current.force_tense_next and following.cho in TENSE_CONSONANTS:
+            following.cho = TENSE_CONSONANTS[following.cho]
 
 
-def standardize_pronunciation(text: str) -> str:
-    """
-    한글 문자열을 주요 표준 발음 규칙이 반영된 표기로 변환합니다.
+def _standardize_segment(
+    segment: str, apply_tensing: bool
+) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
+    steps: List[PronunciationRuleStep] = []
+    lexical = LEXICAL_PRONUNCIATIONS.get(segment, segment)
+    if lexical != segment:
+        steps.append(PronunciationRuleStep("lexical_exception", segment, lexical))
 
-    연음, 구개음화, ㅎ 축약, 비음화, 유음화, ㄴ 첨가, 된소리되기와
-    일부 자주 쓰이는 예외를 처리합니다.
-    """
+    syllables = [_decompose_char(char) for char in lexical]
+    rules = [
+        ("h_assimilation_and_elision", _apply_h_rules),
+        ("palatalization", _apply_palatalization),
+        ("lexical_n_insertion", _apply_lexical_n_insertion),
+        ("liaison", _apply_liaison),
+        ("final_simplification", _apply_final_rules),
+        ("nasal_and_liquid_assimilation", _apply_nasal_and_liquid_assimilation),
+    ]
+    for name, rule in rules:
+        before = _compose_syllables(syllables)
+        rule(syllables)
+        _record_rule(name, syllables, before, steps)
+
+    if apply_tensing:
+        before = _compose_syllables(syllables)
+        _apply_tensing(syllables)
+        _record_rule("tensing", syllables, before, steps)
+
+    return _compose_syllables(syllables), tuple(steps)
+
+
+def _standardize_text(
+    text: str, *, apply_tensing: bool = True
+) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
+    normalized = normalize_hangul(text, "NFC")
     result: List[str] = []
     segment: List[str] = []
+    steps: List[PronunciationRuleStep] = []
 
     def flush_segment() -> None:
         if not segment:
             return
-        result.append(_standardize_segment("".join(segment)))
+        standardized, segment_steps = _standardize_segment("".join(segment), apply_tensing)
+        result.append(standardized)
+        steps.extend(segment_steps)
         segment.clear()
 
-    for char in text:
+    for char in normalized:
         if _is_complete_hangul(char):
             segment.append(char)
         else:
             flush_segment()
             result.append(char)
-
     flush_segment()
-    return "".join(result)
+    return "".join(result), tuple(steps)
+
+
+@overload
+def standardize_pronunciation(text: str, *, explain: Literal[False] = False) -> str: ...
+
+
+@overload
+def standardize_pronunciation(text: str, *, explain: Literal[True]) -> PronunciationResult: ...
+
+
+def standardize_pronunciation(
+    text: str, *, explain: bool = False
+) -> Union[str, PronunciationResult]:
+    """주요 표준 발음 규칙을 적용하고 선택적으로 규칙 추적을 반환합니다."""
+    pronunciation, steps = _standardize_text(text)
+    if explain:
+        return PronunciationResult(pronunciation, steps)
+    return pronunciation
