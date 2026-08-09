@@ -1,5 +1,7 @@
 {
-    "include": ["."],
-    "exclude": ["venv", "build", "__pycache__"],
-    "typeCheckingMode": "strict"
+    "include": ["hangulpy"],
+    "exclude": ["**/__pycache__", "build", "dist"],
+    "pythonVersion": "3.8",
+    "typeCheckingMode": "strict",
+    "reportUnnecessaryIsInstance": "warning"
 }
