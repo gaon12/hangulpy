@@ -15,6 +15,18 @@ from hangulpy.utils import (
 )
 
 
+def _one_composed_syllable(text: str) -> Optional[str]:
+    from hangulpy.hangul_normalize import normalize_hangul
+
+    normalized = normalize_hangul(text, "NFC")
+    if len(normalized) != 1:
+        return None
+    code = ord(normalized)
+    if HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE:
+        return normalized
+    return None
+
+
 def is_complete_hangul(char: str) -> bool:
     """
     주어진 문자가 완성형 한글 음절인지 확인합니다.
@@ -22,10 +34,7 @@ def is_complete_hangul(char: str) -> bool:
     :param char: 검사할 문자
     :return: 완성형 한글이면 True, 아니면 False
     """
-    if len(char) != 1:
-        return False
-    code = ord(char)
-    return HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE
+    return _one_composed_syllable(char) is not None
 
 
 def is_chosung(char: str) -> bool:
@@ -73,9 +82,10 @@ def has_jongsung(char: str) -> bool:
     :param char: 검사할 한글 음절 문자
     :return: 받침이 있으면 True, 없으면 False
     """
-    if not is_complete_hangul(char):
+    composed = _one_composed_syllable(char)
+    if composed is None:
         return False
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
+    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
     return (char_index % JONGSUNG_COUNT) != 0
 
 
@@ -86,9 +96,10 @@ def get_chosung(char: str) -> Optional[str]:
     :param char: 한글 음절 문자
     :return: 초성 문자, 한글이 아니면 None
     """
-    if not is_complete_hangul(char):
+    composed = _one_composed_syllable(char)
+    if composed is None:
         return None
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
+    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
     chosung_index = char_index // CHOSUNG_BASE
     return CHOSUNG_LIST[chosung_index]
 
@@ -100,9 +111,10 @@ def get_jungsung(char: str) -> Optional[str]:
     :param char: 한글 음절 문자
     :return: 중성 문자, 한글이 아니면 None
     """
-    if not is_complete_hangul(char):
+    composed = _one_composed_syllable(char)
+    if composed is None:
         return None
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
+    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
     jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
     return JUNGSUNG_LIST[jungsung_index]
 
@@ -114,9 +126,10 @@ def get_jongsung(char: str) -> Optional[str]:
     :param char: 한글 음절 문자
     :return: 종성 문자 (받침 없으면 빈 문자열), 한글이 아니면 None
     """
-    if not is_complete_hangul(char):
+    composed = _one_composed_syllable(char)
+    if composed is None:
         return None
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
+    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
     jongsung_index = char_index % JUNGSUNG_BASE
     return JONGSUNG_LIST[jongsung_index]
 
@@ -128,9 +141,10 @@ def get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
     :param char: 한글 음절 문자
     :return: (초성, 중성, 종성) 튜플, 한글이 아니면 None
     """
-    if not is_complete_hangul(char):
+    composed = _one_composed_syllable(char)
+    if composed is None:
         return None
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
+    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
     chosung_index = char_index // CHOSUNG_BASE
     jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
     jongsung_index = char_index % JUNGSUNG_BASE

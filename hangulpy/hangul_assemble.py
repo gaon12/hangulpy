@@ -1,7 +1,8 @@
 # hangul_assemble.py
 # High-level API for syllable splitting and joining
 
-from typing import Dict, List, Optional, Union
+import unicodedata
+from typing import Dict, List, Literal, Optional, Union, overload
 
 from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import (
@@ -14,7 +15,17 @@ from hangulpy.utils import (
 )
 
 
-def split_syllables(text: str, output_format: str = "list") -> Union[List[str], str]:
+@overload
+def split_syllables(text: str, output_format: Literal["list"] = "list") -> List[str]: ...
+
+
+@overload
+def split_syllables(text: str, output_format: Literal["string"]) -> str: ...
+
+
+def split_syllables(
+    text: str, output_format: Literal["list", "string"] = "list"
+) -> Union[List[str], str]:
     """
     한글 문자열을 자모 단위로 분해합니다.
     hangul-utils의 split_syllables와 유사한 고수준 API입니다.
@@ -23,10 +34,10 @@ def split_syllables(text: str, output_format: str = "list") -> Union[List[str], 
     :param output_format: 출력 형식 ('list', 'string')
     :return: 분해된 자모 (리스트 또는 문자열)
     """
-    result: List[str] = []
-    for char in text:
-        decomposed = split_hangul_string(char)
-        result.extend(decomposed)
+    if output_format not in ("list", "string"):
+        raise ValueError("output_format must be either 'list' or 'string'")
+
+    result = split_hangul_string(text)
 
     if output_format == "string":
         return "".join(result)
@@ -43,6 +54,14 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
     """
     if isinstance(jamos, str):
         jamos = list(jamos)
+    else:
+        jamos = list(jamos)
+
+    # Canonical U+11xx Jamo carry the same modern components as HCJ. Mapping
+    # only those code points preserves already-composed syllables verbatim.
+    from hangulpy.hangul_normalize import CANONICAL_TO_COMPAT
+
+    jamos = [CANONICAL_TO_COMPAT.get(char, char) for char in jamos]
 
     result: List[str] = []
     i = 0
@@ -84,7 +103,7 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
         result.append(compose_syllable(cho, jung, jong))
         i += consumed
 
-    return "".join(result)
+    return unicodedata.normalize("NFC", "".join(result))
 
 
 def combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> Optional[str]:
@@ -162,16 +181,27 @@ def remove_last_character(text: str) -> str:
     if not text:
         return ""
 
-    groups = disassemble_to_groups(text)
-    if not groups:
+    from hangulpy.hangul_normalize import normalize_hangul
+
+    normalized = normalize_hangul(text, "NFC")
+    if not normalized:
         return ""
 
-    groups[-1] = groups[-1][:-1]
-    flattened = [part for group in groups for part in group]
-    return join_jamos(flattened)
+    last_group = disassemble_to_groups(normalized[-1])[0]
+    return normalized[:-1] + join_jamos(last_group[:-1])
 
 
-def disassemble(text: str, output_format: str = "list") -> Union[List[str], str]:
+@overload
+def disassemble(text: str, output_format: Literal["list"] = "list") -> List[str]: ...
+
+
+@overload
+def disassemble(text: str, output_format: Literal["string"]) -> str: ...
+
+
+def disassemble(
+    text: str, output_format: Literal["list", "string"] = "list"
+) -> Union[List[str], str]:
     """
     한글 문자열을 자모로 분해합니다 (split_syllables의 별칭).
 

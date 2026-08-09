@@ -22,6 +22,7 @@ from .hangul_contains import (
 )
 from .hangul_decompose import decompose_hangul_string
 from .hangul_ends_with_consonant import ends_with_consonant
+from .hangul_normalize import normalize_hangul, to_compat_jamo, to_jamo
 from .hangul_number import (
     amount_to_hangul,
     days,
@@ -84,6 +85,9 @@ __all__ = [
     "susa",
     "seosusa",
     "days",
+    "normalize_hangul",
+    "to_jamo",
+    "to_compat_jamo",
     "can_be_chosung",
     "can_be_jongsung",
     "sort_hangul",
