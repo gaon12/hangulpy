@@ -1,5 +1,12 @@
 # hangulpy/__init__.py
 
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("hangulpy")
+except PackageNotFoundError:  # pragma: no cover - source tree without installed metadata
+    __version__ = "0+unknown"
+
 # Original functions
 from .chosung import chosung_includes, chosungIncludes, get_chosung_string
 from .hangul_assemble import (
@@ -15,13 +22,16 @@ from .hangul_assemble import (
 )
 from .hangul_check import is_hangul_consonant, is_hangul_vowel
 from .hangul_contains import (
+    HangulMatch,
     HangulSearcher,
+    find_hangul_spans,
     hangul_contains,
     hangul_search,
     hangul_search_all,
 )
 from .hangul_decompose import decompose_hangul_string
 from .hangul_ends_with_consonant import ends_with_consonant
+from .hangul_fuzzy import HangulIndex, HangulSearchResult, hangul_distance, hangul_similarity
 from .hangul_normalize import normalize_hangul, to_compat_jamo, to_jamo
 from .hangul_number import (
     amount_to_hangul,
@@ -75,6 +85,7 @@ from .romanize import (
 )
 
 __all__ = [
+    "__version__",
     # Original exports
     "chosungIncludes",
     "chosung_includes",
@@ -82,8 +93,14 @@ __all__ = [
     "is_hangul_consonant",
     "is_hangul_vowel",
     "hangul_contains",
+    "find_hangul_spans",
+    "HangulMatch",
     "decompose_hangul_string",
     "ends_with_consonant",
+    "hangul_distance",
+    "hangul_similarity",
+    "HangulIndex",
+    "HangulSearchResult",
     "float_to_hangul",
     "hangul_to_number",
     "number_to_hangul",
