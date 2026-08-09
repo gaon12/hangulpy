@@ -24,6 +24,16 @@ class TestStandardizePronunciation:
         assert standardize_pronunciation("값도") == "갑또"
         assert standardize_pronunciation("밟다") == "밥따"
 
+    def test_hard_conversion_can_disable_tensing(self):
+        assert standardize_pronunciation("닦다", hard_conversion=False) == "닥다"
+        assert standardize_pronunciation("값도", hard_conversion=False) == "갑도"
+        assert standardize_pronunciation("넓게", hard_conversion=False) == "널게"
+
+        explained = standardize_pronunciation("값도", hard_conversion=False, explain=True)
+        assert isinstance(explained, PronunciationResult)
+        assert explained.pronunciation == "갑도"
+        assert all(step.rule != "tensing" for step in explained.steps)
+
     def test_preserves_non_hangul_boundaries(self):
         assert standardize_pronunciation("굳이 test 놓고") == "구지 test 노코"
 
@@ -50,6 +60,10 @@ class TestStandardizePronunciation:
             ("별내", "별래"),
             ("알약", "알략"),
             ("굳히다", "구치다"),
+            ("숱하다", "수타다"),
+            ("옷한벌", "오탄벌"),
+            ("학여울", "항녀울"),
+            ("서울역", "서울력"),
         ],
     )
     def test_rule_engine_regressions(self, text, expected):

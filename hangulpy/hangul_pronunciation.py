@@ -40,6 +40,7 @@ class PronunciationResult:
 
 LEXICAL_PRONUNCIATIONS = {"디귿이": "디그시"}
 N_INSERTION_PAIRS = {("담", "요"), ("학", "여"), ("한", "여"), ("알", "약")}
+L_INSERTION_PAIRS = {("울", "역")}
 H_FINAL_REMAINDER = {"ㅎ": "", "ㄶ": "ㄴ", "ㅀ": "ㄹ"}
 ASPIRATE_ONSET = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
 PALATALIZATION = {"ㄷ": "ㅈ", "ㅌ": "ㅊ"}
@@ -156,7 +157,12 @@ def _apply_lexical_n_insertion(syllables: List[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
-        if (current.source, following.source) in N_INSERTION_PAIRS and following.cho == "ㅇ":
+        pair = (current.source, following.source)
+        if following.cho != "ㅇ":
+            continue
+        if pair in L_INSERTION_PAIRS:
+            following.cho = "ㄹ"
+        elif pair in N_INSERTION_PAIRS:
             following.cho = "ㄴ"
 
 
@@ -304,18 +310,26 @@ def _standardize_text(
 
 
 @overload
-def standardize_pronunciation(text: str, *, explain: Literal[False] = False) -> str: ...
+def standardize_pronunciation(
+    text: str, *, hard_conversion: bool = True, explain: Literal[False] = False
+) -> str: ...
 
 
 @overload
-def standardize_pronunciation(text: str, *, explain: Literal[True]) -> PronunciationResult: ...
+def standardize_pronunciation(
+    text: str, *, hard_conversion: bool = True, explain: Literal[True]
+) -> PronunciationResult: ...
 
 
 def standardize_pronunciation(
-    text: str, *, explain: bool = False
+    text: str, *, hard_conversion: bool = True, explain: bool = False
 ) -> Union[str, PronunciationResult]:
-    """주요 표준 발음 규칙을 적용하고 선택적으로 규칙 추적을 반환합니다."""
-    pronunciation, steps = _standardize_text(text)
+    """Apply standard pronunciation rules and optionally return a rule trace.
+
+    Set ``hard_conversion`` to false to skip tensing while retaining liaison,
+    final simplification, aspiration, nasalization, and liquidization.
+    """
+    pronunciation, steps = _standardize_text(text, apply_tensing=hard_conversion)
     if explain:
         return PronunciationResult(pronunciation, steps)
     return pronunciation
