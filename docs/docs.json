@@ -50,6 +50,7 @@
           "api/search/hangul-contains",
           "api/search/hangul-search",
           "api/search/hangul-searcher",
+          "api/search/fuzzy-search",
           "api/search/match-hangul-pattern"
         ]
       },
@@ -65,6 +66,7 @@
         "group": "한글 판별과 추출",
         "pages": [
           "api/properties/is-hangul",
+          "api/properties/hanja",
           "api/properties/syllable-types",
           "api/properties/jamo-roles",
           "api/properties/get-components"
@@ -76,6 +78,7 @@
           "api/assembly/decompose-hangul-string",
           "api/assembly/split-hangul-string",
           "api/assembly/split-syllables",
+          "api/assembly/jamo-edit",
           "api/assembly/join-jamos",
           "api/assembly/hangul-syllable"
         ]
@@ -85,16 +88,19 @@
         "pages": [
           "api/conversions/number-to-hangul",
           "api/conversions/hangul-to-number",
+          "api/conversions/normalize-hangul",
           "api/conversions/romanize",
           "api/conversions/keyboard",
           "api/conversions/sort-hangul",
-          "api/conversions/standardize-pronunciation"
+          "api/conversions/standardize-pronunciation",
+          "api/conversions/map-hangul"
         ]
       },
       {
         "group": "참고 자료",
         "pages": [
           "implemented-features",
+          "migration-v1-5",
           "releases/v1-4-0",
           "releases/v1-3-2",
           "releases/v1-3-1"

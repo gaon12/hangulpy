@@ -35,7 +35,7 @@ number_to_hangul_mixed(num: int | float, spacing: bool = False) -> str
 amount_to_hangul(amount: str | int | float) -> str
 ```
 
-## susa / seosusa / days
+## susa / seosusa / days / months
 
 순우리말 수사, 서수사, 날짜 수를 반환합니다.
 
@@ -43,6 +43,33 @@ amount_to_hangul(amount: str | int | float) -> str
 susa(num: int, classifier: bool = False) -> str
 seosusa(num: int) -> str
 days(num: int) -> str
+months(month: int) -> str
+```
+
+`months`는 1월부터 12월까지를 읽으며 `6`과 `10`에는 `유월`, `시월` 예외를
+적용합니다.
+
+## counter
+
+수사와 단위를 결합합니다.
+
+```python
+counter(
+    num: int,
+    unit: str,
+    *,
+    system: Literal["native", "sino"] = "native",
+    spacing: bool = True,
+) -> str
+```
+
+## native_korean_to_number
+
+1부터 100까지의 고유어 수사나 수 관형사를 정수로 되돌립니다. 입력 안의
+공백은 무시합니다.
+
+```python
+native_korean_to_number(text: str) -> int
 ```
 
 ## 예시
@@ -50,8 +77,11 @@ days(num: int) -> str
 ```python
 from hangulpy import (
     amount_to_hangul,
+    counter,
     days,
     float_to_hangul,
+    months,
+    native_korean_to_number,
     number_to_hangul,
     number_to_hangul_mixed,
     seosusa,
@@ -71,6 +101,10 @@ print(susa(21))  # 스물하나
 print(susa(21, classifier=True))  # 스물한
 print(seosusa(21))  # 스물한째
 print(days(29))  # 스무아흐레
+print(months(6))  # 유월
+print(counter(3, "개"))  # 세 개
+print(counter(3, "개", system="sino", spacing=False))  # 삼개
+print(native_korean_to_number("스물 다섯"))  # 25
 ```
 
 소수는 `점` 뒤를 자리별로 읽습니다.

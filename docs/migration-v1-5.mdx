@@ -1,0 +1,37 @@
+---
+title: v1.5 마이그레이션
+description: 다음 버전에서 제거되는 호환 API와 대체 이름
+---
+
+v1.4는 Python 명명 규칙에 맞춘 새 이름을 도입하면서 기존 호출을 한 릴리즈 동안
+호환합니다. 아래 세 이름은 사용 시 `DeprecationWarning`을 발생시키며 **v1.5에서
+제거될 예정**입니다.
+
+| 제거 예정 이름 | 대체 이름 |
+| --- | --- |
+| `chosungIncludes` | `chosung_includes` |
+| `notallowempty` | `not_allow_empty` |
+| `allowDoubleConsonant` | `allow_double_consonant` |
+
+## 검색 옵션
+
+`hangul_contains`, `hangul_search`, `hangul_search_all`과 `HangulSearcher` 메서드의
+호출을 다음처럼 바꿉니다.
+
+```python
+from hangulpy import hangul_contains
+
+hangul_contains("사과", "", not_allow_empty=True)
+```
+
+## 키보드 변환 옵션
+
+`enko`, `autofix`, `convert_qwerty_to_hangul`에서는 snake_case 옵션을 사용합니다.
+
+```python
+from hangulpy import enko
+
+enko("rrk", allow_double_consonant=True)
+```
+
+새 이름과 제거 예정 이름을 한 호출에서 함께 넘기면 `TypeError`가 발생합니다.

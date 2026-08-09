@@ -7,21 +7,23 @@ description: hangulpy 공개 API 전체 목록
 
 ## 검색과 매칭
 
-- `get_chosung_string`, `chosung_includes`, `chosungIncludes`: [get_chosung_string / chosung_includes](api/search/get-chosung)
+- `get_chosung_string`, `chosung_includes`: [get_chosung_string / chosung_includes](api/search/get-chosung)
 - `hangul_contains`: [hangul_contains](api/search/hangul-contains)
-- `hangul_search`, `hangul_search_all`: [hangul_search / hangul_search_all](api/search/hangul-search)
+- `hangul_search`, `hangul_search_all`, `find_hangul_spans`, `HangulMatch`: [검색 위치와 원문 구간](api/search/hangul-search)
 - `HangulSearcher`: [HangulSearcher](api/search/hangul-searcher)
+- `hangul_distance`, `hangul_similarity`, `HangulIndex`, `HangulSearchResult`: [한글 퍼지 검색](api/search/fuzzy-search)
 - `match_hangul_pattern`: [match_hangul_pattern](api/search/match-hangul-pattern)
 
 ## 조사와 단어 결합
 
-- `josa`, `josa_pick`: [josa](api/particles/josa)
+- `josa`, `josa_pick`, `format_josa`: [조사 붙이기와 문장 치환](api/particles/josa)
 - `has_jongsung`, `has_batchim`, `ends_with_consonant`: [has_jongsung / has_batchim / ends_with_consonant](api/particles/batchim)
 - `jarip_noun`: [jarip_noun](api/particles/jarip-noun)
 
 ## 문자 속성과 구성요소
 
 - `is_hangul`, `is_hangul_consonant`, `is_hangul_vowel`: [기본 한글 판별](api/properties/is-hangul)
+- `is_hanja`, `split_hanja`, `HanjaRun`: [한자 판별과 구간 분리](api/properties/hanja)
 - `is_complete_hangul`, `is_chosung`, `is_jungsung`, `is_jongsung`: [완성형과 자모 판별](api/properties/syllable-types)
 - `can_be_chosung`, `can_be_jongsung`: [초성/종성 사용 가능 여부](api/properties/jamo-roles)
 - `get_chosung`, `get_jungsung`, `get_jongsung`, `get_hangul_components`: [구성요소 추출](api/properties/get-components)
@@ -31,19 +33,24 @@ description: hangulpy 공개 API 전체 목록
 - `decompose_hangul_string`: [decompose_hangul_string](api/assembly/decompose-hangul-string)
 - `split_hangul_string`: [split_hangul_string](api/assembly/split-hangul-string)
 - `split_syllables`, `disassemble`: [split_syllables / disassemble](api/assembly/split-syllables)
+- `jamo_len`, `jamo_slice`, `typing_steps`: [자모 단위 편집](api/assembly/jamo-edit)
 - `join_jamos`, `assemble`, `combine_vowels`, `combine_character`, `disassemble_to_groups`, `disassemble_complete_character`, `remove_last_character`: [join_jamos / assemble](api/assembly/join-jamos)
 - `hangul_syllable`: [hangul_syllable](api/assembly/hangul-syllable)
 
 ## 변환과 보정
 
-- `number_to_hangul`, `float_to_hangul`, `number_to_hangul_mixed`, `amount_to_hangul`, `susa`, `seosusa`, `days`: [number_to_hangul / float_to_hangul](api/conversions/number-to-hangul)
+- `number_to_hangul`, `float_to_hangul`, `number_to_hangul_mixed`, `amount_to_hangul`, `susa`, `seosusa`, `days`, `months`, `counter`, `native_korean_to_number`: [숫자를 한글로 읽기](api/conversions/number-to-hangul)
 - `hangul_to_number`: [hangul_to_number](api/conversions/hangul-to-number)
+- `normalize_hangul`, `to_jamo`, `to_compat_jamo`: [한글 Unicode 정규화](api/conversions/normalize-hangul)
 - `romanize`, `Romanizer`: [romanize / Romanizer](api/conversions/romanize)
-- `standardize_pronunciation`: [standardize_pronunciation](api/conversions/standardize-pronunciation)
+- `standardize_pronunciation`, `PronunciationResult`, `PronunciationRuleStep`: [표준 발음과 규칙 추적](api/conversions/standardize-pronunciation)
 - `koen`, `enko`, `autofix`, `convert_hangul_to_qwerty`, `convert_qwerty_to_hangul`, `convert_qwerty_to_alphabet`: [koen / enko / autofix](api/conversions/keyboard)
+- `map_hangul`: [음절 구성요소 매핑](api/conversions/map-hangul)
 - `sort_hangul`: [sort_hangul](api/conversions/sort-hangul)
 
 ## 참고
 
+- `__version__`은 설치된 `hangulpy` 배포판의 버전 문자열입니다.
 - 순서대로 읽고 싶다면 [소개](index), [설치하기](installation), [빠른 시작](quickstart) 순서로 보면 됩니다.
+- `chosungIncludes`, `notallowempty`, `allowDoubleConsonant`는 v1.5에서 제거됩니다. [v1.5 마이그레이션](migration-v1-5)을 확인하세요.
 - 버전별 변경점은 [v1.4.0 릴리즈 노트](releases/v1-4-0)에서 확인할 수 있습니다.

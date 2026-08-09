@@ -1,0 +1,38 @@
+---
+title: 음절 매핑 (map_hangul)
+description: 완성형 한글 음절의 구성요소를 함수로 변환
+---
+
+`map_hangul`은 완성형 한글 음절마다 변환 함수를 호출하고, 비한글 문자는
+보존합니다. NFD와 호환 자모 입력은 먼저 NFC로 정규화합니다.
+
+```python
+map_hangul(
+    text: str,
+    mapper: Callable[
+        [str, str, str],
+        Union[str, Tuple[str, str, str]],
+    ],
+) -> str
+```
+
+`mapper`는 초성, 중성, 종성을 차례로 받습니다. 문자열을 반환하면 해당
+문자열로 치환하므로 확장하거나 빈 문자열로 삭제할 수 있습니다. 세 문자열
+튜플을 반환하면 한 음절로 다시 조합합니다.
+
+```python
+from hangulpy import map_hangul
+
+
+def remove_finals(cho: str, jung: str, jong: str):
+    if jong:
+        return cho, jung, ""
+    return f"[{cho}{jung}]"
+
+
+print(map_hangul("각 나!", remove_finals))  # 가 [ㄴㅏ]!
+```
+
+반환값이 문자열이나 길이 3의 튜플이 아니면 `TypeError` 또는 `ValueError`가
+발생합니다. 튜플의 구성요소가 유효한 현대 한글 초성·중성·종성 조합이
+아니어도 `ValueError`입니다.

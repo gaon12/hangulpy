@@ -1,0 +1,61 @@
+---
+title: 한글 퍼지 검색
+description: 자모 거리와 재사용 검색 인덱스로 오타와 초성 검색 처리
+---
+
+완성형, NFD, 복합 모음과 겹받침을 기본 자모 단위로 통일해 문자열 사이의
+거리를 계산하거나 여러 후보를 반복 검색합니다.
+
+## 거리와 유사도
+
+```python
+hangul_distance(left: str, right: str) -> float
+hangul_similarity(left: str, right: str) -> float
+```
+
+`hangul_distance`는 자모 단위 Levenshtein 거리를, `hangul_similarity`는 이를
+문자열 길이로 정규화한 `0.0`부터 `1.0` 사이의 점수를 반환합니다.
+
+```python
+from hangulpy import hangul_distance, hangul_similarity
+
+print(hangul_distance("한글", "한국"))  # 2.0
+print(round(hangul_similarity("한글", "한국"), 4))  # 0.6667
+```
+
+## 반복 검색 인덱스
+
+```python
+HangulIndex(items: Iterable[str])
+HangulIndex.search(
+    query: str,
+    *,
+    limit: int = 10,
+    min_score: float = 0.0,
+) -> list[HangulSearchResult]
+```
+
+```python
+from hangulpy import HangulIndex
+
+index = HangulIndex(["한국", "한글", "한굴", "가나다", "한글날"])
+results = index.search("한글")
+
+print([result.text for result in results[:2]])  # ["한글", "한글날"]
+print(results[0].score)  # 1.0
+print(results[0].matched)  # True
+```
+
+각 `HangulSearchResult`에는 원문 `text`, `score`, 입력 컬렉션의 `index`, 직접
+일치 위치인 `match_index`가 들어 있습니다. `matched`는 초성·부분 음절 검색으로
+직접 일치했는지 알려 줍니다.
+
+결과는 점수 내림차순으로 정렬하고, 같은 점수라면 정확 일치, 직접 일치, 퍼지
+일치, 원본 순서를 차례로 적용합니다. `limit`은 0 이상의 정수여야 하며,
+`min_score`는 `0.0`부터 `1.0` 사이여야 합니다.
+
+<Note>
+  `HangulIndex`는 후보의 자모 표현을 재사용하고 후보별 동적 계획법 한 번으로
+  최적 부분 문자열 점수를 구합니다. 다만 모든 후보를 비교하므로 아주 큰
+  컬렉션에서는 애플리케이션 도메인에 맞는 사전 필터를 함께 고려하세요.
+</Note>

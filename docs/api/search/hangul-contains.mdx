@@ -6,10 +6,15 @@ description: 초성, 부분 음절, 완성형 패턴 포함 여부 확인
 `hangul_contains` 는 입력을 자모 단위로 분해해 비교합니다. 그래서 초성 검색과 부분 음절 검색을 같은 함수로 처리할 수 있습니다.
 
 ```python
-hangul_contains(word: str, pattern: str, notallowempty: bool = False) -> bool
+hangul_contains(word: str, pattern: str, not_allow_empty: bool = False) -> bool
 ```
 
-`notallowempty` 를 생략하면 기본값은 `False` 이고, 빈 문자열 패턴을 허용합니다.
+`not_allow_empty`를 생략하면 기본값은 `False`이고, 빈 문자열 패턴을 허용합니다.
+
+<Warning>
+  기존 `notallowempty` 이름은 v1.5에서 제거됩니다. `not_allow_empty`로
+  마이그레이션하세요.
+</Warning>
 
 ## 예시
 
@@ -28,7 +33,7 @@ print(hangul_contains("사과", "삽"))  # False
 from hangulpy import hangul_contains
 
 print(hangul_contains("사과", ""))  # True
-print(hangul_contains("사과", "", notallowempty=True))  # False
+print(hangul_contains("사과", "", not_allow_empty=True))  # False
 ```
 
 ## 같이 보기
