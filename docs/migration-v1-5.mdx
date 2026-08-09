@@ -35,3 +35,21 @@ enko("rrk", allow_double_consonant=True)
 ```
 
 새 이름과 제거 예정 이름을 한 호출에서 함께 넘기면 `TypeError`가 발생합니다.
+
+## 경고 표시와 필터링
+
+호환 API는 Python 표준 `warnings.warn`과 `DeprecationWarning`의 하위 클래스인
+`HangulpyDeprecationWarning`을 사용합니다. 따라서 일반적인 Python 경고 필터,
+`-W` 옵션, `PYTHONWARNINGS` 환경 변수로 표시 여부를 제어할 수 있습니다.
+
+```python
+import warnings
+
+from hangulpy import HangulpyDeprecationWarning
+
+# hangulpy의 제거 예정 API 경고만 숨깁니다.
+warnings.filterwarnings("ignore", category=HangulpyDeprecationWarning)
+```
+
+테스트나 마이그레이션 점검 중에는 같은 필터의 동작을 `"error"`로 바꾸면 경고를
+예외로 처리할 수 있습니다.

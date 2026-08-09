@@ -2,6 +2,7 @@
 
 import warnings
 
+from hangulpy._deprecated import HangulpyDeprecationWarning
 from hangulpy.utils import CHOSUNG_BASE, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, is_hangul
 
 
@@ -41,7 +42,7 @@ def chosungIncludes(word: str, pattern: str) -> bool:
     warnings.warn(
         "'chosungIncludes' is deprecated and will be removed in the next release; "
         "use 'chosung_includes' instead",
-        DeprecationWarning,
+        HangulpyDeprecationWarning,
         stacklevel=2,
     )
     return chosung_includes(word, pattern)

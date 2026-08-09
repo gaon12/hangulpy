@@ -8,6 +8,7 @@ except PackageNotFoundError:  # pragma: no cover - source tree without installed
     __version__ = "0+unknown"
 
 # Original functions
+from ._deprecated import HangulpyDeprecationWarning
 from .chosung import chosung_includes, chosungIncludes, get_chosung_string
 from .hangul_assemble import (
     assemble,
@@ -89,6 +90,7 @@ from .romanize import (
 
 __all__ = [
     "__version__",
+    "HangulpyDeprecationWarning",
     # Original exports
     "chosungIncludes",
     "chosung_includes",
