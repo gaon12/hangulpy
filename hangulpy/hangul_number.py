@@ -1,7 +1,8 @@
 # hangul_number.py
 
+import re
 from decimal import Decimal, InvalidOperation
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 from hangulpy.utils import NUMBERS
 
@@ -29,7 +30,8 @@ LARGE_UNITS = [
     "무량대수",
 ]
 
-DIGIT_TO_NUMBER: Dict[str, int] = {name: value for value, name in enumerate(NUMBERS) if name}
+DIGIT_NAMES = ["영", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"]
+DIGIT_TO_NUMBER: Dict[str, int] = {name: value for value, name in enumerate(DIGIT_NAMES)}
 SMALL_UNIT_TO_NUMBER = {"십": 10, "백": 100, "천": 1000}
 LARGE_UNIT_TO_NUMBER = {unit: 10 ** (index * 4) for index, unit in enumerate(LARGE_UNITS) if unit}
 
@@ -142,7 +144,7 @@ def number_to_hangul(num: Number, spacing: bool = False) -> str:
 
     result = _integer_to_hangul(integer_part, spacing=spacing)
     if fractional_part:
-        fraction = "".join(NUMBERS[int(digit)] for digit in fractional_part)
+        fraction = "".join(DIGIT_NAMES[int(digit)] for digit in fractional_part)
         result = f"{result}점{fraction}"
 
     return f"마이너스{result}" if negative and result != "영" else result
@@ -159,11 +161,19 @@ def float_to_hangul(num: float) -> str:
 
 
 def _read_hangul_integer(integer_part: str) -> int:
+    if not integer_part:
+        raise ValueError("empty hangul integer")
+    if "영" in integer_part and integer_part != "영":
+        raise ValueError("'영' must be used alone in an integer")
+
     total = 0
     group = 0
-    pending = 0
+    pending: Optional[int] = None
     index = 0
     large_units = sorted(LARGE_UNIT_TO_NUMBER, key=len, reverse=True)
+    last_small_unit = 10000
+    last_large_unit: Optional[int] = None
+    saw_token = False
 
     while index < len(integer_part):
         char = integer_part[index]
@@ -172,13 +182,23 @@ def _read_hangul_integer(integer_part: str) -> int:
             continue
 
         if char in DIGIT_TO_NUMBER:
+            if pending is not None:
+                raise ValueError("consecutive digit names are not valid in an integer")
             pending = DIGIT_TO_NUMBER[char]
+            saw_token = True
             index += 1
             continue
 
         if char in SMALL_UNIT_TO_NUMBER:
-            group += (pending or 1) * SMALL_UNIT_TO_NUMBER[char]
-            pending = 0
+            unit_value = SMALL_UNIT_TO_NUMBER[char]
+            if unit_value >= last_small_unit:
+                raise ValueError("small units must appear in descending order")
+            if pending == 0:
+                raise ValueError("'영' cannot qualify a unit")
+            group += (pending if pending is not None else 1) * unit_value
+            pending = None
+            last_small_unit = unit_value
+            saw_token = True
             index += 1
             continue
 
@@ -189,20 +209,24 @@ def _read_hangul_integer(integer_part: str) -> int:
                 break
 
         if matched_unit:
-            group += pending
+            unit_value = LARGE_UNIT_TO_NUMBER[matched_unit]
+            if last_large_unit is not None and unit_value >= last_large_unit:
+                raise ValueError("large units must appear in descending order")
+            group += pending if pending is not None else 0
             total += (group or 1) * LARGE_UNIT_TO_NUMBER[matched_unit]
             group = 0
-            pending = 0
+            pending = None
+            last_small_unit = 10000
+            last_large_unit = unit_value
+            saw_token = True
             index += len(matched_unit)
-            continue
-
-        if char == "영":
-            index += 1
             continue
 
         raise ValueError(f"invalid hangul number token: {char!r}")
 
-    return total + group + pending
+    if not saw_token:
+        raise ValueError("empty hangul integer")
+    return total + group + (pending if pending is not None else 0)
 
 
 def hangul_to_number(hangul: str) -> Union[int, float]:
@@ -219,9 +243,15 @@ def hangul_to_number(hangul: str) -> Union[int, float]:
     negative = text.startswith("마이너스")
     if negative:
         text = text[len("마이너스") :]
+        if not text:
+            raise ValueError("a minus sign must be followed by a number")
 
+    if text.count("점") > 1:
+        raise ValueError("a hangul number can contain only one decimal point")
     if "점" in text:
         integer_part, fractional_part = text.split("점", 1)
+        if not integer_part or not fractional_part:
+            raise ValueError("both sides of '점' must contain digits")
     else:
         integer_part, fractional_part = text, ""
 
@@ -255,6 +285,9 @@ def number_to_hangul_mixed(num: Number, spacing: bool = False) -> str:
         groups.append(int(remaining[-4:]))
         remaining = remaining[:-4]
 
+    if len(groups) > len(LARGE_UNITS):
+        raise ValueError("number is too large")
+
     parts: List[str] = []
     for index in range(len(groups) - 1, -1, -1):
         group = groups[index]
@@ -278,8 +311,17 @@ def amount_to_hangul(amount: Union[str, int, float]) -> str:
     :param amount: 숫자 또는 금액 문자열
     :return: 한글 숫자 문자열
     """
-    filtered = "".join(char for char in str(amount) if char.isdigit() or char in ".-,")
-    return number_to_hangul(Decimal(_normalize_number_text(filtered)))
+    if not isinstance(amount, str):
+        return number_to_hangul(amount)
+
+    matches = list(re.finditer(r"[+-]?\d[\d,]*(?:\.\d+)?", amount))
+    if len(matches) != 1:
+        raise ValueError("amount must contain exactly one number")
+
+    number_text = matches[0].group(0)
+    if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", number_text):
+        raise ValueError(f"invalid amount: {amount!r}")
+    return number_to_hangul(Decimal(_normalize_number_text(number_text)))
 
 
 NATIVE_ONES = {
@@ -317,6 +359,18 @@ NATIVE_TENS = {
 }
 
 
+def _require_int(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{name} must be an integer")
+    return value
+
+
+def _require_string(value: object, name: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string")
+    return value
+
+
 def susa(num: int, classifier: bool = False) -> str:
     """
     1부터 100까지의 숫자를 순우리말 수사로 변환합니다.
@@ -325,7 +379,8 @@ def susa(num: int, classifier: bool = False) -> str:
     :param classifier: True이면 수 관형사형을 반환합니다.
     :return: 순우리말 수사
     """
-    if not isinstance(num, int) or isinstance(num, bool) or not 1 <= num <= 100:
+    num = _require_int(num, "num")
+    if not 1 <= num <= 100:
         raise ValueError("susa supports integers from 1 to 100")
 
     if num == 100:
@@ -344,6 +399,57 @@ def susa(num: int, classifier: bool = False) -> str:
     return NATIVE_TENS[tens] + (NATIVE_ONES_CLASSIFIER if classifier else NATIVE_ONES)[ones]
 
 
+def counter(
+    num: int,
+    unit: str,
+    *,
+    system: Literal["native", "sino"] = "native",
+    spacing: bool = True,
+) -> str:
+    """수 관형사 또는 한자어 수사와 단위를 결합합니다."""
+    num = _require_int(num, "num")
+    if not unit:
+        raise ValueError("unit must not be empty")
+    if system == "native":
+        number_text = susa(num, classifier=True)
+    elif system == "sino":
+        if num < 0:
+            raise ValueError("sino counters require a non-negative number")
+        number_text = number_to_hangul(num)
+    else:
+        raise ValueError("system must be either 'native' or 'sino'")
+    return number_text + (" " if spacing else "") + unit
+
+
+def months(month: int) -> str:
+    """달력의 월을 한글 읽기로 변환하며 유월·시월 예외를 적용합니다."""
+    month = _require_int(month, "month")
+    if not 1 <= month <= 12:
+        raise ValueError("month must be between 1 and 12")
+    if month == 6:
+        return "유월"
+    if month == 10:
+        return "시월"
+    return number_to_hangul(month) + "월"
+
+
+_NATIVE_NUMBER_VALUES = {
+    form: number
+    for number in range(1, 101)
+    for form in (susa(number), susa(number, classifier=True))
+}
+
+
+def native_korean_to_number(text: str) -> int:
+    """1~100 범위의 고유어 수사·수 관형사를 정수로 변환합니다."""
+    text = _require_string(text, "text")
+    normalized = "".join(text.split())
+    try:
+        return _NATIVE_NUMBER_VALUES[normalized]
+    except KeyError as exc:
+        raise ValueError(f"invalid native Korean number: {text!r}") from exc
+
+
 def seosusa(num: int) -> str:
     """
     숫자를 한글 서수사로 변환합니다.
@@ -351,7 +457,8 @@ def seosusa(num: int) -> str:
     :param num: 변환할 정수
     :return: 서수사
     """
-    if not isinstance(num, int) or isinstance(num, bool) or num < 1:
+    num = _require_int(num, "num")
+    if num < 1:
         raise ValueError("seosusa supports positive integers")
 
     if num == 1:
@@ -392,7 +499,8 @@ def days(num: int) -> str:
     :param num: 변환할 정수
     :return: 순우리말 날짜 수
     """
-    if not isinstance(num, int) or isinstance(num, bool) or not 1 <= num <= 30:
+    num = _require_int(num, "num")
+    if not 1 <= num <= 30:
         raise ValueError("days supports integers from 1 to 30")
 
     if num < 10:

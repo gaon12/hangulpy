@@ -1,5 +1,7 @@
 # chosung.py
 
+import warnings
+
 from hangulpy.utils import CHOSUNG_BASE, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, is_hangul
 
 
@@ -36,12 +38,21 @@ def chosungIncludes(word: str, pattern: str) -> bool:
     :param pattern: 초성 패턴
     :return: 포함 여부
     """
-    word_chosung = "".join(extract_chosung(c) for c in word if is_hangul(c))
-    return pattern in word_chosung
+    warnings.warn(
+        "'chosungIncludes' is deprecated and will be removed in the next release; "
+        "use 'chosung_includes' instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return chosung_includes(word, pattern)
 
 
 def chosung_includes(word: str, pattern: str) -> bool:
     """
-    ``chosungIncludes`` 의 Python 스타일 별칭입니다.
+    Python 스타일 초성 검색 API입니다.
     """
-    return chosungIncludes(word, pattern)
+    from hangulpy.hangul_normalize import normalize_hangul
+
+    normalized = normalize_hangul(word, "NFC")
+    word_chosung = "".join(extract_chosung(c) for c in normalized if is_hangul(c))
+    return pattern in word_chosung

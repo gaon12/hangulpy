@@ -1,11 +1,16 @@
 # tests/test_numbers.py
 
+from decimal import Decimal
+
 import pytest
 
 from hangulpy import (
     amount_to_hangul,
+    counter,
     days,
     hangul_to_number,
+    months,
+    native_korean_to_number,
     number_to_hangul,
     number_to_hangul_mixed,
     seosusa,
@@ -31,6 +36,11 @@ class TestHangulNumbers:
         assert number_to_hangul(-12345.678) == "마이너스만이천삼백사십오점육칠팔"
         assert number_to_hangul(123456780, spacing=True) == "일억 이천삼백사십오만 육천칠백팔십"
 
+    def test_fractional_zeroes_are_preserved(self):
+        assert number_to_hangul(1.01) == "일점영일"
+        assert number_to_hangul(Decimal("0.00102")) == "영점영영일영이"
+        assert hangul_to_number("일점영일") == pytest.approx(1.01)
+
     def test_hangul_to_number(self):
         """한글 숫자 역변환 테스트"""
         assert hangul_to_number("십만") == 100000
@@ -49,6 +59,17 @@ class TestHangulNumbers:
         """금액 문자열 변환 테스트"""
         assert amount_to_hangul("120,030원") == "십이만삼십"
         assert amount_to_hangul("12345.6789") == "만이천삼백사십오점육칠팔구"
+        with pytest.raises(ValueError, match="exactly one"):
+            amount_to_hangul("1원 2원")
+
+    @pytest.mark.parametrize("text", ["일이", "십백", "일만이억", "마이너스", "일점", "점일"])
+    def test_rejects_malformed_hangul_numbers(self, text):
+        with pytest.raises(ValueError):
+            hangul_to_number(text)
+
+    def test_mixed_number_rejects_unsupported_magnitude(self):
+        with pytest.raises(ValueError, match="too large"):
+            number_to_hangul_mixed(10**72)
 
     def test_native_numbers(self):
         """순우리말 수사와 서수사 테스트"""
@@ -74,3 +95,16 @@ class TestHangulNumbers:
             susa(0)
         with pytest.raises(ValueError):
             days(31)
+
+    def test_counter_months_and_native_reverse_conversion(self):
+        assert counter(3, "개") == "세 개"
+        assert counter(20, "살") == "스무 살"
+        assert counter(3, "개", system="sino", spacing=False) == "삼개"
+        assert months(6) == "유월"
+        assert months(10) == "시월"
+        assert months(11) == "십일월"
+        assert native_korean_to_number("스물 다섯") == 25
+
+        for number in range(1, 101):
+            assert native_korean_to_number(susa(number)) == number
+            assert native_korean_to_number(susa(number, classifier=True)) == number
