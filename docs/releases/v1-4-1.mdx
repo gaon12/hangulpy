@@ -1,0 +1,22 @@
+---
+title: v1.4.1 릴리즈 노트
+description: hangulpy 1.4.1 릴리즈 노트
+---
+
+## 새 기능
+
+- `hangul_replace`, `hangul_split`, `hangul_partition`, `hangul_rpartition`을 추가했습니다. 초성·자모 패턴으로 찾은 원문 구간을 치환하거나 나눌 수 있으며, 매치 바깥의 NFD 표현은 그대로 보존합니다.
+- `HangulIndex` 기반 퍼지 검색, 한자 구간 분리, 자모 단위 편집, 음절 구성요소 매핑, 검색 원문 구간 반환 API를 추가했습니다.
+- 한글 정규화, 숫자 역변환, 표준 발음 규칙 추적 기능을 보강했습니다.
+
+## 호환성과 정확성
+
+- `notallowempty`, `allowDoubleConsonant`, `chosungIncludes`에 표준 `DeprecationWarning` 계열인 `HangulpyDeprecationWarning`을 적용했습니다. 경고는 호출자 위치를 가리키며 Python의 `warnings` 필터로 선택적으로 끌 수 있습니다.
+- 권장 snake_case 이름인 `not_allow_empty`, `allow_double_consonant`, `chosung_includes`를 제공합니다. 기존 이름은 v1.5에서 제거할 예정입니다.
+- 유니코드 정규화와 음절 경계, 숫자·조사·키보드 변환, 발음 및 로마자 표기의 여러 경계 사례를 수정했습니다.
+
+## 품질과 배포
+
+- 테스트 커버리지 하한을 85%로 높이고 strict mypy, strict Pyright, Ruff, Black 검사를 CI에 연결했습니다.
+- 문서 검증 위치와 Mint 버전을 고정하고 모든 공개 API를 문서 색인에 연결했습니다.
+- PyPI 업로드와 GitHub Release 생성을 독립적으로 복구할 수 있도록 릴리즈 워크플로를 개선했습니다.
