@@ -98,6 +98,34 @@ JOSA_RULES = {
 }
 
 NUMBER_PATTERN = re.compile(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?")
+ALPHABET_PRONUNCIATION_FINAL = {
+    "A": "이",
+    "B": "비",
+    "C": "씨",
+    "D": "디",
+    "E": "이",
+    "F": "프",
+    "G": "지",
+    "H": "치",
+    "I": "이",
+    "J": "이",
+    "K": "이",
+    "L": "엘",
+    "M": "엠",
+    "N": "엔",
+    "O": "오",
+    "P": "피",
+    "Q": "큐",
+    "R": "알",
+    "S": "스",
+    "T": "티",
+    "U": "유",
+    "V": "이",
+    "W": "유",
+    "X": "스",
+    "Y": "이",
+    "Z": "지",
+}
 
 
 def has_jongsung(text: str, only: Optional[BatchimKind] = None) -> bool:
@@ -140,6 +168,9 @@ def _get_last_valid_char(word: str) -> Optional[str]:
         normalized = normalize_hangul(word, "NFC")
         if normalized != word:
             return _get_last_valid_char(normalized)
+    acronym = word[:end]
+    if acronym.isascii() and acronym.isalpha() and acronym.isupper():
+        return ALPHABET_PRONUNCIATION_FINAL[char]
     if not char.isdigit():
         return None
 

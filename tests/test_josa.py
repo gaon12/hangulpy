@@ -38,6 +38,15 @@ class TestJosa:
         assert josa("3", "이/가") == "3이"
         assert josa("8", "이/가") == "8이"
 
+    def test_with_uppercase_english_acronyms(self):
+        assert josa("RAM", "은/는") == "RAM은"
+        assert josa("URL", "으로/로") == "URL로"
+        assert josa("API", "이/가") == "API가"
+        assert josa("CPU!", "은/는") == "CPU!는"
+        assert has_batchim("HTML")
+        assert not has_batchim("API")
+        assert format_josa("RAM[은/는] API[이/가]") == "RAM은 API가"
+
     def test_empty_word(self):
         """빈 문자열 테스트"""
         assert josa("", "을/를") == ""
