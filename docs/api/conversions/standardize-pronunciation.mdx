@@ -6,7 +6,12 @@ description: 주요 표준 발음 규칙을 반영한 한글 표기로 변환
 `standardize_pronunciation`은 한글 문자열에 자주 쓰이는 표준 발음 규칙을 적용해 발음에 가까운 한글 표기로 변환합니다.
 
 ```python
-standardize_pronunciation(text: str, *, explain: bool = False) -> str | PronunciationResult
+standardize_pronunciation(
+    text: str,
+    *,
+    hard_conversion: bool = True,
+    explain: bool = False,
+) -> str | PronunciationResult
 ```
 
 ## 처리하는 규칙
@@ -32,7 +37,12 @@ print(standardize_pronunciation("놓고"))  # 노코
 print(standardize_pronunciation("담요"))  # 담뇨
 print(standardize_pronunciation("신라"))  # 실라
 print(standardize_pronunciation("읽고"))  # 일꼬
+print(standardize_pronunciation("값도", hard_conversion=False))  # 갑도
 ```
+
+`hard_conversion=False`이면 된소리되기를 적용하지 않습니다. 연음, 받침
+단순화, 거센소리되기, 비음화와 유음화 등 나머지 규칙은 그대로 적용합니다.
+`explain=True`와 함께 사용할 수도 있습니다.
 
 ## 적용 규칙 추적
 
