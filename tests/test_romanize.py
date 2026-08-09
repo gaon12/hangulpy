@@ -1,5 +1,6 @@
 # tests/test_romanize.py
 
+import unicodedata
 from typing import List, Tuple
 
 import pytest
@@ -36,6 +37,10 @@ class TestRomanization:
         """연음/비음화가 반영되는 경우 테스트"""
         assert romanize("국물", "revised") == "gungmul"
         assert romanize("감사합니다", "revised") == "gamsahamnida"
+        assert romanize("고양이", "revised") == "goyangi"
+        assert romanize("먹이다", "revised") == "meogida"
+        assert romanize("값이", "revised") == "gapsi"
+        assert romanize("않아", "revised") == "ana"
 
     def test_romanize_revised_regulation_examples(self):
         """규정집 예시 표기 테스트"""
@@ -66,13 +71,12 @@ class TestRomanization:
 
     def test_romanize_mccune(self):
         """McCune-Reischauer 표기 테스트"""
-        result = romanize("한글", "mr")
-        assert result  # 정확한 결과는 시스템에 따라 다를 수 있음
+        assert romanize("한글", "mr") == "hankŭl"
+        assert romanize("국물", "mr") == "kungmul"
 
     def test_romanize_yale(self):
         """Yale 표기 테스트"""
-        result = romanize("한글", "yale")
-        assert result
+        assert romanize("한글", "yale") == "hankul"
 
     def test_romanizer_class(self):
         """Romanizer 클래스 테스트"""
@@ -82,6 +86,8 @@ class TestRomanization:
         # 단일 문자 변환
         assert romanizer.romanize_char("가") == "ga"
         assert romanizer.romanize_char("a") == "a"  # 한글이 아닌 문자는 그대로
+        assert romanizer.romanize_char("ㄱ") == "g"
+        assert romanizer.romanize_char("ᆨ") == "k"
 
     def test_romanizer_revised_modes(self):
         """규정 예외를 위한 revised 모드 테스트"""
@@ -105,6 +111,8 @@ class TestRomanization:
         assert romanize("함평군", "revised", mode="admin", admin_omit_suffix=True) == "hampyeong"
         assert romanize("순창읍", "revised", mode="admin", admin_omit_suffix=True) == "sunchang"
         assert romanize("부산 세종", "revised", capitalize=True) == "Busan Sejong"
+        assert romanize("김철", mode="name", capitalize=True) == "Gim Cheol"
+        assert romanize("남궁민", mode="name", capitalize=True) == "Namgung Min"
 
     def test_romanize_revised_disambiguation(self):
         """혼동 방지용 붙임표 테스트"""
@@ -132,3 +140,7 @@ class TestRomanization:
         result = romanize("Hello 안녕", "revised")
         assert "Hello" in result
         assert "annyeong" in result
+
+    def test_romanize_accepts_nfd_and_standalone_jamo(self):
+        assert romanize(unicodedata.normalize("NFD", "한글")) == "hangeul"
+        assert romanize("ㄱ") == "g"

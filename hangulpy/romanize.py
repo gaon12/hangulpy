@@ -4,6 +4,8 @@
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from hangulpy.hangul_normalize import normalize_hangul, to_compat_jamo
+from hangulpy.hangul_pronunciation import standardize_pronunciation
 from hangulpy.utils import (
     CHOSUNG_BASE,
     CHOSUNG_LIST,
@@ -252,7 +254,7 @@ YALE_JONGSUNG = {
 }
 
 
-IOTIZED_VOWELS = {"ㅑ", "ㅒ", "ㅕ", "ㅖ", "ㅛ", "ㅠ", "ㅣ"}
+IOTIZED_VOWELS = {"ㅑ", "ㅒ", "ㅕ", "ㅖ", "ㅛ", "ㅠ"}
 ASPIRATED_CONSONANTS = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
 ADMIN_SUFFIXES = {
     "도": "do",
@@ -394,14 +396,15 @@ def _apply_liaison(syllables: List[_RevisedSyllable]) -> None:
 
         if not current.jong or following.cho != "ㅇ":
             continue
-
         if current.jong == "ㅇ":
             continue
-
         if current.jong == "ㅎ":
             current.jong = ""
             continue
-
+        if current.jong in {"ㄶ", "ㅀ"}:
+            following.cho = "ㄴ" if current.jong == "ㄶ" else "ㄹ"
+            current.jong = ""
+            continue
         if current.jong in JONGSUNG_DECOMPOSE:
             first, second = JONGSUNG_DECOMPOSE[current.jong]
             current.jong = first
@@ -488,10 +491,10 @@ def _romanize_revised_syllable(
 
 
 def _romanize_name_segment(text: str, hyphenate: bool) -> str:
-    if len(text) <= 2:
+    if len(text) <= 1:
         return _romanize_revised_segment(text, "name", False)
 
-    if len(text) >= 4 and text[:2] in DOUBLE_SURNAMES:
+    if len(text) >= 3 and text[:2] in DOUBLE_SURNAMES:
         surname = text[:2]
         given_name = text[2:]
     else:
@@ -627,10 +630,23 @@ class Romanizer:
         :param char: 한글 음절 문자
         :return: 로마자 표기
         """
-        if not _is_complete_hangul(char):
+        normalized = normalize_hangul(char, "NFC")
+        if not _is_complete_hangul(normalized):
+            if len(char) == 1 and 0x11A8 <= ord(char) <= 0x11C2:
+                compatibility_final = to_compat_jamo(char)
+                return self.jongsung_table.get(compatibility_final, compatibility_final)
+            compatibility = to_compat_jamo(char)
+            if len(compatibility) != 1:
+                return char
+            if compatibility in CHOSUNG_LIST:
+                return self.chosung_table.get(compatibility, compatibility)
+            if compatibility in JUNGSUNG_LIST:
+                return self.jungsung_table.get(compatibility, compatibility)
+            if compatibility in JONGSUNG_LIST:
+                return self.jongsung_table.get(compatibility, compatibility)
             return char
 
-        components = _get_hangul_components(char)
+        components = _get_hangul_components(normalized)
         if not components:
             return char
 
@@ -665,17 +681,22 @@ class Romanizer:
                     result.append(_romanize_name_segment(chunk, self.name_hyphen))
                 else:
                     result.append(_romanize_revised_segment(chunk, self.mode, self.disambiguate))
+            elif self.system in {"mr", "mccune"}:
+                phonetic_chunk = standardize_pronunciation(chunk)
+                for char in phonetic_chunk:
+                    result.append(self.romanize_char(char))
             else:
                 for char in chunk:
                     result.append(self.romanize_char(char))
             segment.clear()
 
-        for char in text:
+        normalized_text = normalize_hangul(text, "NFC")
+        for char in normalized_text:
             if _is_complete_hangul(char):
                 segment.append(char)
             else:
                 flush_segment()
-                result.append(char)
+                result.append(self.romanize_char(char))
 
         flush_segment()
 
