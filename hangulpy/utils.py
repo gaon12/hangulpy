@@ -1,3 +1,8 @@
+"""Shared constants and low-level operations for modern Hangul."""
+
+import unicodedata
+from typing import Optional, Tuple
+
 # utils.py
 # ------------------------------------------------------------
 # 한글 유니코드 및 구성 요소 관련 상수, 리스트, 매핑 정보를 정의합니다.
@@ -360,6 +365,27 @@ VOWEL_RMAP = {
 # [6] 한글 관련 함수들
 
 
+def is_complete_hangul_char(char: str) -> bool:
+    """Return whether *char* is one precomposed modern Hangul syllable."""
+    if len(char) != 1:
+        return False
+    code = ord(char)
+    return HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE
+
+
+def decompose_syllable(char: str) -> Optional[Tuple[str, str, str]]:
+    """Split one precomposed modern Hangul syllable without normalizing it."""
+    if not is_complete_hangul_char(char):
+        return None
+
+    offset = ord(char) - HANGUL_BEGIN_UNICODE
+    return (
+        CHOSUNG_LIST[offset // CHOSUNG_BASE],
+        JUNGSUNG_LIST[(offset % CHOSUNG_BASE) // JUNGSUNG_BASE],
+        JONGSUNG_LIST[offset % JUNGSUNG_BASE],
+    )
+
+
 def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bool:
     """
     입력된 문자열의 모든 문자가 한글 완성형(또는 띄어쓰기)인지 확인합니다.
@@ -371,15 +397,31 @@ def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bo
     if not text:
         return False
 
-    import unicodedata
+    if len(text) == 1:
+        char = text
+        if is_complete_hangul_char(char):
+            return True
+        if char == " " and spaces:
+            return True
+        if not include_jamo:
+            return False
+        code = ord(char)
+        return (
+            0x1100 <= code <= 0x1112
+            or 0x1161 <= code <= 0x1175
+            or 0x11A8 <= code <= 0x11C2
+            or char in CHOSUNG_INDEX
+            or char in JUNGSUNG_INDEX
+            or char in JONGSUNG_INDEX
+        )
 
     normalized = unicodedata.normalize("NFC", text)
     for char in normalized:
         if char == " " and spaces:
             continue
-        code = ord(char)
-        if HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE:
+        if is_complete_hangul_char(char):
             continue
+        code = ord(char)
         is_canonical_jamo = (
             0x1100 <= code <= 0x1112 or 0x1161 <= code <= 0x1175 or 0x11A8 <= code <= 0x11C2
         )

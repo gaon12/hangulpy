@@ -3,16 +3,17 @@
 import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 from typing import List, Literal, Optional
 
-from hangulpy.hangul_normalize import normalize_hangul
+from hangulpy.hangul_normalize import COMPAT_JAMO, normalize_hangul
 from hangulpy.hangul_number import number_to_hangul
 from hangulpy.utils import (
     HANGUL_BEGIN_UNICODE,
     JONGSUNG_COUNT,
     JONGSUNG_DECOMPOSE,
     JONGSUNG_LIST,
-    is_hangul,
+    is_complete_hangul_char,
 )
 
 BatchimKind = Literal["single", "double"]
@@ -96,6 +97,8 @@ JOSA_RULES = {
     "이었어/였어": ("이었어", "였어"),
 }
 
+NUMBER_PATTERN = re.compile(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?")
+
 
 def has_jongsung(text: str, only: Optional[BatchimKind] = None) -> bool:
     """
@@ -118,10 +121,9 @@ def _get_last_valid_char(word: str) -> Optional[str]:
     :param word: 조사 판단에 사용할 단어 문자열
     :return: 한글 음절 문자(종성 기준), 숫자 변환 후 한글 음절, 혹은 None
     """
-    normalized = normalize_hangul(word, "NFC")
-    end = len(normalized)
+    end = len(word)
     while end:
-        char = normalized[end - 1]
+        char = word[end - 1]
         category = unicodedata.category(char)
         if char.isspace() or category.startswith("P") or category.startswith("S"):
             end -= 1
@@ -130,17 +132,26 @@ def _get_last_valid_char(word: str) -> Optional[str]:
     if not end:
         return None
 
-    char = normalized[end - 1]
-    if is_hangul(char):
+    char = word[end - 1]
+    if is_complete_hangul_char(char):
         return char
+    code = ord(char)
+    if 0x1100 <= code <= 0x11C2 or char in COMPAT_JAMO:
+        normalized = normalize_hangul(word, "NFC")
+        if normalized != word:
+            return _get_last_valid_char(normalized)
     if not char.isdigit():
         return None
 
     start = end - 1
-    while start > 0 and (normalized[start - 1].isdigit() or normalized[start - 1] in ",.+-"):
+    while start > 0 and (word[start - 1].isdigit() or word[start - 1] in ",.+-"):
         start -= 1
-    number_text = normalized[start:end]
-    if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", number_text):
+    return _number_last_char(word[start:end])
+
+
+@lru_cache(maxsize=256)
+def _number_last_char(number_text: str) -> Optional[str]:
+    if NUMBER_PATTERN.fullmatch(number_text) is None:
         return None
     try:
         number = Decimal(number_text.replace(",", ""))
@@ -148,12 +159,12 @@ def _get_last_valid_char(word: str) -> Optional[str]:
         return None
 
     hangul_number = number_to_hangul(number)
-    return next((item for item in reversed(hangul_number) if is_hangul(item)), None)
+    return next((item for item in reversed(hangul_number) if is_complete_hangul_char(item)), None)
 
 
 def _get_jongsung_char(char: str) -> Optional[str]:
-    normalized = normalize_hangul(char, "NFC")
-    if len(normalized) != 1 or not is_hangul(normalized):
+    normalized = char if is_complete_hangul_char(char) else normalize_hangul(char, "NFC")
+    if not is_complete_hangul_char(normalized):
         return None
 
     jongsung_index = (ord(normalized) - HANGUL_BEGIN_UNICODE) % JONGSUNG_COUNT
@@ -205,12 +216,13 @@ def josa_pick(word: str, particle: str) -> str:
     :param particle: 조사 쌍
     :return: 선택된 조사
     """
-    if particle not in JOSA_RULES:
+    rule = JOSA_RULES.get(particle)
+    if rule is None:
         raise ValueError(f"Unsupported particle: {particle}")
 
     last_char = _get_last_valid_char(word)
     jongsung_exists = _has_jongsung_char(last_char) if last_char else False
-    with_jongsung, without_jongsung = JOSA_RULES[particle]
+    with_jongsung, without_jongsung = rule
 
     if particle.startswith("으로/") and _has_ro_exception(last_char):
         return without_jongsung

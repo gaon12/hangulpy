@@ -3,7 +3,7 @@
 import warnings
 
 from hangulpy._deprecated import HangulpyDeprecationWarning
-from hangulpy.utils import CHOSUNG_BASE, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, is_hangul
+from hangulpy.utils import CHOSUNG_BASE, CHOSUNG_LIST, HANGUL_BEGIN_UNICODE, is_complete_hangul_char
 
 
 def get_chosung_string(text: str, keep_spaces: bool = False) -> str:
@@ -13,17 +13,13 @@ def get_chosung_string(text: str, keep_spaces: bool = False) -> str:
     from hangulpy.hangul_normalize import normalize_hangul
 
     normalized = normalize_hangul(text, "NFC")
-    return (
-        "".join(extract_chosung(c) if is_hangul(c) else c for c in normalized)
-        if keep_spaces
-        else "".join(
-            extract_chosung(c) if is_hangul(c) and not c.isspace() else "" for c in normalized
-        )
-    )
+    if keep_spaces:
+        return "".join(extract_chosung(char) for char in normalized)
+    return "".join(extract_chosung(char) for char in normalized if is_complete_hangul_char(char))
 
 
 def extract_chosung(c: str) -> str:
-    if is_hangul(c):
+    if is_complete_hangul_char(c):
         code = ord(c) - HANGUL_BEGIN_UNICODE
         cho_idx = code // CHOSUNG_BASE
         return CHOSUNG_LIST[cho_idx]
@@ -55,5 +51,7 @@ def chosung_includes(word: str, pattern: str) -> bool:
     from hangulpy.hangul_normalize import normalize_hangul
 
     normalized = normalize_hangul(word, "NFC")
-    word_chosung = "".join(extract_chosung(c) for c in normalized if is_hangul(c))
+    word_chosung = "".join(
+        extract_chosung(char) for char in normalized if is_complete_hangul_char(char)
+    )
     return pattern in word_chosung

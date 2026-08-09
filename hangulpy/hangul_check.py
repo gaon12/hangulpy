@@ -1,6 +1,6 @@
 ﻿# hangul_check.py
 
-from hangulpy.utils import CHOSUNG_LIST, JUNGSUNG_LIST
+from hangulpy.utils import CHOSUNG_INDEX, JUNGSUNG_INDEX
 
 
 def is_hangul_consonant(char: str) -> bool:
@@ -10,7 +10,7 @@ def is_hangul_consonant(char: str) -> bool:
     :param char: 확인할 문자
     :return: 한글 자음이면 True, 아니면 False
     """
-    return char in CHOSUNG_LIST
+    return char in CHOSUNG_INDEX
 
 
 def is_hangul_vowel(char: str) -> bool:
@@ -20,4 +20,4 @@ def is_hangul_vowel(char: str) -> bool:
     :param char: 확인할 문자
     :return: 한글 모음이면 True, 아니면 False
     """
-    return char in JUNGSUNG_LIST
+    return char in JUNGSUNG_INDEX
