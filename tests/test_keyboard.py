@@ -5,6 +5,7 @@ from typing import Callable, Tuple
 import pytest
 
 from hangulpy import (
+    HangulpyDeprecationWarning,
     autofix,
     convert_hangul_to_qwerty,
     convert_qwerty_to_alphabet,
@@ -71,7 +72,7 @@ class TestKeyboardConversions:
 
             assert result == "까"
             assert len(caught) == 1
-            assert caught[0].category is DeprecationWarning
+            assert caught[0].category is HangulpyDeprecationWarning
             assert caught[0].filename == __file__
             assert "allow_double_consonant" in str(caught[0].message)
 

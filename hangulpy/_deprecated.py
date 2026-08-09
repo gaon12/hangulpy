@@ -4,6 +4,10 @@ import warnings
 from typing import Dict, Optional
 
 
+class HangulpyDeprecationWarning(DeprecationWarning):
+    """hangulpy compatibility APIs scheduled for removal."""
+
+
 def resolve_legacy_bool(
     value: Optional[bool],
     legacy_options: Dict[str, object],
@@ -20,7 +24,7 @@ def resolve_legacy_bool(
         warnings.warn(
             f"{legacy_name!r} is deprecated and will be removed in the next release; "
             f"use {replacement!r} instead",
-            DeprecationWarning,
+            HangulpyDeprecationWarning,
             stacklevel=3,
         )
         value = legacy_value
