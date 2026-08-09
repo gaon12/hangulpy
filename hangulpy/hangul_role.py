@@ -1,6 +1,6 @@
 ﻿# hangul_role.py
 
-from hangulpy.utils import CHOSUNG_LIST, JONGSUNG_LIST
+from hangulpy.utils import CHOSUNG_INDEX, JONGSUNG_INDEX
 
 
 def can_be_chosung(char: str) -> bool:
@@ -10,7 +10,7 @@ def can_be_chosung(char: str) -> bool:
     :param char: 확인할 문자
     :return: 초성으로 쓰일 수 있으면 True, 아니면 False
     """
-    return char in CHOSUNG_LIST
+    return char in CHOSUNG_INDEX
 
 
 def can_be_jongsung(char: str) -> bool:
@@ -20,4 +20,4 @@ def can_be_jongsung(char: str) -> bool:
     :param char: 확인할 문자
     :return: 종성으로 쓰일 수 있으면 True, 아니면 False
     """
-    return bool(char) and char in JONGSUNG_LIST
+    return bool(char) and char in JONGSUNG_INDEX

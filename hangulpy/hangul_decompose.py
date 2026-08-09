@@ -3,15 +3,9 @@
 from typing import List, Tuple, Union
 
 from hangulpy.utils import (
-    CHOSUNG_BASE,
-    CHOSUNG_LIST,
-    HANGUL_BEGIN_UNICODE,
     JONGSUNG_DECOMPOSE,
-    JONGSUNG_LIST,
-    JUNGSUNG_BASE,
     JUNGSUNG_DECOMPOSE,
-    JUNGSUNG_LIST,
-    is_hangul,
+    decompose_syllable,
 )
 
 
@@ -26,21 +20,14 @@ def decompose_hangul_string(
     """
     result: List[Tuple[str, Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]] = []
     for char in s:
-        if is_hangul(char):
-            # 한글 음절의 유니코드 값을 기준으로 각 성분의 인덱스를 계산합니다.
-            char_index = ord(char) - HANGUL_BEGIN_UNICODE
-            chosung_index = char_index // CHOSUNG_BASE
-            jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-            jongsung_index = char_index % JUNGSUNG_BASE
-
-            # 중성 및 종성 분해
-            jungsung = JUNGSUNG_LIST[jungsung_index]
-            jongsung = JONGSUNG_LIST[jongsung_index]
+        components = decompose_syllable(char)
+        if components is not None:
+            chosung, jungsung, jongsung = components
 
             jungsung_decomposed = JUNGSUNG_DECOMPOSE.get(jungsung, (jungsung,))
             jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, (jongsung,))
 
-            result.append((CHOSUNG_LIST[chosung_index], jungsung_decomposed, jongsung_decomposed))
+            result.append((chosung, jungsung_decomposed, jongsung_decomposed))
         else:
             result.append((char, "", ""))  # 한글이 아니면 그대로 추가
 

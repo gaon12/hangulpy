@@ -5,15 +5,10 @@ from typing import List, Literal, Optional, Tuple, Union, overload
 
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.utils import (
-    CHOSUNG_BASE,
-    CHOSUNG_LIST,
-    HANGUL_BEGIN_UNICODE,
-    HANGUL_END_UNICODE,
     JONGSUNG_DECOMPOSE,
-    JONGSUNG_LIST,
-    JUNGSUNG_BASE,
-    JUNGSUNG_LIST,
     compose_syllable,
+    decompose_syllable,
+    is_complete_hangul_char,
 )
 
 
@@ -85,18 +80,11 @@ REPRESENTATIVE_FINAL = {
 }
 
 
-def _is_complete_hangul(char: str) -> bool:
-    return len(char) == 1 and HANGUL_BEGIN_UNICODE <= ord(char) <= HANGUL_END_UNICODE
-
-
 def _decompose_char(char: str) -> _Syllable:
-    offset = ord(char) - HANGUL_BEGIN_UNICODE
-    return _Syllable(
-        CHOSUNG_LIST[offset // CHOSUNG_BASE],
-        JUNGSUNG_LIST[(offset % CHOSUNG_BASE) // JUNGSUNG_BASE],
-        JONGSUNG_LIST[offset % JUNGSUNG_BASE],
-        char,
-    )
+    components = decompose_syllable(char)
+    if components is None:  # pragma: no cover - callers validate complete syllables
+        raise ValueError("char must be a complete Hangul syllable")
+    return _Syllable(*components, char)
 
 
 def _compose_syllables(syllables: List[_Syllable]) -> str:
@@ -306,7 +294,7 @@ def _standardize_text(
         segment.clear()
 
     for char in normalized:
-        if _is_complete_hangul(char):
+        if is_complete_hangul_char(char):
             segment.append(char)
         else:
             flush_segment()

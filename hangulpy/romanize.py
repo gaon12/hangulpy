@@ -2,19 +2,17 @@
 # Korean romanization implementation
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from hangulpy.hangul_normalize import normalize_hangul, to_compat_jamo
 from hangulpy.hangul_pronunciation import standardize_pronunciation
 from hangulpy.utils import (
-    CHOSUNG_BASE,
-    CHOSUNG_LIST,
-    HANGUL_BEGIN_UNICODE,
-    HANGUL_END_UNICODE,
+    CHOSUNG_INDEX,
     JONGSUNG_DECOMPOSE,
-    JONGSUNG_LIST,
-    JUNGSUNG_BASE,
-    JUNGSUNG_LIST,
+    JONGSUNG_INDEX,
+    JUNGSUNG_INDEX,
+    decompose_syllable,
+    is_complete_hangul_char,
 )
 
 # Romanization tables for different standards
@@ -301,39 +299,6 @@ class _RevisedSyllable:
     jong: str
 
 
-def _is_complete_hangul(char: str) -> bool:
-    """
-    주어진 문자가 완성형 한글 음절인지 확인합니다.
-
-    :param char: 검사할 문자
-    :return: 완성형 한글이면 True, 아니면 False
-    """
-    if len(char) != 1:
-        return False
-    code = ord(char)
-    return HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE
-
-
-def _get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
-    """
-    완성형 한글 음절을 초성, 중성, 종성으로 분해합니다.
-
-    :param char: 한글 음절 문자
-    :return: (초성, 중성, 종성) 튜플, 한글이 아니면 None
-    """
-    if not _is_complete_hangul(char):
-        return None
-    char_index = ord(char) - HANGUL_BEGIN_UNICODE
-    chosung_index = char_index // CHOSUNG_BASE
-    jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-    jongsung_index = char_index % JUNGSUNG_BASE
-    return (
-        CHOSUNG_LIST[chosung_index],
-        JUNGSUNG_LIST[jungsung_index],
-        JONGSUNG_LIST[jongsung_index],
-    )
-
-
 def _romanize_revised_jongsung(jong: str, next_chosung: Optional[str]) -> str:
     return REVISED_JONGSUNG.get(jong, jong)
 
@@ -357,7 +322,7 @@ def _representative_jongsung(jong: str) -> str:
 def _parse_revised_segment(text: str) -> List[_RevisedSyllable]:
     syllables: List[_RevisedSyllable] = []
     for char in text:
-        components = _get_hangul_components(char)
+        components = decompose_syllable(char)
         if not components:
             continue
         syllables.append(_RevisedSyllable(*components))
@@ -631,22 +596,22 @@ class Romanizer:
         :return: 로마자 표기
         """
         normalized = normalize_hangul(char, "NFC")
-        if not _is_complete_hangul(normalized):
+        if not is_complete_hangul_char(normalized):
             if len(char) == 1 and 0x11A8 <= ord(char) <= 0x11C2:
                 compatibility_final = to_compat_jamo(char)
                 return self.jongsung_table.get(compatibility_final, compatibility_final)
             compatibility = to_compat_jamo(char)
             if len(compatibility) != 1:
                 return char
-            if compatibility in CHOSUNG_LIST:
+            if compatibility in CHOSUNG_INDEX:
                 return self.chosung_table.get(compatibility, compatibility)
-            if compatibility in JUNGSUNG_LIST:
+            if compatibility in JUNGSUNG_INDEX:
                 return self.jungsung_table.get(compatibility, compatibility)
-            if compatibility in JONGSUNG_LIST:
+            if compatibility in JONGSUNG_INDEX:
                 return self.jongsung_table.get(compatibility, compatibility)
             return char
 
-        components = _get_hangul_components(normalized)
+        components = decompose_syllable(normalized)
         if not components:
             return char
 
@@ -692,7 +657,7 @@ class Romanizer:
 
         normalized_text = normalize_hangul(text, "NFC")
         for char in normalized_text:
-            if _is_complete_hangul(char):
+            if is_complete_hangul_char(char):
                 segment.append(char)
             else:
                 flush_segment()

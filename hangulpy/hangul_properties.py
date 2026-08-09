@@ -4,25 +4,24 @@
 from typing import Optional, Tuple
 
 from hangulpy.utils import (
-    CHOSUNG_BASE,
-    CHOSUNG_LIST,
-    HANGUL_BEGIN_UNICODE,
-    HANGUL_END_UNICODE,
-    JONGSUNG_COUNT,
-    JONGSUNG_LIST,
-    JUNGSUNG_BASE,
-    JUNGSUNG_LIST,
+    CHOSUNG_INDEX,
+    JONGSUNG_INDEX,
+    JUNGSUNG_INDEX,
+    decompose_syllable,
+    is_complete_hangul_char,
 )
 
 
 def _one_composed_syllable(text: str) -> Optional[str]:
+    if is_complete_hangul_char(text):
+        return text
+
     from hangulpy.hangul_normalize import normalize_hangul
 
     normalized = normalize_hangul(text, "NFC")
     if len(normalized) != 1:
         return None
-    code = ord(normalized)
-    if HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE:
+    if is_complete_hangul_char(normalized):
         return normalized
     return None
 
@@ -46,7 +45,7 @@ def is_chosung(char: str) -> bool:
     """
     if len(char) != 1:
         return False
-    return char in CHOSUNG_LIST
+    return char in CHOSUNG_INDEX
 
 
 def is_jungsung(char: str) -> bool:
@@ -58,7 +57,7 @@ def is_jungsung(char: str) -> bool:
     """
     if len(char) != 1:
         return False
-    return char in JUNGSUNG_LIST
+    return char in JUNGSUNG_INDEX
 
 
 def is_jongsung(char: str) -> bool:
@@ -71,8 +70,7 @@ def is_jongsung(char: str) -> bool:
     """
     if len(char) != 1:
         return False
-    # First element of JONGSUNG_LIST is empty string (no jongsung)
-    return char in JONGSUNG_LIST and char != ""
+    return char in JONGSUNG_INDEX and char != ""
 
 
 def has_jongsung(char: str) -> bool:
@@ -85,8 +83,8 @@ def has_jongsung(char: str) -> bool:
     composed = _one_composed_syllable(char)
     if composed is None:
         return False
-    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
-    return (char_index % JONGSUNG_COUNT) != 0
+    components = decompose_syllable(composed)
+    return components is not None and bool(components[2])
 
 
 def get_chosung(char: str) -> Optional[str]:
@@ -99,9 +97,8 @@ def get_chosung(char: str) -> Optional[str]:
     composed = _one_composed_syllable(char)
     if composed is None:
         return None
-    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
-    chosung_index = char_index // CHOSUNG_BASE
-    return CHOSUNG_LIST[chosung_index]
+    components = decompose_syllable(composed)
+    return components[0] if components is not None else None
 
 
 def get_jungsung(char: str) -> Optional[str]:
@@ -114,9 +111,8 @@ def get_jungsung(char: str) -> Optional[str]:
     composed = _one_composed_syllable(char)
     if composed is None:
         return None
-    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
-    jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-    return JUNGSUNG_LIST[jungsung_index]
+    components = decompose_syllable(composed)
+    return components[1] if components is not None else None
 
 
 def get_jongsung(char: str) -> Optional[str]:
@@ -129,9 +125,8 @@ def get_jongsung(char: str) -> Optional[str]:
     composed = _one_composed_syllable(char)
     if composed is None:
         return None
-    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
-    jongsung_index = char_index % JUNGSUNG_BASE
-    return JONGSUNG_LIST[jongsung_index]
+    components = decompose_syllable(composed)
+    return components[2] if components is not None else None
 
 
 def get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
@@ -144,12 +139,4 @@ def get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
     composed = _one_composed_syllable(char)
     if composed is None:
         return None
-    char_index = ord(composed) - HANGUL_BEGIN_UNICODE
-    chosung_index = char_index // CHOSUNG_BASE
-    jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-    jongsung_index = char_index % JUNGSUNG_BASE
-    return (
-        CHOSUNG_LIST[chosung_index],
-        JUNGSUNG_LIST[jungsung_index],
-        JONGSUNG_LIST[jongsung_index],
-    )
+    return decompose_syllable(composed)

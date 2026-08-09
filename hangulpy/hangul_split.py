@@ -3,15 +3,9 @@
 from typing import List
 
 from hangulpy.utils import (
-    CHOSUNG_BASE,
-    CHOSUNG_LIST,
-    HANGUL_BEGIN_UNICODE,
     JONGSUNG_DECOMPOSE,
-    JONGSUNG_LIST,
-    JUNGSUNG_BASE,
     JUNGSUNG_DECOMPOSE,
-    JUNGSUNG_LIST,
-    is_hangul,
+    decompose_syllable,
 )
 
 
@@ -26,25 +20,16 @@ def split_hangul_string(s: str) -> List[str]:
 
     result: List[str] = []
     for char in normalize_hangul(s, "NFC"):
-        if is_hangul(char):
-            # 한글 음절의 유니코드 값을 기준으로 각 성분의 인덱스를 계산합니다.
-            char_index = ord(char) - HANGUL_BEGIN_UNICODE
-            chosung_index = char_index // CHOSUNG_BASE
-            jungsung_index = (char_index % CHOSUNG_BASE) // JUNGSUNG_BASE
-            jongsung_index = char_index % JUNGSUNG_BASE
+        components = decompose_syllable(char)
+        if components is not None:
+            chosung, jungsung, jongsung = components
 
-            # 중성 및 종성 분해
-            jungsung = JUNGSUNG_LIST[jungsung_index]
-            jongsung = JONGSUNG_LIST[jongsung_index]
+            jungsung_decomposed = JUNGSUNG_DECOMPOSE.get(jungsung, (jungsung,))
+            jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, (jongsung,) if jongsung else ())
 
-            jungsung_decomposed = JUNGSUNG_DECOMPOSE.get(jungsung, [jungsung])
-            jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, [jongsung] if jongsung else [])
-
-            result.extend(
-                [CHOSUNG_LIST[chosung_index]]
-                + list(jungsung_decomposed)
-                + list(jongsung_decomposed)
-            )
+            result.append(chosung)
+            result.extend(jungsung_decomposed)
+            result.extend(jongsung_decomposed)
         elif char in JUNGSUNG_DECOMPOSE:
             result.extend(JUNGSUNG_DECOMPOSE[char])
         elif char in JONGSUNG_DECOMPOSE:
