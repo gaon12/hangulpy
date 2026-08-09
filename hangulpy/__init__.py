@@ -67,6 +67,7 @@ from .hangul_role import can_be_chosung, can_be_jongsung
 from .hangul_sort import sort_hangul
 from .hangul_split import split_hangul_string
 from .hangul_syllable import hangul_syllable
+from .hangul_transform import map_hangul
 from .hangul_typoerror import (
     autofix,
     convert_hangul_to_qwerty,
@@ -75,8 +76,10 @@ from .hangul_typoerror import (
     enko,
     koen,
 )
+from .hanja import HanjaRun, is_hanja, split_hanja
 from .is_hangul import is_hangul
-from .josa import has_batchim, has_jongsung, josa, josa_pick
+from .jamo_edit import jamo_len, jamo_slice, typing_steps
+from .josa import format_josa, has_batchim, has_jongsung, josa, josa_pick
 from .match_hangul_pattern import match_hangul_pattern
 from .noun import jarip_noun
 from .romanize import (
@@ -101,6 +104,13 @@ __all__ = [
     "hangul_similarity",
     "HangulIndex",
     "HangulSearchResult",
+    "map_hangul",
+    "is_hanja",
+    "split_hanja",
+    "HanjaRun",
+    "jamo_len",
+    "jamo_slice",
+    "typing_steps",
     "float_to_hangul",
     "hangul_to_number",
     "number_to_hangul",
@@ -131,6 +141,7 @@ __all__ = [
     "has_jongsung",
     "josa",
     "josa_pick",
+    "format_josa",
     "match_hangul_pattern",
     "jarip_noun",
     # New enhanced search functions
