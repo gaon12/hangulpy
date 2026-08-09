@@ -360,7 +360,7 @@ VOWEL_RMAP = {
 # [6] 한글 관련 함수들
 
 
-def is_hangul(text: str, spaces: bool = False) -> bool:
+def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bool:
     """
     입력된 문자열의 모든 문자가 한글 완성형(또는 띄어쓰기)인지 확인합니다.
 
@@ -371,11 +371,26 @@ def is_hangul(text: str, spaces: bool = False) -> bool:
     if not text:
         return False
 
-    for char in text:
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFC", text)
+    for char in normalized:
         if char == " " and spaces:
             continue
         code = ord(char)
-        if not (HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE):
+        if HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE:
+            continue
+        is_canonical_jamo = (
+            0x1100 <= code <= 0x1112 or 0x1161 <= code <= 0x1175 or 0x11A8 <= code <= 0x11C2
+        )
+        if include_jamo and (
+            is_canonical_jamo
+            or char in CHOSUNG_INDEX
+            or char in JUNGSUNG_INDEX
+            or char in JONGSUNG_INDEX
+        ):
+            continue
+        else:
             return False
     return True
 
@@ -388,14 +403,14 @@ def compose_syllable(cho: str, jung: str, jong: str = "") -> str:
     :param jung: 중성 (예: 'ㅏ')
     :param jong: 종성 (예: 'ㄴ'); 받침이 없으면 빈 문자열('')
     :return: 완성형 한글 음절 (예: '간')
-    :raises Exception: 유효하지 않은 자모 입력 시 예외 발생
+    :raises ValueError: 유효하지 않은 자모 입력 시 예외 발생
     """
     if cho not in CHOSUNG_INDEX:
-        raise Exception(f"Error: '{cho}' is not a valid initial consonant.")
+        raise ValueError(f"'{cho}' is not a valid initial consonant")
     if jung not in JUNGSUNG_INDEX:
-        raise Exception(f"Error: '{jung}' is not a valid medial vowel.")
+        raise ValueError(f"'{jung}' is not a valid medial vowel")
     if jong and jong not in JONGSUNG_INDEX:
-        raise Exception(f"Error: '{jong}' is not a valid final consonant.")
+        raise ValueError(f"'{jong}' is not a valid final consonant")
 
     cho_index = CHOSUNG_INDEX[cho]
     jung_index = JUNGSUNG_INDEX[jung]

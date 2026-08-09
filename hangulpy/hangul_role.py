@@ -20,4 +20,4 @@ def can_be_jongsung(char: str) -> bool:
     :param char: 확인할 문자
     :return: 종성으로 쓰일 수 있으면 True, 아니면 False
     """
-    return char in JONGSUNG_LIST
+    return bool(char) and char in JONGSUNG_LIST

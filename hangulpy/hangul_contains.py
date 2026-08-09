@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import List, Tuple
 
+from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
 
@@ -15,7 +16,8 @@ def _decompose_cached(text: str) -> str:
     :param text: String to decompose
     :return: Decomposed string
     """
-    return "".join("".join(split_hangul_string(char)) for char in text)
+    normalized = normalize_hangul(text, "NFC")
+    return "".join("".join(split_hangul_string(char)) for char in normalized)
 
 
 @lru_cache(maxsize=1024)
@@ -23,7 +25,8 @@ def _decompose_search_data(text: str) -> Tuple[str, Tuple[int, ...]]:
     parts: List[str] = []
     positions: List[int] = []
 
-    for char_index, char in enumerate(text):
+    normalized = normalize_hangul(text, "NFC")
+    for char_index, char in enumerate(normalized):
         split = [part for part in split_hangul_string(char) if part]
         parts.extend(split)
         positions.extend([char_index] * len(split))
@@ -40,7 +43,8 @@ def _chosung_search_data(text: str) -> Tuple[str, Tuple[int, ...]]:
     chosung_parts: List[str] = []
     positions: List[int] = []
 
-    for char_index, char in enumerate(text):
+    normalized = normalize_hangul(text, "NFC")
+    for char_index, char in enumerate(normalized):
         split = split_hangul_string(char)
         if is_hangul(char):
             chosung_parts.append(split[0])

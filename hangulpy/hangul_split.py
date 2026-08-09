@@ -22,8 +22,10 @@ def split_hangul_string(s: str) -> List[str]:
     :param s: 문자열
     :return: 각 한글 음절을 초성, 중성, 종성으로 분해한 결과를 포함하는 배열
     """
+    from hangulpy.hangul_normalize import normalize_hangul
+
     result: List[str] = []
-    for char in s:
+    for char in normalize_hangul(s, "NFC"):
         if is_hangul(char):
             # 한글 음절의 유니코드 값을 기준으로 각 성분의 인덱스를 계산합니다.
             char_index = ord(char) - HANGUL_BEGIN_UNICODE
@@ -36,7 +38,7 @@ def split_hangul_string(s: str) -> List[str]:
             jongsung = JONGSUNG_LIST[jongsung_index]
 
             jungsung_decomposed = JUNGSUNG_DECOMPOSE.get(jungsung, [jungsung])
-            jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, [jongsung])
+            jongsung_decomposed = JONGSUNG_DECOMPOSE.get(jongsung, [jongsung] if jongsung else [])
 
             result.extend(
                 [CHOSUNG_LIST[chosung_index]]

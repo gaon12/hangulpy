@@ -7,10 +7,15 @@ def get_chosung_string(text: str, keep_spaces: bool = False) -> str:
     """
     문자열의 초성을 추출합니다.
     """
+    from hangulpy.hangul_normalize import normalize_hangul
+
+    normalized = normalize_hangul(text, "NFC")
     return (
-        "".join(extract_chosung(c) if is_hangul(c) else c for c in text)
+        "".join(extract_chosung(c) if is_hangul(c) else c for c in normalized)
         if keep_spaces
-        else "".join(extract_chosung(c) if is_hangul(c) and not c.isspace() else "" for c in text)
+        else "".join(
+            extract_chosung(c) if is_hangul(c) and not c.isspace() else "" for c in normalized
+        )
     )
 
 
