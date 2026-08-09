@@ -1,10 +1,11 @@
 # tests/test_josa.py
 
 import unicodedata
+from time import perf_counter
 
 import pytest
 
-from hangulpy import has_batchim, has_jongsung, jarip_noun, josa, josa_pick
+from hangulpy import format_josa, has_batchim, has_jongsung, jarip_noun, josa, josa_pick
 
 
 class TestJosa:
@@ -96,3 +97,25 @@ class TestJosa:
         assert josa(nfd_gak, "이/가").endswith("이")
         assert jarip_noun("백분", "율/률") == "백분율"
         assert jarip_noun("합격", "율/률") == "합격률"
+
+    def test_format_josa_replaces_multiple_markers(self):
+        assert format_josa("사과[을/를] 책[와/과] 교환한다") == "사과를 책과 교환한다"
+        assert format_josa("서울[으로/로] 3[이/가] 간다") == "서울로 3이 간다"
+
+    def test_format_josa_preserves_unknown_and_supports_escapes(self):
+        assert format_josa(r"사과\[을/를\]") == "사과[을/를]"
+        assert format_josa(r"사과[x\]y][은/는]") == r"사과[x\]y]는"
+        assert format_josa("사과[unknown]") == "사과[unknown]"
+        assert format_josa("사과[을/를") == "사과[을/를"
+
+        with pytest.raises(ValueError, match="Unsupported josa marker"):
+            format_josa("사과[unknown]", strict=True)
+        with pytest.raises(ValueError, match="Unclosed josa marker"):
+            format_josa("사과[을/를", strict=True)
+
+    def test_format_josa_scales_linearly_with_many_markers(self):
+        started = perf_counter()
+        result = format_josa("책[이/가]" * 5000)
+
+        assert result == "책이" * 5000
+        assert perf_counter() - started < 1.0

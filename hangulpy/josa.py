@@ -3,7 +3,7 @@
 import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.hangul_number import number_to_hangul
@@ -245,3 +245,71 @@ def josa(word: str, particle: str) -> str:
         return ""
 
     return word + josa_pick(word, particle)
+
+
+def format_josa(template: str, *, strict: bool = False) -> str:
+    """문장 안의 ``[조사/조사]`` 표식을 앞말에 맞게 치환합니다.
+
+    ``\\[``와 ``\\]``는 리터럴 대괄호로 처리합니다. 지원하지 않는 표식이나
+    닫히지 않은 표식은 기본적으로 그대로 보존하며, ``strict=True``일 때는
+    ``ValueError``를 발생시킵니다.
+    """
+    result: List[str] = []
+    literal: List[str] = []
+    context = ""
+    index = 0
+
+    def flush_literal() -> None:
+        nonlocal context
+        if not literal:
+            return
+        value = "".join(literal)
+        result.append(value)
+        context = _get_last_valid_char(context + value) or ""
+        literal.clear()
+
+    while index < len(template):
+        char = template[index]
+        if char == "\\" and index + 1 < len(template):
+            escaped = template[index + 1]
+            if escaped in {"[", "]", "\\"}:
+                literal.append(escaped)
+                index += 2
+                continue
+
+        if char != "[":
+            literal.append(char)
+            index += 1
+            continue
+
+        closing = index + 1
+        while closing < len(template):
+            if template[closing] == "\\" and closing + 1 < len(template):
+                closing += 2
+                continue
+            if template[closing] == "]":
+                break
+            closing += 1
+
+        if closing >= len(template):
+            if strict:
+                raise ValueError(f"Unclosed josa marker at index {index}")
+            literal.append(template[index:])
+            break
+
+        particle = template[index + 1 : closing]
+        if particle not in JOSA_RULES:
+            if strict:
+                raise ValueError(f"Unsupported josa marker: [{particle}]")
+            literal.append(template[index : closing + 1])
+            index = closing + 1
+            continue
+
+        flush_literal()
+        selected = josa_pick(context, particle)
+        result.append(selected)
+        context = _get_last_valid_char(selected) or ""
+        index = closing + 1
+
+    flush_literal()
+    return "".join(result)
