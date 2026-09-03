@@ -10,7 +10,7 @@ from typing import Callable
 import hangeul_jamo_py as hangeul_jamo_py
 import hangul_jamo
 import hgtk
-from korean_romanizer import romanize as korean_romanize
+from korean_romanizer.romanizer import Romanizer as KoreanRomanizer
 
 import hangulpy
 from hangulpy import (
@@ -350,7 +350,7 @@ def main() -> None:
     )
 
     # Pronunciation and romanization.
-    assert romanize("한글") == korean_romanize("한글") == "hangeul"
+    assert romanize("한글") == KoreanRomanizer("한글").romanize() == "hangeul"
     results.append(
         benchmark(
             feature="standardize_pronunciation",
@@ -376,7 +376,7 @@ def main() -> None:
             feature="romanize",
             library="korean-romanizer",
             library_version=package_version("korean-romanizer"),
-            fn=lambda: korean_romanize(ROMAN_TEXT),
+            fn=lambda: KoreanRomanizer(ROMAN_TEXT).romanize(),
             work_units=len(ROMAN_TEXT),
             unit="char",
         )
