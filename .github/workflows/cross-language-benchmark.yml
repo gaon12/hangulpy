@@ -40,6 +40,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install . \
+            six==1.17.0 \
             hgtk==0.2.1 \
             hangul-jamo==1.0.1 \
             hangeul-jamo-py==1.0.0 \
