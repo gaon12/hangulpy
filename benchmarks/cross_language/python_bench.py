@@ -44,6 +44,7 @@ PRON_TEXT = ("굳이 같이 국물 신라 독립 앞문 맏형 숱하다 옷한�
 QWERTY_TEXT = ("dkssudgktpdy gksrmf tkfkd eogksalsrnr " * 128).strip()
 HANGUL_QWERTY_TEXT = convert_qwerty_to_hangul(QWERTY_TEXT)
 WORDS = ["사과", "하늘", "바다", "달", "집", "학교", "사람", "한국"] * 64
+BATCHIM_CHARS = [word[-1] for word in WORDS]
 ACRONYMS = ["RAM", "API", "CPU", "GPU", "HTML", "URL", "JSON", "SQL"] * 64
 NUMBERS = [0, 1, 2, 9, 10, 11, 20, 21, 99, 100, 101, 1004, 12345, 123456780] * 32
 SUSA_NUMBERS = list(range(1, 101)) * 4
@@ -293,6 +294,8 @@ def main() -> None:
         )
     )
 
+    # hgtk's has_batchim accepts exactly one character, so both libraries receive
+    # the same final-syllable input for this primitive benchmark.
     assert has_batchim("한") is True and hgtk.checker.has_batchim("한") is True
     assert has_batchim("하") is False and hgtk.checker.has_batchim("하") is False
     results.append(
@@ -300,9 +303,10 @@ def main() -> None:
             feature="has_batchim",
             library="hangulpy",
             library_version=hangulpy_version,
-            fn=lambda: [has_batchim(word) for word in WORDS],
-            work_units=len(WORDS),
-            unit="word",
+            fn=lambda: [has_batchim(char) for char in BATCHIM_CHARS],
+            work_units=len(BATCHIM_CHARS),
+            unit="syllable",
+            notes="single final syllable for hgtk API parity",
         )
     )
     results.append(
@@ -310,9 +314,10 @@ def main() -> None:
             feature="has_batchim",
             library="hgtk",
             library_version=package_version("hgtk"),
-            fn=lambda: [hgtk.checker.has_batchim(word) for word in WORDS],
-            work_units=len(WORDS),
-            unit="word",
+            fn=lambda: [hgtk.checker.has_batchim(char) for char in BATCHIM_CHARS],
+            work_units=len(BATCHIM_CHARS),
+            unit="syllable",
+            notes="hgtk accepts one character only",
         )
     )
 
