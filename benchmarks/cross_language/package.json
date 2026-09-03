@@ -1,0 +1,9 @@
+{
+  "name": "hangulpy-cross-language-benchmarks",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "es-hangul": "2.4.0",
+    "hangul-js": "0.2.6"
+  }
+}
