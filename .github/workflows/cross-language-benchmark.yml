@@ -1,0 +1,74 @@
+name: Cross-language benchmark
+
+on:
+  push:
+    branches:
+      - benchmark/cross-language-2026-09
+    paths:
+      - "hangulpy/**"
+      - "benchmarks/cross_language/**"
+      - ".github/workflows/cross-language-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Python 3.14 + Node.js 24
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: benchmarks/cross_language/package.json
+
+      - name: Install Python benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install . \
+            hgtk==0.2.1 \
+            hangul-jamo==1.0.1 \
+            hangeul-jamo-py==1.0.0 \
+            korean-romanizer==0.28.0
+
+      - name: Install JavaScript benchmark dependencies
+        run: npm install --prefix benchmarks/cross_language --ignore-scripts
+
+      - name: Show runtime and CPU information
+        run: |
+          python --version
+          node --version
+          lscpu | sed -n '1,20p'
+
+      - name: Run Python benchmarks
+        run: python benchmarks/cross_language/python_bench.py
+
+      - name: Run JavaScript benchmarks
+        run: node benchmarks/cross_language/node_bench.mjs
+
+      - name: Aggregate benchmark report
+        run: |
+          python benchmarks/cross_language/aggregate.py
+          cat benchmarks/cross_language/results/benchmark.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-language-benchmark-results
+          path: benchmarks/cross_language/results/
+          if-no-files-found: error
+          retention-days: 30
