@@ -63,3 +63,47 @@ def test_hangul_index_uses_linear_substring_dynamic_programming():
 
     assert results == []
     assert perf_counter() - started < 1.0
+
+
+def test_large_index_reuses_prepared_text_after_cache_churn(monkeypatch):
+    import hangulpy.hangul_fuzzy as fuzzy
+    from hangulpy import hangul_contains
+
+    items = [f"한글문서{i:05d}" for i in range(1100)]
+    index = HangulIndex(items)
+    expected = index.search("ㅎㄱ", min_score=1)
+    for i in range(1500):
+        hangul_contains(f"다른문서{i}", "ㄷ")
+
+    def unexpected_preparation(text):
+        raise AssertionError("search must reuse the index's prepared texts")
+
+    monkeypatch.setattr(fuzzy, "prepare_search_text", unexpected_preparation)
+    assert index.search("ㅎㄱ", min_score=1) == expected
+    assert [r.index for r in expected] == list(range(10))
+    assert index.search("없는말", min_score=1) == []
+
+
+def test_threshold_and_top_k_preserve_scores_and_stable_order():
+    import random
+
+    rng = random.Random(1500)
+    items = ["".join(rng.choices("가각과한글나", k=rng.randrange(1, 6))) for _ in range(60)]
+    items += ["", "각가", "각가", unicodedata.normalize("NFD", "한글")]
+    index = HangulIndex(items)
+    for query in ["", "과", "ㄱㄱ", "각가", "한굴", "없는말", "ᆨ"]:
+        full = index.search(query, limit=len(items))
+        for threshold in [0.0, 0.5, 0.75, 1.0]:
+            for limit in [1, 5, 100]:
+                assert (
+                    index.search(query, min_score=threshold, limit=limit)
+                    == [r for r in full if r.score >= threshold][:limit]
+                )
+
+
+def test_exact_fuzzy_substring_is_retained_when_chosung_search_misses():
+    index = HangulIndex(["악가"])
+    result = index.search("ㄱㄱ", min_score=1)[0]
+    assert result.score == 1
+    assert not result.matched
+    assert index.search("ᆨ", min_score=1)[0].match_index == 0
