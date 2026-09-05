@@ -121,3 +121,15 @@ def test_extract_components_from_complete_nfd_and_mixed_text():
     assert extract_jongsung("값 사과") == "ㅄ "
     assert extract_jongsung("ㄴㅈ") == ""
     assert extract_chosung("A한!", keep_non_hangul=True) == "Aㅎ!"
+
+
+def test_decomposition_string_and_list_agree_on_mixed_unicode():
+    text = "한글 값 과 ㅘ ㄳ café 🐈 a\u0315\u0300"
+    expected = "ㅎㅏㄴㄱㅡㄹ ㄱㅏㅂㅅ ㄱㅗㅏ ㅗㅏ ㄱㅅ café 🐈 à\u0315"
+    assert split_syllables(text, "string") == expected
+    assert split_syllables(text, "list") == list(expected)
+
+
+def test_decomposition_preserves_unrelated_unicode_repertoires():
+    text = "".join(chr(code) for code in range(0x1F300, 0x1F600))
+    assert split_syllables(text, "string") == text

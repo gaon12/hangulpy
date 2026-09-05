@@ -4,7 +4,7 @@
 import unicodedata
 from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union, overload
 
-from hangulpy.hangul_split import split_hangul_string
+from hangulpy.hangul_split import decompose_text, split_hangul_string
 from hangulpy.utils import (
     CHOSUNG_LIST,
     COMPOUND_FINAL_MAP,
@@ -37,11 +37,9 @@ def split_syllables(
     if output_format not in ("list", "string"):
         raise ValueError("output_format must be either 'list' or 'string'")
 
-    result = split_hangul_string(text)
-
     if output_format == "string":
-        return "".join(result)
-    return result
+        return decompose_text(text)
+    return split_hangul_string(text)
 
 
 def join_jamos(jamos: Union[List[str], str]) -> str:
