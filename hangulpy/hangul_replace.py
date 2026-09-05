@@ -1,8 +1,10 @@
 """Source-preserving replacement and splitting for Hangul-aware patterns."""
 
+from collections import deque
+from itertools import islice
 from typing import Callable, List, Tuple, Union
 
-from hangulpy.hangul_contains import HangulMatch, find_hangul_spans
+from hangulpy.hangul_contains import HangulMatch, HangulSearcher
 
 HangulReplacement = Union[str, Callable[[HangulMatch], str]]
 
@@ -33,11 +35,9 @@ def hangul_replace(
     if count == 0:
         return text
 
-    matches = find_hangul_spans(text, pattern)
+    matches = HangulSearcher(pattern).finditer(text)
     if count >= 0:
-        matches = matches[:count]
-    if not matches:
-        return text
+        matches = islice(matches, count)
 
     result: List[str] = []
     source_end = 0
@@ -59,9 +59,9 @@ def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> List[str]:
     if maxsplit == 0:
         return [text]
 
-    matches = find_hangul_spans(text, pattern)
+    matches = HangulSearcher(pattern).finditer(text)
     if maxsplit >= 0:
-        matches = matches[:maxsplit]
+        matches = islice(matches, maxsplit)
 
     parts: List[str] = []
     source_end = 0
@@ -75,18 +75,19 @@ def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> List[str]:
 def hangul_partition(text: str, pattern: str) -> Tuple[str, str, str]:
     """Partition text around the first Hangul-aware match."""
     _validate_pattern(pattern)
-    matches = find_hangul_spans(text, pattern)
-    if not matches:
+    matches = HangulSearcher(pattern).finditer(text)
+    match = next(matches, None)
+    if match is None:
         return text, "", ""
-    match = matches[0]
     return text[: match.start], match.text, text[match.end :]
 
 
 def hangul_rpartition(text: str, pattern: str) -> Tuple[str, str, str]:
     """Partition text around the last Hangul-aware match."""
     _validate_pattern(pattern)
-    matches = find_hangul_spans(text, pattern)
-    if not matches:
+    matches = HangulSearcher(pattern).finditer(text)
+    last = deque(matches, maxlen=1)
+    if not last:
         return "", "", text
-    match = matches[-1]
+    match = last[0]
     return text[: match.start], match.text, text[match.end :]

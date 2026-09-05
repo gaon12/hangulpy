@@ -189,3 +189,28 @@ class TestHangulSearch:
         words = ["가구", "가방", "나무"]
 
         assert match_hangul_pattern(words, r"ㄱㅏ(ㄱㅜ|ㅂㅏㅇ)", regex=True) == ["가구", "가방"]
+
+
+@pytest.mark.parametrize("text", ["ㄱㅗㅏㄴㅏ", "고ᅡㄴㅏ", "과나", "과나"])
+def test_compound_vowel_source_boundaries(text):
+    matches = find_hangul_spans(text, "과")
+    assert len(matches) == 1
+    assert unicodedata.normalize("NFC", text[matches[0].end :]) in ("ㄴㅏ", "나")
+    assert hangul_search(text, "나") == matches[0].end
+
+
+def test_matches_do_not_overlap_in_source_coordinates():
+    assert [m.span() for m in find_hangul_spans("가가가", "ㅏㄱ")] == [(0, 2)]
+    assert [m.span() for m in find_hangul_spans("가가가", "ㅏㄱ", overlap=True)] == [(0, 2), (1, 3)]
+
+
+def test_reordered_combining_marks_keep_the_source_cluster_intact():
+    text = "a\u0315\u0300B"
+    assert find_hangul_spans(text, "à") == [HangulMatch(0, 3, text[:3])]
+    assert hangul_search(text, "B") == 3
+
+
+def test_long_hcj_source_spans_do_not_consume_the_next_onset():
+    text = "ㄱㅗㅏㄴㅏ" * 2048
+    matches = find_hangul_spans(text, "과")
+    assert [m.span() for m in matches] == [(i, i + 3) for i in range(0, len(text), 5)]

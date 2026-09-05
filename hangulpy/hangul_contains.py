@@ -1,5 +1,6 @@
 # hangul_contains.py
 
+import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Iterator, List, Optional, Tuple
@@ -8,8 +9,8 @@ from hangulpy._deprecated import resolve_legacy_bool
 from hangulpy.hangul_normalize import (
     CANONICAL_CHOSUNG,
     CANONICAL_TO_COMPAT,
+    COMPAT_JAMO,
     normalize_hangul,
-    to_compat_jamo,
 )
 from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
@@ -30,48 +31,57 @@ class HangulMatch:
         return self.start, self.end
 
 
-@lru_cache(maxsize=1024)
 def _normalize_with_source_spans(text: str) -> Tuple[str, Tuple[Tuple[int, int], ...]]:
-    """NFC 문자열과 각 정규화 문자가 차지한 원문 구간을 반환합니다."""
-    normalized = normalize_hangul(text, "NFC")
-    if not normalized:
-        return normalized, ()
+    """Normalize once while tracking assembly and canonical combining clusters.
 
-    source_tokens: List[str] = []
-    source_positions: List[int] = []
-    for source_index, char in enumerate(text):
-        tokens = to_compat_jamo(char)
-        source_tokens.extend(tokens)
-        source_positions.extend([source_index] * len(tokens))
+    A combining cluster is indivisible in source coordinates: a match for a
+    composed character also covers marks reordered across it during NFC.
+    """
+    from hangulpy.hangul_assemble import assemble_fragments
 
-    normalized_tokens = "".join(to_compat_jamo(char) for char in normalized)
-    if "".join(source_tokens) == normalized_tokens:
-        spans: List[Tuple[int, int]] = []
-        token_index = 0
-        for char in normalized:
-            token_count = len(to_compat_jamo(char))
-            start = source_positions[token_index]
-            end = source_positions[token_index + token_count - 1] + 1
-            spans.append((start, end))
-            token_index += token_count
-        return normalized, tuple(spans)
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    fragments: Iterator[Tuple[str, int, int]]
+    if any(char in COMPAT_JAMO for char in text):
+        fragments = assemble_fragments([CANONICAL_TO_COMPAT.get(c, c) for c in text])
+    else:
+        fragments = ((char, i, i + 1) for i, char in enumerate(text))
 
-    # Canonical Hangul and compatibility Jamo take the path above. This fallback
-    # keeps a safe source-coordinate mapping for unrelated combining sequences.
-    prefix_lengths = [
-        len(normalize_hangul(text[:source_end], "NFC")) for source_end in range(len(text) + 1)
-    ]
-    boundaries = [0]
-    for normalized_end in range(1, len(normalized) + 1):
-        boundary = max(
-            source_end
-            for source_end, length in enumerate(prefix_lengths)
-            if length <= normalized_end
-        )
-        boundaries.append(boundary)
-    return normalized, tuple(
-        (boundaries[index], boundaries[index + 1]) for index in range(len(normalized))
-    )
+    parts: List[str] = []
+    spans: List[Tuple[int, int]] = []
+    cluster: List[str] = []
+    cluster_start = 0
+    cluster_end = 0
+    starter = ""
+
+    def flush() -> None:
+        if cluster:
+            normalized = unicodedata.normalize("NFC", "".join(cluster))
+            parts.append(normalized)
+            spans.extend([(cluster_start, cluster_end)] * len(normalized))
+            cluster.clear()
+
+    for fragment, start, end in fragments:
+        for char in unicodedata.normalize("NFD", fragment):
+            if unicodedata.combining(char):
+                if not cluster:
+                    cluster_start = start
+                cluster.append(char)
+                cluster_end = end
+                starter = ""  # Nonstarters block Hangul L/V/T composition.
+                continue
+            combined = unicodedata.normalize("NFC", starter + char) if starter else ""
+            if cluster and len(combined) == 1:
+                cluster.append(char)
+                cluster_end = end
+                starter = combined
+            else:
+                flush()
+                cluster_start, cluster_end = start, end
+                cluster.append(char)
+                starter = char
+    flush()
+    return "".join(parts), tuple(spans)
 
 
 @lru_cache(maxsize=1024)
@@ -161,6 +171,7 @@ def _iter_matches(
         return
 
     search_start = 0
+    previous_source_end = 0
     while True:
         index = word_basis.find(pattern_basis, search_start)
         if index == -1:
@@ -168,8 +179,10 @@ def _iter_matches(
 
         source_start = starts[index]
         source_end = ends[index + len(pattern_basis) - 1]
-        yield HangulMatch(source_start, source_end, text[source_start:source_end])
-        search_start = index + (1 if overlap else len(pattern_basis))
+        if overlap or source_start >= previous_source_end:
+            yield HangulMatch(source_start, source_end, text[source_start:source_end])
+            previous_source_end = source_end
+        search_start = index + 1
 
 
 def find_hangul_spans(text: str, pattern: str, overlap: bool = False) -> List[HangulMatch]:
