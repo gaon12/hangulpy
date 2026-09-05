@@ -1,8 +1,9 @@
 """Rule-based modern Korean pronunciation normalization."""
 
 from dataclasses import dataclass
-from typing import List, Literal, Optional, Tuple, Union, overload
+from typing import List, Literal, Mapping, Optional, Tuple, Union, overload
 
+from hangulpy._phonology import n_insertion_positions
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.utils import (
     JONGSUNG_DECOMPOSE,
@@ -39,8 +40,6 @@ class PronunciationResult:
 
 
 LEXICAL_PRONUNCIATIONS = {"디귿이": "디그시"}
-N_INSERTION_PAIRS = {("담", "요"), ("학", "여"), ("한", "여"), ("알", "약")}
-L_INSERTION_PAIRS = {("울", "역")}
 H_FINAL_REMAINDER = {"ㅎ": "", "ㄶ": "ㄴ", "ㅀ": "ㄹ"}
 ASPIRATE_ONSET = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
 PALATALIZATION = {"ㄷ": "ㅈ", "ㅌ": "ㅊ"}
@@ -154,16 +153,10 @@ def _apply_palatalization(syllables: List[_Syllable]) -> None:
 
 
 def _apply_lexical_n_insertion(syllables: List[_Syllable]) -> None:
-    for index in range(len(syllables) - 1):
-        current = syllables[index]
-        following = syllables[index + 1]
-        pair = (current.source, following.source)
-        if following.cho != "ㅇ":
-            continue
-        if pair in L_INSERTION_PAIRS:
-            following.cho = "ㄹ"
-        elif pair in N_INSERTION_PAIRS:
-            following.cho = "ㄴ"
+    source = "".join(item.source for item in syllables)
+    for position in n_insertion_positions(source):
+        if syllables[position].cho == "ㅇ":
+            syllables[position].cho = "ㄴ"
 
 
 def _apply_liaison(syllables: List[_Syllable]) -> None:
@@ -254,37 +247,51 @@ def _apply_tensing(syllables: List[_Syllable]) -> None:
 
 
 def _standardize_segment(
-    segment: str, apply_tensing: bool
+    segment: str,
+    apply_tensing: bool,
+    explain: bool = False,
+    lexicon: Optional[Mapping[str, str]] = None,
 ) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
     steps: List[PronunciationRuleStep] = []
-    lexical = LEXICAL_PRONUNCIATIONS.get(segment, segment)
-    if lexical != segment:
+    lexical = (lexicon or {}).get(segment, LEXICAL_PRONUNCIATIONS.get(segment, segment))
+    if not isinstance(lexical, str):
+        raise TypeError("lexicon values must be strings")
+    if lexical != segment and explain:
         steps.append(PronunciationRuleStep("lexical_exception", segment, lexical))
+
+    if lexicon is not None and segment in lexicon:
+        return lexical, tuple(steps)
 
     syllables = [_decompose_char(char) for char in lexical]
     rules = [
+        ("lexical_n_insertion", _apply_lexical_n_insertion),
         ("h_assimilation_and_elision", _apply_h_rules),
         ("palatalization", _apply_palatalization),
-        ("lexical_n_insertion", _apply_lexical_n_insertion),
         ("liaison", _apply_liaison),
         ("final_simplification", _apply_final_rules),
         ("nasal_and_liquid_assimilation", _apply_nasal_and_liquid_assimilation),
     ]
     for name, rule in rules:
-        before = _compose_syllables(syllables)
+        before = _compose_syllables(syllables) if explain else ""
         rule(syllables)
-        _record_rule(name, syllables, before, steps)
+        if explain:
+            _record_rule(name, syllables, before, steps)
 
     if apply_tensing:
-        before = _compose_syllables(syllables)
+        before = _compose_syllables(syllables) if explain else ""
         _apply_tensing(syllables)
-        _record_rule("tensing", syllables, before, steps)
+        if explain:
+            _record_rule("tensing", syllables, before, steps)
 
     return _compose_syllables(syllables), tuple(steps)
 
 
 def _standardize_text(
-    text: str, *, apply_tensing: bool = True
+    text: str,
+    *,
+    apply_tensing: bool = True,
+    explain: bool = False,
+    lexicon: Optional[Mapping[str, str]] = None,
 ) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
     normalized = normalize_hangul(text, "NFC")
     result: List[str] = []
@@ -294,7 +301,9 @@ def _standardize_text(
     def flush_segment() -> None:
         if not segment:
             return
-        standardized, segment_steps = _standardize_segment("".join(segment), apply_tensing)
+        standardized, segment_steps = _standardize_segment(
+            "".join(segment), apply_tensing, explain, lexicon
+        )
         result.append(standardized)
         steps.extend(segment_steps)
         segment.clear()
@@ -311,25 +320,39 @@ def _standardize_text(
 
 @overload
 def standardize_pronunciation(
-    text: str, *, hard_conversion: bool = True, explain: Literal[False] = False
+    text: str,
+    *,
+    hard_conversion: bool = True,
+    explain: Literal[False] = False,
+    lexicon: Optional[Mapping[str, str]] = None,
 ) -> str: ...
 
 
 @overload
 def standardize_pronunciation(
-    text: str, *, hard_conversion: bool = True, explain: Literal[True]
+    text: str,
+    *,
+    hard_conversion: bool = True,
+    explain: Literal[True],
+    lexicon: Optional[Mapping[str, str]] = None,
 ) -> PronunciationResult: ...
 
 
 def standardize_pronunciation(
-    text: str, *, hard_conversion: bool = True, explain: bool = False
+    text: str,
+    *,
+    hard_conversion: bool = True,
+    explain: bool = False,
+    lexicon: Optional[Mapping[str, str]] = None,
 ) -> Union[str, PronunciationResult]:
     """Apply standard pronunciation rules and optionally return a rule trace.
 
     Set ``hard_conversion`` to false to skip tensing while retaining liaison,
     final simplification, aspiration, nasalization, and liquidization.
     """
-    pronunciation, steps = _standardize_text(text, apply_tensing=hard_conversion)
+    pronunciation, steps = _standardize_text(
+        text, apply_tensing=hard_conversion, explain=explain, lexicon=lexicon
+    )
     if explain:
         return PronunciationResult(pronunciation, steps)
     return pronunciation
