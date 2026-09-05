@@ -128,3 +128,23 @@ class TestJosa:
 
         assert result == "책이" * 5000
         assert perf_counter() - started < 1.0
+
+
+@pytest.mark.parametrize(
+    "word, pair, expected",
+    [
+        ("진", "열/렬", "진열"),
+        ("분", "열/렬", "분열"),
+        ("나", "열/렬", "나열"),
+        ("직", "열/렬", "직렬"),
+        ("선", "율/률", "선율"),
+        ("확", "율/률", "확률"),
+        ("기", "염/념", "기념"),
+        ("사", "예/례", "사례"),
+        ("요", "영/령", "요령"),
+    ],
+)
+def test_internal_sino_korean_forms(word, pair, expected):
+    from hangulpy import jarip_noun
+
+    assert jarip_noun(word, pair) == expected

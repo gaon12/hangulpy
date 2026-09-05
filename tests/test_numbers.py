@@ -108,3 +108,23 @@ class TestHangulNumbers:
         for number in range(1, 101):
             assert native_korean_to_number(susa(number)) == number
             assert native_korean_to_number(susa(number, classifier=True)) == number
+
+
+@pytest.mark.parametrize("power", range(0, 72, 4))
+def test_all_large_unit_boundaries_round_trip(power):
+    value = 10**power
+    assert hangul_to_number(number_to_hangul(value)) == value
+
+
+@pytest.mark.parametrize("coefficient", [1, 9, 10, 19, 90, 100, 999, 1000, 9999])
+def test_gu_unit_coefficients_and_trailing_groups(coefficient):
+    value = coefficient * 10**32 + 12345
+    assert hangul_to_number(number_to_hangul(value), large_unit_gu=True) == value
+    assert hangul_to_number(number_to_hangul(-value), large_unit_gu=True) == -value
+
+
+def test_gu_digit_keeps_ordinary_number_meanings():
+    for value in [9, 19, 99, 109, 909, 9999]:
+        assert hangul_to_number(number_to_hangul(value)) == value
+    assert hangul_to_number("십구") == 19
+    assert hangul_to_number("십구", large_unit_gu=True) == 10**33

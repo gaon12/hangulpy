@@ -22,15 +22,11 @@ def jarip_noun(word: str, particle: str) -> str:
     # 마지막 글자의 받침 유무를 확인합니다.
     jongsung_exists = has_jongsung(word_ending)
 
-    if particle == "율/률":
-        return word + ("율" if not jongsung_exists or get_jongsung(word_ending) == "ㄴ" else "률")
-    elif particle == "열/렬":
-        return word + ("열" if not jongsung_exists else "렬")
-    elif particle == "영/령":
-        return word + ("영" if not jongsung_exists else "령")
-    elif particle == "염/념":
-        return word + ("염" if not jongsung_exists else "념")
-    elif particle == "예/례":
-        return word + ("예" if not jongsung_exists else "례")
-    else:
-        raise ValueError(f"Unsupported particle: {particle}")
+    if particle in {"율/률", "열/렬"}:
+        initial_form, internal_form = particle.split("/")
+        use_initial = not jongsung_exists or get_jongsung(word_ending) == "ㄴ"
+        return word + (initial_form if use_initial else internal_form)
+    internal_forms = {"영/령": "령", "염/념": "념", "예/례": "례"}
+    if particle in internal_forms:
+        return word + internal_forms[particle]
+    raise ValueError(f"Unsupported particle: {particle}")

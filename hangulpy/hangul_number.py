@@ -160,7 +160,7 @@ def float_to_hangul(num: float) -> str:
     return number_to_hangul(num)
 
 
-def _read_hangul_integer(integer_part: str) -> int:
+def _read_hangul_integer(integer_part: str, *, large_unit_gu: bool = False) -> int:
     if not integer_part:
         raise ValueError("empty hangul integer")
     if "영" in integer_part and integer_part != "영":
@@ -181,7 +181,17 @@ def _read_hangul_integer(integer_part: str) -> int:
             index += 1
             continue
 
-        if char in DIGIT_TO_NUMBER:
+        # 구 is both the digit 9 and the unit 10**32. A preceding digit
+        # makes the unit unambiguous (일구); 십구/백구 require an explicit policy.
+        gu_is_unit = char == "구" and (
+            pending is not None
+            or (
+                large_unit_gu
+                and group > 0
+                and integer_part[index + 1 : index + 2] not in (*SMALL_UNIT_TO_NUMBER, "구")
+            )
+        )
+        if char in DIGIT_TO_NUMBER and not gu_is_unit:
             if pending is not None:
                 raise ValueError("consecutive digit names are not valid in an integer")
             pending = DIGIT_TO_NUMBER[char]
@@ -229,7 +239,7 @@ def _read_hangul_integer(integer_part: str) -> int:
     return total + group + (pending if pending is not None else 0)
 
 
-def hangul_to_number(hangul: str) -> Union[int, float]:
+def hangul_to_number(hangul: str, *, large_unit_gu: bool = False) -> Union[int, float]:
     """
     한글 숫자 문자열을 숫자로 변환합니다.
 
@@ -255,7 +265,7 @@ def hangul_to_number(hangul: str) -> Union[int, float]:
     else:
         integer_part, fractional_part = text, ""
 
-    integer = _read_hangul_integer(integer_part)
+    integer = _read_hangul_integer(integer_part, large_unit_gu=large_unit_gu)
     if not fractional_part:
         return -integer if negative else integer
 

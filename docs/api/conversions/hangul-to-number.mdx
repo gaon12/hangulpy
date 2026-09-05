@@ -6,7 +6,7 @@ description: 한글 숫자 문자열을 숫자로 변환
 한글 숫자 문자열을 다시 `int` 또는 `float` 으로 바꿉니다.
 
 ```python
-hangul_to_number(text: str) -> int | float
+hangul_to_number(text: str, *, large_unit_gu: bool = False) -> int | float
 ```
 
 ## 예시
@@ -21,3 +21,17 @@ print(hangul_to_number("삼점일사"))  # 3.14
 ## 같이 보기
 
 - [number_to_hangul / float_to_hangul](number-to-hangul)
+
+## 큰 단위 구의 중의성
+
+`일구`는 `10**32`로 복원합니다. 다만 `십구`는 19와 `10 * 10**32`를
+같은 글자로 적을 수 있습니다. 기본값은 일상적인 숫자 19를 우선합니다.
+큰 단위 구를 의도한 입력은 `large_unit_gu=True`로 복원하세요.
+이 옵션은 작은 단위 뒤의 구를 큰 단위로 해석하므로 일반적인 19/109 등의
+입력에 무조건 적용하면 안 됩니다.
+
+```python
+hangul_to_number("일구")  # 10**32
+hangul_to_number("십구")  # 19
+hangul_to_number("십구", large_unit_gu=True)  # 10**33
+```
