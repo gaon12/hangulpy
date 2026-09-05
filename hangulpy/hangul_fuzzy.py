@@ -1,9 +1,10 @@
 """Hangul-aware edit distance and reusable fuzzy search index."""
 
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence, Tuple
+from heapq import nsmallest
+from typing import Iterable, Iterator, List, Sequence, Tuple
 
-from hangulpy.hangul_contains import hangul_search
+from hangulpy.hangul_contains import HangulSearcher, prepare_search_text
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.hangul_split import split_hangul_string
 
@@ -98,7 +99,8 @@ class HangulIndex:
         self.items = tuple(items)
         if any(not isinstance(item, str) for item in self.items):
             raise TypeError("items must contain only strings")
-        self._units = tuple(_search_units(item) for item in self.items)
+        self._prepared = tuple(prepare_search_text(item) for item in self.items)
+        self._units = tuple("".join(_search_units(item)) for item in self.items)
 
     def search(
         self,
@@ -119,28 +121,34 @@ class HangulIndex:
         if limit == 0:
             return []
 
-        query_units = _search_units(query)
-        results: List[HangulSearchResult] = []
-        for index, (item, candidate_units) in enumerate(zip(self.items, self._units)):
-            match_index = hangul_search(item, query)
-            score = (
-                1.0
-                if match_index >= 0
-                else _best_substring_similarity(query_units, candidate_units)
-            )
-            if score >= min_score:
-                results.append(HangulSearchResult(item, score, index, match_index))
-
+        query_units = "".join(_search_units(query))
+        searcher = HangulSearcher(query)
         normalized_query = normalize_hangul(query, "NFC")
-        results.sort(
+
+        def candidates() -> Iterator[HangulSearchResult]:
+            for index, (item, units, prepared) in enumerate(
+                zip(self.items, self._units, self._prepared)
+            ):
+                match_index = prepared.find_index(searcher)
+                if match_index >= 0 or query_units in units:
+                    score = 1.0
+                elif min_score == 1.0 or len(units) < len(query_units) * min_score:
+                    continue
+                else:
+                    score = _best_substring_similarity(query_units, units)
+                if score >= min_score:
+                    yield HangulSearchResult(item, score, index, match_index)
+
+        return nsmallest(
+            limit,
+            candidates(),
             key=lambda result: (
                 -result.score,
                 (
                     0
-                    if normalize_hangul(result.text, "NFC") == normalized_query
+                    if self._prepared[result.index].normalized == normalized_query
                     else 1 if result.matched else 2
                 ),
                 result.index,
-            )
+            ),
         )
-        return results[:limit]

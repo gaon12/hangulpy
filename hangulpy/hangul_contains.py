@@ -3,7 +3,7 @@
 import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Iterator, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple, TypeVar
 
 from hangulpy._deprecated import resolve_legacy_bool
 from hangulpy.hangul_normalize import (
@@ -16,6 +16,19 @@ from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
 
 _SearchData = Tuple[str, Tuple[int, ...], Tuple[int, ...]]
+
+
+_T = TypeVar("_T")
+
+
+def _cache_short_text(function: Callable[[str], _T]) -> Callable[[str], _T]:
+    """Bound both the number and length of retained global-cache keys."""
+    cached = lru_cache(maxsize=256)(function)
+
+    def lookup(text: str) -> _T:
+        return cached(text) if len(text) <= 256 else function(text)
+
+    return lookup
 
 
 @dataclass(frozen=True)
@@ -84,7 +97,7 @@ def _normalize_with_source_spans(text: str) -> Tuple[str, Tuple[Tuple[int, int],
     return "".join(parts), tuple(spans)
 
 
-@lru_cache(maxsize=1024)
+@_cache_short_text
 def _decompose_cached(text: str) -> str:
     """
     Cached version of string decomposition for performance.
@@ -97,20 +110,58 @@ def _decompose_cached(text: str) -> str:
     return "".join("".join(split_hangul_string(char)) for char in normalized)
 
 
-@lru_cache(maxsize=1024)
-def _decompose_search_data(text: str) -> _SearchData:
+@dataclass(frozen=True)
+class PreparedSearchText:
+    """Internal immutable search representations owned by a collection index."""
+
+    normalized: str
+    jamo: _SearchData
+    chosung: _SearchData
+
+    def find_index(self, searcher: "HangulSearcher") -> int:
+        if not searcher.pattern:
+            return 0
+        basis, pattern, starts, _ = _select_search_basis(self, searcher)
+        index = basis.find(pattern)
+        return starts[index] if index >= 0 else -1
+
+
+def prepare_search_text(text: str) -> PreparedSearchText:
+    normalized, spans = _normalize_with_source_spans(text)
     parts: List[str] = []
     starts: List[int] = []
     ends: List[int] = []
-
-    normalized, source_spans = _normalize_with_source_spans(text)
-    for char, (source_start, source_end) in zip(normalized, source_spans):
-        split = [part for part in split_hangul_string(char) if part]
+    initials: List[str] = []
+    initial_starts: List[int] = []
+    initial_ends: List[int] = []
+    for char, (start, end) in zip(normalized, spans):
+        split = split_hangul_string(CANONICAL_TO_COMPAT.get(char, char))
         parts.extend(split)
-        starts.extend([source_start] * len(split))
-        ends.extend([source_end] * len(split))
+        starts.extend([start] * len(split))
+        ends.extend([end] * len(split))
+        if is_hangul(char) or char in CHOSUNG_LIST or char in CANONICAL_CHOSUNG:
+            initials.append(split[0])
+            initial_starts.append(start)
+            initial_ends.append(end)
+    return PreparedSearchText(
+        normalized,
+        ("".join(parts), tuple(starts), tuple(ends)),
+        ("".join(initials), tuple(initial_starts), tuple(initial_ends)),
+    )
 
-    return "".join(parts), tuple(starts), tuple(ends)
+
+_get_prepared_text = _cache_short_text(prepare_search_text)
+
+
+@_cache_short_text
+def _plain_search_text(text: str) -> Tuple[str, str]:
+    normalized = normalize_hangul(text, "NFC")
+    initials = "".join(
+        split_hangul_string(char)[0] if is_hangul(char) else CANONICAL_TO_COMPAT.get(char, char)
+        for char in normalized
+        if is_hangul(char) or char in CHOSUNG_LIST or char in CANONICAL_CHOSUNG
+    )
+    return _decompose_cached(text), initials
 
 
 def _is_chosung_pattern(pattern: str) -> bool:
@@ -120,43 +171,25 @@ def _is_chosung_pattern(pattern: str) -> bool:
     )
 
 
-@lru_cache(maxsize=1024)
+@_cache_short_text
 def _normalize_chosung_pattern(pattern: str) -> str:
     normalized = normalize_hangul(pattern, "NFC")
     return "".join(CANONICAL_TO_COMPAT.get(char, char) for char in normalized)
 
 
-@lru_cache(maxsize=1024)
-def _chosung_search_data(text: str) -> _SearchData:
-    chosung_parts: List[str] = []
-    starts: List[int] = []
-    ends: List[int] = []
-
-    normalized, source_spans = _normalize_with_source_spans(text)
-    for char, (source_start, source_end) in zip(normalized, source_spans):
-        split = split_hangul_string(char)
-        if is_hangul(char):
-            chosung_parts.append(split[0])
-            starts.append(source_start)
-            ends.append(source_end)
-        elif char in CHOSUNG_LIST:
-            chosung_parts.append(char)
-            starts.append(source_start)
-            ends.append(source_end)
-
-    return "".join(chosung_parts), tuple(starts), tuple(ends)
+def _select_search_basis(
+    prepared: PreparedSearchText, searcher: "HangulSearcher"
+) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
+    if searcher.is_chosung_pattern:
+        word, starts, ends = prepared.chosung
+        if searcher.pattern_split in word or len(searcher.pattern_split) != 1:
+            return word, searcher.pattern_split, starts, ends
+    word, starts, ends = prepared.jamo
+    return word, searcher.fallback_pattern_split, starts, ends
 
 
 def _get_search_basis(word: str, pattern: str) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
-    """초성 검색을 우선하고 단일 초성이 없을 때만 전체 자모로 재검색합니다."""
-    if _is_chosung_pattern(pattern):
-        chosung_pattern = _normalize_chosung_pattern(pattern)
-        chosung_word, starts, ends = _chosung_search_data(word)
-        if chosung_pattern in chosung_word or len(chosung_pattern) != 1:
-            return chosung_word, chosung_pattern, starts, ends
-
-    word_split, starts, ends = _decompose_search_data(word)
-    return word_split, _decompose_cached(pattern), starts, ends
+    return _select_search_basis(_get_prepared_text(word), HangulSearcher(pattern))
 
 
 def _iter_matches(
@@ -220,9 +253,7 @@ def hangul_contains(
     if not pattern:
         return not not_allow_empty
 
-    word_split, pattern_split, _, _ = _get_search_basis(word, pattern)
-
-    return pattern_split in word_split
+    return HangulSearcher(pattern).search(word)
 
 
 def hangul_search(
@@ -310,13 +341,7 @@ class HangulSearcher:
         self.fallback_pattern_split = _decompose_cached(pattern) if pattern else ""
 
     def _get_word_basis(self, word: str) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
-        if self.is_chosung_pattern:
-            chosung_word, starts, ends = _chosung_search_data(word)
-            if self.pattern_split in chosung_word or len(self.pattern_split) != 1:
-                return chosung_word, self.pattern_split, starts, ends
-
-        word_split, starts, ends = _decompose_search_data(word)
-        return word_split, self.fallback_pattern_split, starts, ends
+        return _select_search_basis(_get_prepared_text(word), self)
 
     def search(
         self,
@@ -337,8 +362,13 @@ class HangulSearcher:
         if not self.pattern:
             return not not_allow_empty
 
-        word_split, pattern_split, _, _ = self._get_word_basis(word)
-        return pattern_split in word_split
+        jamo, initials = _plain_search_text(word)
+        if self.is_chosung_pattern:
+            if self.pattern_split in initials:
+                return True
+            if len(self.pattern_split) != 1:
+                return False
+        return self.fallback_pattern_split in jamo
 
     def find_index(
         self,
