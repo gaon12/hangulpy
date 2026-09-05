@@ -4,6 +4,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from hangulpy._phonology import n_insertion_positions
 from hangulpy.hangul_normalize import normalize_hangul, to_compat_jamo
 from hangulpy.hangul_pronunciation import standardize_pronunciation
 from hangulpy.utils import (
@@ -252,7 +253,6 @@ YALE_JONGSUNG = {
 }
 
 
-IOTIZED_VOWELS = {"ㅑ", "ㅒ", "ㅕ", "ㅖ", "ㅛ", "ㅠ"}
 ASPIRATED_CONSONANTS = {"ㄱ": "ㅋ", "ㄷ": "ㅌ", "ㅂ": "ㅍ", "ㅈ": "ㅊ"}
 ADMIN_SUFFIXES = {
     "도": "do",
@@ -345,13 +345,10 @@ def _apply_palatalization(syllables: List[_RevisedSyllable]) -> None:
             current.jong = ""
 
 
-def _apply_n_insertion(syllables: List[_RevisedSyllable]) -> None:
-    for index in range(len(syllables) - 1):
-        current = syllables[index]
-        following = syllables[index + 1]
-
-        if current.jong and following.cho == "ㅇ" and following.jung in IOTIZED_VOWELS:
-            following.cho = "ㄴ"
+def _apply_n_insertion(syllables: List[_RevisedSyllable], text: str) -> None:
+    for position in n_insertion_positions(text):
+        if syllables[position].cho == "ㅇ":
+            syllables[position].cho = "ㄴ"
 
 
 def _apply_liaison(syllables: List[_RevisedSyllable]) -> None:
@@ -494,9 +491,9 @@ def _romanize_revised_segment(text: str, mode: str, disambiguate: bool) -> str:
     syllables = _parse_revised_segment(text)
 
     if mode != "name":
+        _apply_n_insertion(syllables, text)
         _apply_palatalization(syllables)
         _apply_h_assimilation(syllables, mode)
-        _apply_n_insertion(syllables)
         _apply_liaison(syllables)
         _apply_consonant_assimilation(syllables)
 

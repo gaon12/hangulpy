@@ -144,3 +144,19 @@ class TestRomanization:
     def test_romanize_accepts_nfd_and_standalone_jamo(self):
         assert romanize(unicodedata.normalize("NFD", "한글")) == "hangeul"
         assert romanize("ㄱ") == "g"
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("금요일", "geumyoil"),
+        ("월요일", "woryoil"),
+        ("먹여", "meogyeo"),
+        ("꽃잎", "kkonnip"),
+        ("솜이불", "somnibul"),
+        ("색연필", "saengnyeonpil"),
+        ("부담요금", "budamyogeum"),
+    ],
+)
+def test_revised_romanization_uses_lexical_n_insertion(text, expected):
+    assert romanize(text) == expected

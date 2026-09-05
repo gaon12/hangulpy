@@ -77,3 +77,38 @@ class TestStandardizePronunciation:
         assert explained.pronunciation == "궁물"
         assert explained.steps
         assert explained.steps[-1].before != explained.steps[-1].after
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("꽃잎", "꼰닙"),
+        ("꽃잎이", "꼰니피"),
+        ("깻잎", "깬닙"),
+        ("솜이불", "솜니불"),
+        ("홑이불", "혼니불"),
+        ("색연필", "생년필"),
+        ("금요일", "그묘일"),
+        ("월요일", "워료일"),
+        ("먹여", "머겨"),
+        ("부담요금", "부다묘금"),
+    ],
+)
+def test_lexical_boundaries_and_explain_parity(text, expected):
+    assert standardize_pronunciation(text) == expected
+    assert standardize_pronunciation(text, explain=True).pronunciation == expected
+    assert (
+        standardize_pronunciation(text, hard_conversion=False)
+        == standardize_pronunciation(text, explain=True, hard_conversion=False).pronunciation
+    )
+
+
+def test_pronunciation_lexicon_is_per_call_and_takes_precedence():
+    lexicon = {"꽃잎": "사용자발음"}
+    assert standardize_pronunciation("꽃잎", lexicon=lexicon) == "사용자발음"
+    result = standardize_pronunciation("꽃잎", lexicon=lexicon, explain=True)
+    assert result.steps[0].rule == "lexical_exception"
+    assert result.steps[0].before == "꽃잎"
+    assert standardize_pronunciation("꽃잎") == "꼰닙"
+    with pytest.raises(TypeError, match="lexicon"):
+        standardize_pronunciation("꽃잎", lexicon={"꽃잎": 1})
