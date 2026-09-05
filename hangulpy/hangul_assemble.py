@@ -2,7 +2,7 @@
 # High-level API for syllable splitting and joining
 
 import unicodedata
-from typing import Dict, List, Literal, Optional, Union, overload
+from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union, overload
 
 from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import (
@@ -63,13 +63,17 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
 
     jamos = [CANONICAL_TO_COMPAT.get(char, char) for char in jamos]
 
-    result: List[str] = []
+    return unicodedata.normalize("NFC", "".join(part for part, _, _ in assemble_fragments(jamos)))
+
+
+def assemble_fragments(jamos: List[str]) -> Iterator[Tuple[str, int, int]]:
+    """Assemble compatibility Jamo and retain each fragment's input interval."""
     i = 0
     while i < len(jamos):
         char = jamos[i]
 
         if char not in CHOSUNG_LIST or i + 1 >= len(jamos) or jamos[i + 1] not in JUNGSUNG_LIST:
-            result.append(char)
+            yield char, i, i + 1
             i += 1
             continue
 
@@ -100,10 +104,8 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
                 jong = next_char
                 consumed += 1
 
-        result.append(compose_syllable(cho, jung, jong))
+        yield compose_syllable(cho, jung, jong), i, i + consumed
         i += consumed
-
-    return unicodedata.normalize("NFC", "".join(result))
 
 
 def combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> Optional[str]:

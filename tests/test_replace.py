@@ -79,3 +79,15 @@ def test_hangul_replace_callback_receives_public_match_type() -> None:
 
     assert hangul_replace("한글", "ㅎ", replace) == "X글"
     assert seen == [HangulMatch(0, 1, "한")]
+
+
+def test_replacement_and_splitting_preserve_hcj_syllable_boundaries():
+    assert hangul_replace("ㄱㅗㅏㄴㅏ", "과", "X") == "Xㄴㅏ"
+    assert hangul_split("ㄱㅗㅏㄴㅏ", "과") == ["", "ㄴㅏ"]
+    assert hangul_replace("가가가", "ㅏㄱ", "X") == "X가"
+    assert hangul_split("가가가", "ㅏㄱ") == ["", "가"]
+    assert hangul_partition("ㄱㅗㅏㄴㅏ", "나") == ("ㄱㅗㅏ", "ㄴㅏ", "")
+
+
+def test_replacement_removes_a_whole_reordered_combining_cluster():
+    assert hangul_replace("a\u0315\u0300B", "à", "X") == "XB"
