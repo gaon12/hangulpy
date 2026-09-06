@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hangulpy"
-version = "1.4.2"
+version = "1.5.0"
 description = "A comprehensive Python library for Korean language processing, inspired by es-hangul"
 readme = "README.md"
 license = "MIT"
