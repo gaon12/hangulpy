@@ -1,16 +1,12 @@
 # tests/test_search.py
 
 import unicodedata
-import warnings
 
 import pytest
 
 from hangulpy import (
     HangulMatch,
-    HangulpyDeprecationWarning,
     HangulSearcher,
-    chosung_includes,
-    chosungIncludes,
     find_hangul_spans,
     hangul_contains,
     hangul_search,
@@ -21,20 +17,6 @@ from hangulpy import (
 
 class TestHangulSearch:
     """한글 검색 기능 테스트"""
-
-    def test_chosung_includes_alias(self):
-        assert chosung_includes("사과", "ㅅㄱ")
-        with pytest.warns(HangulpyDeprecationWarning, match="chosung_includes"):
-            assert chosungIncludes("사과", "ㅅㄱ")
-
-    def test_project_deprecation_warning_can_be_filtered(self):
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            warnings.filterwarnings("ignore", category=HangulpyDeprecationWarning)
-            assert chosungIncludes("사과", "ㅅㄱ")
-            assert not hangul_contains("한글", "", notallowempty=True)
-
-        assert caught == []
 
     def test_hangul_contains_basic(self):
         """기본 포함 여부 테스트"""
@@ -59,17 +41,6 @@ class TestHangulSearch:
         """빈 패턴 테스트"""
         assert hangul_contains("사과", "")
         assert not hangul_contains("사과", "", not_allow_empty=True)
-
-    def test_deprecated_notallowempty_keyword(self):
-        with pytest.warns(HangulpyDeprecationWarning, match="not_allow_empty"):
-            assert not hangul_contains("한글", "", notallowempty=True)
-
-        searcher = HangulSearcher("")
-        with pytest.warns(HangulpyDeprecationWarning, match="not_allow_empty"):
-            assert searcher.find_index("한글", notallowempty=True) == -1
-
-        with pytest.raises(TypeError, match="cannot use both"):
-            hangul_contains("한글", "", not_allow_empty=True, notallowempty=True)
 
     def test_hangul_search_index(self):
         """인덱스 검색 테스트"""

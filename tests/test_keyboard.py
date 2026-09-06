@@ -1,11 +1,7 @@
 import unicodedata
-import warnings
-from typing import Callable, Tuple
-
-import pytest
+from collections.abc import Callable
 
 from hangulpy import (
-    HangulpyDeprecationWarning,
     autofix,
     convert_hangul_to_qwerty,
     convert_qwerty_to_alphabet,
@@ -15,7 +11,7 @@ from hangulpy import (
 )
 
 KeyboardConverter = Callable[..., str]
-KEYBOARD_CONVERTERS: Tuple[KeyboardConverter, ...] = (
+KEYBOARD_CONVERTERS: tuple[KeyboardConverter, ...] = (
     enko,
     convert_qwerty_to_hangul,
     autofix,
@@ -63,27 +59,3 @@ class TestKeyboardConversions:
     def test_new_double_consonant_keyword(self):
         for converter in KEYBOARD_CONVERTERS:
             assert converter("rrk", allow_double_consonant=True) == "까"
-
-    def test_legacy_double_consonant_keyword_warns_at_caller(self):
-        for converter in KEYBOARD_CONVERTERS:
-            with warnings.catch_warnings(record=True) as caught:
-                warnings.simplefilter("always")
-                result = converter("rrk", allowDoubleConsonant=True)
-
-            assert result == "까"
-            assert len(caught) == 1
-            assert caught[0].category is HangulpyDeprecationWarning
-            assert caught[0].filename == __file__
-            assert "allow_double_consonant" in str(caught[0].message)
-
-    def test_double_consonant_keyword_conflicts_and_unknown_kwargs(self):
-        for converter in KEYBOARD_CONVERTERS:
-            with pytest.raises(TypeError, match="cannot use both"):
-                converter(
-                    "rrk",
-                    allow_double_consonant=True,
-                    allowDoubleConsonant=True,
-                )
-
-            with pytest.raises(TypeError, match="unexpected keyword argument 'unknown'"):
-                converter("rrk", unknown=True)

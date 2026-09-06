@@ -1,12 +1,11 @@
 """Unicode-aware helpers for identifying and splitting Hanja text."""
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
 # Unified ideographs, their major extensions, and compatibility ideographs.
 # Keeping explicit inclusive ranges avoids broad Unicode-name heuristics that
 # accidentally classify radicals, strokes, or punctuation as Hanja.
-_CJK_IDEOGRAPH_RANGES: Tuple[Tuple[int, int], ...] = (
+_CJK_IDEOGRAPH_RANGES: tuple[tuple[int, int], ...] = (
     (0x3400, 0x4DBF),  # Extension A
     (0x4E00, 0x9FFF),  # Unified Ideographs
     (0xF900, 0xFAFF),  # Compatibility Ideographs
@@ -41,14 +40,14 @@ def is_hanja(char: str) -> bool:
     return any(start <= codepoint <= end for start, end in _CJK_IDEOGRAPH_RANGES)
 
 
-def split_hanja(text: str) -> List[HanjaRun]:
+def split_hanja(text: str) -> list[HanjaRun]:
     """Split text into consecutive Hanja and non-Hanja runs."""
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     if not text:
         return []
 
-    runs: List[HanjaRun] = []
+    runs: list[HanjaRun] = []
     current_is_hanja = is_hanja(text[0])
     current_chars = [text[0]]
 

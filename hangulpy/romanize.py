@@ -2,7 +2,6 @@
 # Korean romanization implementation
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 from hangulpy._phonology import n_insertion_positions
 from hangulpy.hangul_normalize import normalize_hangul, to_compat_jamo
@@ -299,7 +298,7 @@ class _RevisedSyllable:
     jong: str
 
 
-def _romanize_revised_jongsung(jong: str, next_chosung: Optional[str]) -> str:
+def _romanize_revised_jongsung(jong: str, next_chosung: str | None) -> str:
     return REVISED_JONGSUNG.get(jong, jong)
 
 
@@ -319,8 +318,8 @@ def _representative_jongsung(jong: str) -> str:
     return jong
 
 
-def _parse_revised_segment(text: str) -> List[_RevisedSyllable]:
-    syllables: List[_RevisedSyllable] = []
+def _parse_revised_segment(text: str) -> list[_RevisedSyllable]:
+    syllables: list[_RevisedSyllable] = []
     for char in text:
         components = decompose_syllable(char)
         if not components:
@@ -329,7 +328,7 @@ def _parse_revised_segment(text: str) -> List[_RevisedSyllable]:
     return syllables
 
 
-def _apply_palatalization(syllables: List[_RevisedSyllable]) -> None:
+def _apply_palatalization(syllables: list[_RevisedSyllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -345,13 +344,13 @@ def _apply_palatalization(syllables: List[_RevisedSyllable]) -> None:
             current.jong = ""
 
 
-def _apply_n_insertion(syllables: List[_RevisedSyllable], text: str) -> None:
+def _apply_n_insertion(syllables: list[_RevisedSyllable], text: str) -> None:
     for position in n_insertion_positions(text):
         if syllables[position].cho == "ㅇ":
             syllables[position].cho = "ㄴ"
 
 
-def _apply_liaison(syllables: List[_RevisedSyllable]) -> None:
+def _apply_liaison(syllables: list[_RevisedSyllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -377,7 +376,7 @@ def _apply_liaison(syllables: List[_RevisedSyllable]) -> None:
         current.jong = ""
 
 
-def _apply_h_assimilation(syllables: List[_RevisedSyllable], mode: str) -> None:
+def _apply_h_assimilation(syllables: list[_RevisedSyllable], mode: str) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -398,7 +397,7 @@ def _apply_h_assimilation(syllables: List[_RevisedSyllable], mode: str) -> None:
             current.jong = ""
 
 
-def _apply_consonant_assimilation(syllables: List[_RevisedSyllable]) -> None:
+def _apply_consonant_assimilation(syllables: list[_RevisedSyllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -497,7 +496,7 @@ def _romanize_revised_segment(text: str, mode: str, disambiguate: bool) -> str:
         _apply_liaison(syllables)
         _apply_consonant_assimilation(syllables)
 
-    result: List[str] = []
+    result: list[str] = []
     previous_jong = ""
     for index, syllable in enumerate(syllables):
         if (
@@ -526,7 +525,7 @@ def _romanize_admin_segment(text: str, omit_suffix: bool) -> str:
 
 def _capitalize_words(text: str) -> str:
     parts = text.split(" ")
-    capitalized: List[str] = []
+    capitalized: list[str] = []
     for part in parts:
         if part:
             capitalized.append(part[0].upper() + part[1:])
@@ -628,8 +627,8 @@ class Romanizer:
         :param text: 한글 문자열
         :return: 로마자 표기
         """
-        result: List[str] = []
-        segment: List[str] = []
+        result: list[str] = []
+        segment: list[str] = []
 
         def flush_segment() -> None:
             if not segment:

@@ -1,8 +1,8 @@
 """Jamo-aware length, slicing, and typing helpers."""
 
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator, List, Optional, Tuple
 
 from hangulpy.hangul_assemble import join_jamos, split_syllables
 from hangulpy.hangul_normalize import normalize_hangul
@@ -12,7 +12,7 @@ _ZWJ = "\u200d"
 
 @dataclass(frozen=True)
 class _EditGroup:
-    parts: Tuple[str, ...]
+    parts: tuple[str, ...]
 
 
 def _is_regional_indicator(char: str) -> bool:
@@ -61,16 +61,16 @@ def _iter_graphemes(text: str) -> Iterator[str]:
         yield cluster
 
 
-def _edit_groups(text: str) -> List[_EditGroup]:
+def _edit_groups(text: str) -> list[_EditGroup]:
     normalized = normalize_hangul(text, "NFC")
-    groups: List[_EditGroup] = []
+    groups: list[_EditGroup] = []
     for grapheme in _iter_graphemes(normalized):
         parts = tuple(split_syllables(grapheme)) if len(grapheme) == 1 else (grapheme,)
         groups.append(_EditGroup(parts))
     return groups
 
 
-def _render_parts(parts: Tuple[str, ...]) -> str:
+def _render_parts(parts: tuple[str, ...]) -> str:
     return join_jamos(list(parts))
 
 
@@ -81,8 +81,8 @@ def jamo_len(text: str) -> int:
 
 def jamo_slice(
     text: str,
-    start: Optional[int] = None,
-    stop: Optional[int] = None,
+    start: int | None = None,
+    stop: int | None = None,
 ) -> str:
     """Slice by Jamo offset without recomposing across original syllable boundaries.
 
@@ -96,7 +96,7 @@ def jamo_slice(
     if slice_start >= slice_stop:
         return ""
 
-    result: List[str] = []
+    result: list[str] = []
     offset = 0
     for group in groups:
         group_end = offset + len(group.parts)
@@ -112,9 +112,9 @@ def jamo_slice(
     return "".join(result)
 
 
-def typing_steps(text: str) -> List[str]:
+def typing_steps(text: str) -> list[str]:
     """Return the visible text after each Jamo/grapheme typing step."""
-    steps: List[str] = []
+    steps: list[str] = []
     completed = ""
     for group in _edit_groups(text):
         for end in range(1, len(group.parts) + 1):

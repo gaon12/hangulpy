@@ -1,9 +1,5 @@
 [build-system]
-requires = [
-    "setuptools>=61.0,<77; python_version < '3.9'",
-    "setuptools>=77.0; python_version >= '3.9'",
-    "wheel",
-]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,10 +7,9 @@ name = "hangulpy"
 version = "1.4.2"
 description = "A comprehensive Python library for Korean language processing, inspired by es-hangul"
 readme = "README.md"
-# Keep the legacy table while Python 3.8 requires setuptools<77; use "MIT"
-# when Python 3.8 support is removed.
-license = {file = "LICENSE"}
-requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
 authors = [
     {name = "Jeong Gaon", email = "gokirito12@gmail.com"}
 ]
@@ -37,9 +32,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -61,7 +53,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
-    "mypy>=1.5.0,<1.15",
+    "mypy>=1.15,<2",
     "pyright>=1.1.411,<2",
     "build>=1.2.0",
     "twine>=5.0.0",
@@ -73,7 +65,7 @@ test = [
 lint = [
     "black>=23.0.0",
     "ruff>=0.1.0",
-    "mypy>=1.5.0,<1.15",
+    "mypy>=1.15,<2",
     "pyright>=1.1.411,<2",
 ]
 
@@ -103,7 +95,7 @@ addopts = [
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -121,7 +113,7 @@ extend-exclude = '''
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -144,7 +136,7 @@ ignore = [
 "examples/quickstart.py" = ["E402"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true

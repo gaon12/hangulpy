@@ -9,7 +9,7 @@ except PackageNotFoundError:  # pragma: no cover - source tree without installed
 
 # Original functions
 from ._deprecated import HangulpyDeprecationWarning
-from .chosung import chosung_includes, chosungIncludes, get_chosung_string
+from .chosung import chosung_includes, get_chosung_string
 from .hangul_assemble import (
     assemble,
     combine_character,
@@ -96,7 +96,6 @@ __all__ = [
     "__version__",
     "HangulpyDeprecationWarning",
     # Original exports
-    "chosungIncludes",
     "chosung_includes",
     "get_chosung_string",
     "is_hangul_consonant",

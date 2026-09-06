@@ -1,7 +1,5 @@
 """Predictable sorting for composed Hangul, Jamo, and mixed text."""
 
-from typing import List, Tuple
-
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.utils import (
     CHOSUNG_BASE,
@@ -15,8 +13,8 @@ from hangulpy.utils import (
     JUNGSUNG_LIST,
 )
 
-CharacterKey = Tuple[int, int, int, int]
-WordKey = Tuple[CharacterKey, ...]
+CharacterKey = tuple[int, int, int, int]
+WordKey = tuple[CharacterKey, ...]
 
 
 def _character_key(char: str) -> CharacterKey:
@@ -38,7 +36,7 @@ def _character_key(char: str) -> CharacterKey:
     return (2, code, 0, 0)
 
 
-def sort_hangul(words: List[str], reverse: bool = False) -> List[str]:
+def sort_hangul(words: list[str], reverse: bool = False) -> list[str]:
     """한글의 Unicode 초성·중성·종성 순서로 문자열을 안정 정렬합니다."""
 
     def hangul_key(word: str) -> WordKey:

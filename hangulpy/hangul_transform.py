@@ -1,13 +1,14 @@
 """Composable transformations over modern Hangul syllables."""
 
-from typing import Callable, List, Tuple, Union, cast
+from collections.abc import Callable
+from typing import cast
 
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.hangul_properties import get_hangul_components
 from hangulpy.utils import compose_syllable
 
-HangulComponents = Tuple[str, str, str]
-HangulMapResult = Union[str, HangulComponents]
+HangulComponents = tuple[str, str, str]
+HangulMapResult = str | HangulComponents
 HangulMapper = Callable[[str, str, str], HangulMapResult]
 
 
@@ -16,7 +17,7 @@ def _render_mapped_value(value: object) -> str:
         return value
     if not isinstance(value, tuple):
         raise TypeError("mapper must return a string or a 3-tuple of Hangul components")
-    items = cast(Tuple[object, ...], value)
+    items = cast(tuple[object, ...], value)
     if len(items) != 3:
         raise ValueError("mapper component tuple must contain exactly three items")
 
@@ -41,7 +42,7 @@ def map_hangul(text: str, mapper: HangulMapper) -> str:
     if not callable(mapper):
         raise TypeError("mapper must be callable")
 
-    result: List[str] = []
+    result: list[str] = []
     for char in normalize_hangul(text, "NFC"):
         components = get_hangul_components(char)
         if components is None:

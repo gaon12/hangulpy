@@ -1,12 +1,12 @@
 """Source-preserving replacement and splitting for Hangul-aware patterns."""
 
 from collections import deque
+from collections.abc import Callable
 from itertools import islice
-from typing import Callable, List, Tuple, Union
 
 from hangulpy.hangul_contains import HangulMatch, HangulSearcher
 
-HangulReplacement = Union[str, Callable[[HangulMatch], str]]
+HangulReplacement = str | Callable[[HangulMatch], str]
 
 
 def _validate_pattern(pattern: str) -> None:
@@ -39,7 +39,7 @@ def hangul_replace(
     if count >= 0:
         matches = islice(matches, count)
 
-    result: List[str] = []
+    result: list[str] = []
     source_end = 0
     for match in matches:
         result.append(text[source_end : match.start])
@@ -52,7 +52,7 @@ def hangul_replace(
     return "".join(result)
 
 
-def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> List[str]:
+def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> list[str]:
     """Split text at non-overlapping Hangul-aware matches."""
     _validate_pattern(pattern)
     _validate_limit(maxsplit, "maxsplit")
@@ -63,7 +63,7 @@ def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> List[str]:
     if maxsplit >= 0:
         matches = islice(matches, maxsplit)
 
-    parts: List[str] = []
+    parts: list[str] = []
     source_end = 0
     for match in matches:
         parts.append(text[source_end : match.start])
@@ -72,7 +72,7 @@ def hangul_split(text: str, pattern: str, maxsplit: int = -1) -> List[str]:
     return parts
 
 
-def hangul_partition(text: str, pattern: str) -> Tuple[str, str, str]:
+def hangul_partition(text: str, pattern: str) -> tuple[str, str, str]:
     """Partition text around the first Hangul-aware match."""
     _validate_pattern(pattern)
     matches = HangulSearcher(pattern).finditer(text)
@@ -82,7 +82,7 @@ def hangul_partition(text: str, pattern: str) -> Tuple[str, str, str]:
     return text[: match.start], match.text, text[match.end :]
 
 
-def hangul_rpartition(text: str, pattern: str) -> Tuple[str, str, str]:
+def hangul_rpartition(text: str, pattern: str) -> tuple[str, str, str]:
     """Partition text around the last Hangul-aware match."""
     _validate_pattern(pattern)
     matches = HangulSearcher(pattern).finditer(text)

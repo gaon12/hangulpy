@@ -12,9 +12,9 @@ CANONICAL_JUNGSUNG = tuple(chr(code) for code in range(0x1161, 0x1176))
 CANONICAL_JONGSUNG = tuple(chr(code) for code in range(0x11A8, 0x11C3))
 
 CANONICAL_TO_COMPAT = {
-    **dict(zip(CANONICAL_CHOSUNG, CHOSUNG_LIST)),
-    **dict(zip(CANONICAL_JUNGSUNG, JUNGSUNG_LIST)),
-    **dict(zip(CANONICAL_JONGSUNG, JONGSUNG_LIST[1:])),
+    **dict(zip(CANONICAL_CHOSUNG, CHOSUNG_LIST, strict=True)),
+    **dict(zip(CANONICAL_JUNGSUNG, JUNGSUNG_LIST, strict=True)),
+    **dict(zip(CANONICAL_JONGSUNG, JONGSUNG_LIST[1:], strict=True)),
 }
 COMPAT_JAMO = frozenset(CHOSUNG_LIST + JUNGSUNG_LIST + JONGSUNG_LIST[1:])
 

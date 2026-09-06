@@ -1,7 +1,5 @@
 """Shared lexical boundaries; orthography alone cannot predict Korean n-insertion."""
 
-from typing import FrozenSet
-
 # Boundaries are zero-based offsets of the following syllable, not arbitrary
 # adjacent-syllable substitutions (e.g. 부담요금 must not match 담요).
 N_INSERTION_WORDS = {
@@ -58,7 +56,7 @@ PARTICLE_SUFFIXES = frozenset(
 )
 
 
-def n_insertion_positions(text: str) -> FrozenSet[int]:
+def n_insertion_positions(text: str) -> frozenset[int]:
     """Recognize supported lexemes, optionally followed by a common particle."""
     return frozenset(
         position

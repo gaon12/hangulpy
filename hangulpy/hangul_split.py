@@ -1,12 +1,10 @@
 """Keyboard-level Jamo decomposition with a bounded, lazy translation table."""
 
-from typing import Dict, List
-
 from hangulpy.utils import JONGSUNG_DECOMPOSE, JUNGSUNG_DECOMPOSE, decompose_syllable
 
 # Only modern syllables and the fixed compound-Jamo repertoire are retained.
 # Unknown Unicode characters pass through and cannot grow this table.
-_TRANSLATIONS: Dict[int, str] = {
+_TRANSLATIONS: dict[int, str] = {
     ord(char): "".join(parts)
     for char, parts in {**JUNGSUNG_DECOMPOSE, **JONGSUNG_DECOMPOSE}.items()
 }
@@ -29,6 +27,6 @@ def decompose_text(text: str) -> str:
     return normalized.translate(_TRANSLATIONS)
 
 
-def split_hangul_string(s: str) -> List[str]:
+def split_hangul_string(s: str) -> list[str]:
     """Split syllables, compound vowels and compound finals into keyboard Jamo."""
     return list(decompose_text(s))

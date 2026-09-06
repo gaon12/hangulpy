@@ -1,7 +1,7 @@
 {
     "include": ["hangulpy"],
     "exclude": ["**/__pycache__", "build", "dist"],
-    "pythonVersion": "3.8",
+    "pythonVersion": "3.11",
     "typeCheckingMode": "strict",
     "reportUnnecessaryIsInstance": "warning"
 }

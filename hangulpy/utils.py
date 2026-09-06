@@ -1,7 +1,6 @@
 """Shared constants and low-level operations for modern Hangul."""
 
 import unicodedata
-from typing import Optional, Tuple
 
 # utils.py
 # ------------------------------------------------------------
@@ -373,7 +372,7 @@ def is_complete_hangul_char(char: str) -> bool:
     return HANGUL_BEGIN_UNICODE <= code <= HANGUL_END_UNICODE
 
 
-def decompose_syllable(char: str) -> Optional[Tuple[str, str, str]]:
+def decompose_syllable(char: str) -> tuple[str, str, str] | None:
     """Split one precomposed modern Hangul syllable without normalizing it."""
     if not is_complete_hangul_char(char):
         return None

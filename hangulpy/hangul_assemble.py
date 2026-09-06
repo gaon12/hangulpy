@@ -2,7 +2,8 @@
 # High-level API for syllable splitting and joining
 
 import unicodedata
-from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union, overload
+from collections.abc import Iterator
+from typing import Literal, overload
 
 from hangulpy.hangul_split import decompose_text, split_hangul_string
 from hangulpy.utils import (
@@ -16,7 +17,7 @@ from hangulpy.utils import (
 
 
 @overload
-def split_syllables(text: str, output_format: Literal["list"] = "list") -> List[str]: ...
+def split_syllables(text: str, output_format: Literal["list"] = "list") -> list[str]: ...
 
 
 @overload
@@ -25,7 +26,7 @@ def split_syllables(text: str, output_format: Literal["string"]) -> str: ...
 
 def split_syllables(
     text: str, output_format: Literal["list", "string"] = "list"
-) -> Union[List[str], str]:
+) -> list[str] | str:
     """
     한글 문자열을 자모 단위로 분해합니다.
     hangul-utils의 split_syllables와 유사한 고수준 API입니다.
@@ -42,7 +43,7 @@ def split_syllables(
     return split_hangul_string(text)
 
 
-def join_jamos(jamos: Union[List[str], str]) -> str:
+def join_jamos(jamos: list[str] | str) -> str:
     """
     자모 리스트나 문자열을 완성형 한글로 조합합니다.
     hangul-utils의 join_jamos와 유사한 고수준 API입니다.
@@ -64,7 +65,7 @@ def join_jamos(jamos: Union[List[str], str]) -> str:
     return unicodedata.normalize("NFC", "".join(part for part, _, _ in assemble_fragments(jamos)))
 
 
-def assemble_fragments(jamos: List[str]) -> Iterator[Tuple[str, int, int]]:
+def assemble_fragments(jamos: list[str]) -> Iterator[tuple[str, int, int]]:
     """Assemble compatibility Jamo and retain each fragment's input interval."""
     i = 0
     while i < len(jamos):
@@ -106,7 +107,7 @@ def assemble_fragments(jamos: List[str]) -> Iterator[Tuple[str, int, int]]:
         i += consumed
 
 
-def combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> Optional[str]:
+def combine_vowels(vowel1: str, vowel2: str, join_on_fail: bool = False) -> str | None:
     """
     두 모음을 결합해 복합 모음을 만듭니다.
 
@@ -134,7 +135,7 @@ def combine_character(cho: str, jung: str, jong: str = "") -> str:
     return compose_syllable(cho, jung, jong)
 
 
-def disassemble_to_groups(text: str) -> List[List[str]]:
+def disassemble_to_groups(text: str) -> list[list[str]]:
     """
     문자열을 글자별 자모 그룹으로 분해합니다.
 
@@ -144,7 +145,7 @@ def disassemble_to_groups(text: str) -> List[List[str]]:
     return [[part for part in split_hangul_string(char) if part] for char in text]
 
 
-def disassemble_complete_character(char: str) -> Optional[Dict[str, str]]:
+def disassemble_complete_character(char: str) -> dict[str, str] | None:
     """
     완성형 한글 한 글자를 초성, 중성, 종성 문자열로 분해합니다.
 
@@ -192,16 +193,14 @@ def remove_last_character(text: str) -> str:
 
 
 @overload
-def disassemble(text: str, output_format: Literal["list"] = "list") -> List[str]: ...
+def disassemble(text: str, output_format: Literal["list"] = "list") -> list[str]: ...
 
 
 @overload
 def disassemble(text: str, output_format: Literal["string"]) -> str: ...
 
 
-def disassemble(
-    text: str, output_format: Literal["list", "string"] = "list"
-) -> Union[List[str], str]:
+def disassemble(text: str, output_format: Literal["list", "string"] = "list") -> list[str] | str:
     """
     한글 문자열을 자모로 분해합니다 (split_syllables의 별칭).
 
@@ -212,7 +211,7 @@ def disassemble(
     return split_syllables(text, output_format)
 
 
-def assemble(jamos: Union[List[str], str]) -> str:
+def assemble(jamos: list[str] | str) -> str:
     """
     자모를 한글로 조합합니다 (join_jamos의 별칭).
 

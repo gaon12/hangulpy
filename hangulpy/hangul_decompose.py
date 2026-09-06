@@ -1,6 +1,5 @@
 # hangul_decompose.py
 
-from typing import List, Tuple, Union
 
 from hangulpy.utils import (
     JONGSUNG_DECOMPOSE,
@@ -11,14 +10,14 @@ from hangulpy.utils import (
 
 def decompose_hangul_string(
     s: str,
-) -> List[Tuple[str, Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]]:
+) -> list[tuple[str, str | tuple[str, ...], str | tuple[str, ...]]]:
     """
     주어진 문자열의 각 한글 음절을 초성, 중성, 종성으로 분해하여 배열 형태로 반환합니다.
 
     :param s: 문자열
     :return: 각 한글 음절을 초성, 중성, 종성으로 분해한 결과를 포함하는 배열
     """
-    result: List[Tuple[str, Union[str, Tuple[str, ...]], Union[str, Tuple[str, ...]]]] = []
+    result: list[tuple[str, str | tuple[str, ...], str | tuple[str, ...]]] = []
     for char in s:
         components = decompose_syllable(char)
         if components is not None:
