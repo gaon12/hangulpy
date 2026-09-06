@@ -22,9 +22,9 @@ python -m pip install -U hangulpy
 
 | hangulpy | Python | 지원 정책 |
 | --- | --- | --- |
-| v1.4.x | 3.8~3.14 | 3.14를 포함한 필수 CI 검증 |
-| v1.4.x | 3.15 프리릴리스 | 실패를 허용하는 선행 호환성 검증 |
-| v1.5 이상 | 3.11 이상 | 다음 마이너 계열의 최소 버전 |
+| v1.5.x | 3.11~3.14 | 필수 CI 검증 |
+| v1.5.x | 3.15 프리릴리스 | 실패를 허용하는 선행 호환성 검증 |
+| v1.4.x | 3.8~3.10 | 이전 Python용 호환 계열 |
 
 Python 3.8~3.10을 계속 사용해야 한다면 `python -m pip install "hangulpy<1.5"`로
 마지막 호환 계열을 설치할 수 있습니다. 자세한 배경은
@@ -74,7 +74,7 @@ print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
 
 - [빠른 시작 가이드](https://hangulpy.uiharu.dev/quickstart)
 - [API 개요](https://hangulpy.uiharu.dev/api/overview)
-- [v1.4.2 릴리즈 노트](https://hangulpy.uiharu.dev/releases/v1-4-2)
+- [v1.5.0 릴리즈 노트](https://hangulpy.uiharu.dev/releases/v1-5-0)
 - [실행 가능한 예제](https://github.com/gaon12/hangulpy/blob/main/examples/quickstart.py)
 
 ## 개발과 기여
