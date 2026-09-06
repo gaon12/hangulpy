@@ -1,5 +1,5 @@
 import unicodedata
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import pytest
 
@@ -7,7 +7,7 @@ from hangulpy.hangul_transform import map_hangul
 
 
 def test_map_hangul_accepts_text_and_component_results() -> None:
-    def remove_finals(cho: str, jung: str, jong: str) -> Union[str, Tuple[str, str, str]]:
+    def remove_finals(cho: str, jung: str, jong: str) -> str | tuple[str, str, str]:
         if jong:
             return cho, jung, ""
         return f"[{cho}{jung}]"
@@ -17,9 +17,9 @@ def test_map_hangul_accepts_text_and_component_results() -> None:
 
 def test_map_hangul_normalizes_nfd_and_preserves_non_hangul() -> None:
     nfd = unicodedata.normalize("NFD", "한글")
-    seen: List[Tuple[str, str, str]] = []
+    seen: list[tuple[str, str, str]] = []
 
-    def identity(cho: str, jung: str, jong: str) -> Tuple[str, str, str]:
+    def identity(cho: str, jung: str, jong: str) -> tuple[str, str, str]:
         seen.append((cho, jung, jong))
         return cho, jung, jong
 

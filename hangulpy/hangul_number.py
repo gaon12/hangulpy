@@ -2,11 +2,11 @@
 
 import re
 from decimal import Decimal, InvalidOperation
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Literal
 
 from hangulpy.utils import NUMBERS
 
-Number = Union[int, float, Decimal]
+Number = int | float | Decimal
 
 SMALL_UNITS = ["", "십", "백", "천"]
 LARGE_UNITS = [
@@ -31,12 +31,12 @@ LARGE_UNITS = [
 ]
 
 DIGIT_NAMES = ["영", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"]
-DIGIT_TO_NUMBER: Dict[str, int] = {name: value for value, name in enumerate(DIGIT_NAMES)}
+DIGIT_TO_NUMBER: dict[str, int] = {name: value for value, name in enumerate(DIGIT_NAMES)}
 SMALL_UNIT_TO_NUMBER = {"십": 10, "백": 100, "천": 1000}
 LARGE_UNIT_TO_NUMBER = {unit: 10 ** (index * 4) for index, unit in enumerate(LARGE_UNITS) if unit}
 
 
-def _normalize_number_text(num: Union[int, float, str, Decimal]) -> str:
+def _normalize_number_text(num: int | float | str | Decimal) -> str:
     def trim_decimal_text(text: str) -> str:
         if "." in text:
             return text.rstrip("0").rstrip(".") or "0"
@@ -68,7 +68,7 @@ def _normalize_number_text(num: Union[int, float, str, Decimal]) -> str:
     return trim_decimal_text(format(decimal, "f"))
 
 
-def _split_number_text(num: Union[int, float, str, Decimal]) -> Tuple[bool, str, str]:
+def _split_number_text(num: int | float | str | Decimal) -> tuple[bool, str, str]:
     text = _normalize_number_text(num)
     negative = text.startswith("-")
     if negative:
@@ -87,7 +87,7 @@ def _under_10000_to_hangul(value: int) -> str:
     if not 0 <= value < 10000:
         raise ValueError("value must be between 0 and 9999")
 
-    parts: List[str] = []
+    parts: list[str] = []
     for power in range(3, -1, -1):
         divisor = 10**power
         digit = value // divisor
@@ -109,7 +109,7 @@ def _integer_to_hangul(integer_text: str, spacing: bool = False) -> str:
     if integer_text == "0":
         return "영"
 
-    groups: List[int] = []
+    groups: list[int] = []
     remaining = integer_text
     while remaining:
         groups.append(int(remaining[-4:]))
@@ -118,7 +118,7 @@ def _integer_to_hangul(integer_text: str, spacing: bool = False) -> str:
     if len(groups) > len(LARGE_UNITS):
         raise ValueError("number is too large")
 
-    parts: List[str] = []
+    parts: list[str] = []
     for index in range(len(groups) - 1, -1, -1):
         group = groups[index]
         if group == 0:
@@ -168,11 +168,11 @@ def _read_hangul_integer(integer_part: str, *, large_unit_gu: bool = False) -> i
 
     total = 0
     group = 0
-    pending: Optional[int] = None
+    pending: int | None = None
     index = 0
     large_units = sorted(LARGE_UNIT_TO_NUMBER, key=len, reverse=True)
     last_small_unit = 10000
-    last_large_unit: Optional[int] = None
+    last_large_unit: int | None = None
     saw_token = False
 
     while index < len(integer_part):
@@ -239,7 +239,7 @@ def _read_hangul_integer(integer_part: str, *, large_unit_gu: bool = False) -> i
     return total + group + (pending if pending is not None else 0)
 
 
-def hangul_to_number(hangul: str, *, large_unit_gu: bool = False) -> Union[int, float]:
+def hangul_to_number(hangul: str, *, large_unit_gu: bool = False) -> int | float:
     """
     한글 숫자 문자열을 숫자로 변환합니다.
 
@@ -269,7 +269,7 @@ def hangul_to_number(hangul: str, *, large_unit_gu: bool = False) -> Union[int, 
     if not fractional_part:
         return -integer if negative else integer
 
-    fractional_digits: List[str] = []
+    fractional_digits: list[str] = []
     for char in fractional_part:
         if char not in DIGIT_TO_NUMBER:
             raise ValueError(f"invalid fractional token: {char!r}")
@@ -289,7 +289,7 @@ def number_to_hangul_mixed(num: Number, spacing: bool = False) -> str:
     """
     negative, integer_part, fractional_part = _split_number_text(num)
 
-    groups: List[int] = []
+    groups: list[int] = []
     remaining = integer_part
     while remaining:
         groups.append(int(remaining[-4:]))
@@ -298,7 +298,7 @@ def number_to_hangul_mixed(num: Number, spacing: bool = False) -> str:
     if len(groups) > len(LARGE_UNITS):
         raise ValueError("number is too large")
 
-    parts: List[str] = []
+    parts: list[str] = []
     for index in range(len(groups) - 1, -1, -1):
         group = groups[index]
         if group == 0:
@@ -314,7 +314,7 @@ def number_to_hangul_mixed(num: Number, spacing: bool = False) -> str:
     return result
 
 
-def amount_to_hangul(amount: Union[str, int, float]) -> str:
+def amount_to_hangul(amount: str | int | float) -> str:
     """
     숫자나 숫자가 섞인 금액 문자열을 한글 읽기로 변환합니다.
 

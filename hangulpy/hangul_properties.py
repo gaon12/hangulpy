@@ -2,7 +2,6 @@
 # Advanced character property checking functions
 
 import unicodedata
-from typing import List, Optional, Tuple
 
 from hangulpy.utils import (
     CHOSUNG_INDEX,
@@ -16,7 +15,7 @@ from hangulpy.utils import (
 )
 
 
-def _one_composed_syllable(text: str) -> Optional[str]:
+def _one_composed_syllable(text: str) -> str | None:
     if is_complete_hangul_char(text):
         return text
 
@@ -91,7 +90,7 @@ def has_jongsung(char: str) -> bool:
     return components is not None and bool(components[2])
 
 
-def get_chosung(char: str) -> Optional[str]:
+def get_chosung(char: str) -> str | None:
     """
     완성형 한글 음절에서 초성을 추출합니다.
 
@@ -105,7 +104,7 @@ def get_chosung(char: str) -> Optional[str]:
     return components[0] if components is not None else None
 
 
-def get_jungsung(char: str) -> Optional[str]:
+def get_jungsung(char: str) -> str | None:
     """
     완성형 한글 음절에서 중성을 추출합니다.
 
@@ -119,7 +118,7 @@ def get_jungsung(char: str) -> Optional[str]:
     return components[1] if components is not None else None
 
 
-def get_jongsung(char: str) -> Optional[str]:
+def get_jongsung(char: str) -> str | None:
     """
     완성형 한글 음절에서 종성을 추출합니다.
 
@@ -133,7 +132,7 @@ def get_jongsung(char: str) -> Optional[str]:
     return components[2] if components is not None else None
 
 
-def get_hangul_components(char: str) -> Optional[Tuple[str, str, str]]:
+def get_hangul_components(char: str) -> tuple[str, str, str] | None:
     """
     완성형 한글 음절을 초성, 중성, 종성으로 분해합니다.
 
@@ -167,7 +166,7 @@ def extract_chosung(text: str, *, keep_non_hangul: bool = False) -> str:
     Whitespace and standalone compatibility choseong are retained. Other text
     is retained only when ``keep_non_hangul`` is true.
     """
-    result: List[str] = []
+    result: list[str] = []
     for char in unicodedata.normalize("NFD", text):
         code = ord(char)
         if 0x1100 <= code <= 0x1112:
@@ -181,7 +180,7 @@ def extract_chosung(text: str, *, keep_non_hangul: bool = False) -> str:
 
 def extract_jungsung(text: str, *, keep_non_hangul: bool = False) -> str:
     """Extract medial vowels from every Hangul syllable in *text*."""
-    result: List[str] = []
+    result: list[str] = []
     for char in unicodedata.normalize("NFD", text):
         code = ord(char)
         if 0x1161 <= code <= 0x1175:
@@ -195,7 +194,7 @@ def extract_jungsung(text: str, *, keep_non_hangul: bool = False) -> str:
 
 def extract_jongsung(text: str, *, keep_non_hangul: bool = False) -> str:
     """Extract final consonants from every Hangul syllable in *text*."""
-    result: List[str] = []
+    result: list[str] = []
     for char in unicodedata.normalize("NFD", text):
         code = ord(char)
         if 0x11A8 <= code <= 0x11C2:

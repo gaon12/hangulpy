@@ -2,7 +2,6 @@
 
 import argparse
 from timeit import Timer
-from typing import List, Optional
 
 BENCHMARKS = (
     ("josa", "josa('사과', '은/는')"),
@@ -12,7 +11,7 @@ BENCHMARKS = (
 SETUP = "from hangulpy import has_batchim, josa, josa_pick"
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--number", type=int, default=1_000_000, help="calls per sample")
     parser.add_argument("--repeat", type=int, default=5, help="number of samples")

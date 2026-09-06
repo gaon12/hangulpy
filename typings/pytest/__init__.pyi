@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from types import TracebackType
-from typing import Any, ContextManager, TypeVar
+from typing import Any, TypeVar
 
 _T = TypeVar("_T")
 
-class _RaisesContext(ContextManager[None]):
+class _RaisesContext(AbstractContextManager[None]):
     def __enter__(self) -> None: ...
     def __exit__(
         self,

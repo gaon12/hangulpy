@@ -1,5 +1,5 @@
 import re
-from typing import List, Pattern
+from re import Pattern
 
 from hangulpy.hangul_decompose import decompose_hangul_string
 
@@ -15,11 +15,11 @@ def _compile_pattern(pattern: str, wildcard: bool, regex: bool) -> Pattern[str]:
 
 
 def match_hangul_pattern(
-    words: List[str],
+    words: list[str],
     pattern: str,
     wildcard: bool = True,
     regex: bool = False,
-) -> List[str]:
+) -> list[str]:
     """
     주어진 단어 리스트에서 특정 초성, 중성, 종성 패턴에 매칭되는 단어를 찾습니다.
 
@@ -30,7 +30,7 @@ def match_hangul_pattern(
     # 패턴을 정규식으로 변환
     regex_pattern = _compile_pattern(pattern, wildcard=wildcard, regex=regex)
 
-    matched_words: List[str] = []
+    matched_words: list[str] = []
     for word in words:
         decomposed = decompose_hangul_string(word)  # 한글 분해
         decomposed_flat = "".join(

@@ -4,7 +4,7 @@ import re
 import unicodedata
 from decimal import Decimal, InvalidOperation
 from functools import lru_cache
-from typing import List, Literal, Optional
+from typing import Literal
 
 from hangulpy.hangul_normalize import COMPAT_JAMO, normalize_hangul
 from hangulpy.hangul_number import number_to_hangul
@@ -128,7 +128,7 @@ ALPHABET_PRONUNCIATION_FINAL = {
 }
 
 
-def has_jongsung(text: str, only: Optional[BatchimKind] = None) -> bool:
+def has_jongsung(text: str, only: BatchimKind | None = None) -> bool:
     """
     주어진 한글 음절에 받침이 있는지 확인합니다.
 
@@ -138,7 +138,7 @@ def has_jongsung(text: str, only: Optional[BatchimKind] = None) -> bool:
     return has_batchim(text, only=only)
 
 
-def _get_last_valid_char(word: str) -> Optional[str]:
+def _get_last_valid_char(word: str) -> str | None:
     """
     문자열을 뒤에서부터 탐색하여 조사 판단에 사용할 가장 가까운 유효 문자를 반환합니다.
     유효 문자는 다음을 포함합니다:
@@ -188,7 +188,7 @@ def _get_last_valid_char(word: str) -> Optional[str]:
 
 
 @lru_cache(maxsize=256)
-def _number_last_char(number_text: str) -> Optional[str]:
+def _number_last_char(number_text: str) -> str | None:
     if NUMBER_PATTERN.fullmatch(number_text) is None:
         return None
     try:
@@ -200,7 +200,7 @@ def _number_last_char(number_text: str) -> Optional[str]:
     return next((item for item in reversed(hangul_number) if is_complete_hangul_char(item)), None)
 
 
-def _get_jongsung_char(char: str) -> Optional[str]:
+def _get_jongsung_char(char: str) -> str | None:
     if len(char) == 1:
         code = ord(char)
         if HANGUL_BEGIN_UNICODE <= code <= 0xD7A3:
@@ -215,7 +215,7 @@ def _get_jongsung_char(char: str) -> Optional[str]:
     return JONGSUNG_LIST[jongsung_index]
 
 
-def _has_jongsung_char(char: str, only: Optional[BatchimKind] = None) -> bool:
+def _has_jongsung_char(char: str, only: BatchimKind | None = None) -> bool:
     jongsung = _get_jongsung_char(char)
     if not jongsung:
         return False
@@ -226,7 +226,7 @@ def _has_jongsung_char(char: str, only: Optional[BatchimKind] = None) -> bool:
     return True
 
 
-def has_batchim(text: str, only: Optional[BatchimKind] = None) -> bool:
+def has_batchim(text: str, only: BatchimKind | None = None) -> bool:
     """
     문자열의 마지막 유효 한글 음절에 받침이 있는지 확인합니다.
 
@@ -301,8 +301,8 @@ def format_josa(template: str, *, strict: bool = False) -> str:
     닫히지 않은 표식은 기본적으로 그대로 보존하며, ``strict=True``일 때는
     ``ValueError``를 발생시킵니다.
     """
-    result: List[str] = []
-    literal: List[str] = []
+    result: list[str] = []
+    literal: list[str] = []
     context = ""
     index = 0
 

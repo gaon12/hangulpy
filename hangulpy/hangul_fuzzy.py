@@ -1,15 +1,15 @@
 """Hangul-aware edit distance and reusable fuzzy search index."""
 
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from heapq import nsmallest
-from typing import Iterable, Iterator, List, Sequence, Tuple
 
 from hangulpy.hangul_contains import HangulSearcher, prepare_search_text
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.hangul_split import split_hangul_string
 
 
-def _search_units(text: str) -> Tuple[str, ...]:
+def _search_units(text: str) -> tuple[str, ...]:
     normalized = normalize_hangul(text, "NFC")
     return tuple(split_hangul_string(normalized))
 
@@ -108,7 +108,7 @@ class HangulIndex:
         *,
         limit: int = 10,
         min_score: float = 0.0,
-    ) -> List[HangulSearchResult]:
+    ) -> list[HangulSearchResult]:
         """직접 일치와 자모 유사도를 함께 사용해 결과를 정렬합니다."""
         if not isinstance(limit, int) or isinstance(limit, bool):
             raise TypeError("limit must be an integer")
@@ -127,7 +127,7 @@ class HangulIndex:
 
         def candidates() -> Iterator[HangulSearchResult]:
             for index, (item, units, prepared) in enumerate(
-                zip(self.items, self._units, self._prepared)
+                zip(self.items, self._units, self._prepared, strict=True)
             ):
                 match_index = prepared.find_index(searcher)
                 if match_index >= 0 or query_units in units:

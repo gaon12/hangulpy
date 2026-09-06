@@ -2,12 +2,11 @@ import importlib
 import inspect
 import os
 from types import ModuleType
-from typing import List, Tuple
 
 
-def extract_functions_and_classes(module: ModuleType) -> Tuple[List[str], List[str]]:
-    functions: List[str] = []
-    classes: List[str] = []
+def extract_functions_and_classes(module: ModuleType) -> tuple[list[str], list[str]]:
+    functions: list[str] = []
+    classes: list[str] = []
     for name, obj in inspect.getmembers(module):
         if inspect.isfunction(obj) and obj.__module__ == module.__name__:
             functions.append(name)
@@ -21,7 +20,7 @@ def main() -> None:
     package_name = "hangulpy"
     package_path = os.path.join(base_path, package_name)
 
-    import_statements: List[str] = []
+    import_statements: list[str] = []
 
     for filename in os.listdir(package_path):
         if filename.endswith(".py") and filename != "__init__.py" and filename != "utils.py":

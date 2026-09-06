@@ -1,11 +1,12 @@
 # hangul_contains.py
 
 import unicodedata
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable, Iterator, List, Optional, Tuple, TypeVar
+from typing import TypeVar
 
-from hangulpy._deprecated import resolve_legacy_bool
+from hangulpy._deprecated import require_bool
 from hangulpy.hangul_normalize import (
     CANONICAL_CHOSUNG,
     CANONICAL_TO_COMPAT,
@@ -15,7 +16,7 @@ from hangulpy.hangul_normalize import (
 from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
 
-_SearchData = Tuple[str, Tuple[int, ...], Tuple[int, ...]]
+_SearchData = tuple[str, tuple[int, ...], tuple[int, ...]]
 
 
 _T = TypeVar("_T")
@@ -39,12 +40,12 @@ class HangulMatch:
     end: int
     text: str
 
-    def span(self) -> Tuple[int, int]:
+    def span(self) -> tuple[int, int]:
         """원문 기준의 ``(start, end)`` 구간을 반환합니다."""
         return self.start, self.end
 
 
-def _normalize_with_source_spans(text: str) -> Tuple[str, Tuple[Tuple[int, int], ...]]:
+def _normalize_with_source_spans(text: str) -> tuple[str, tuple[tuple[int, int], ...]]:
     """Normalize once while tracking assembly and canonical combining clusters.
 
     A combining cluster is indivisible in source coordinates: a match for a
@@ -54,15 +55,15 @@ def _normalize_with_source_spans(text: str) -> Tuple[str, Tuple[Tuple[int, int],
 
     if not isinstance(text, str):
         raise TypeError("text must be a string")
-    fragments: Iterator[Tuple[str, int, int]]
+    fragments: Iterator[tuple[str, int, int]]
     if any(char in COMPAT_JAMO for char in text):
         fragments = assemble_fragments([CANONICAL_TO_COMPAT.get(c, c) for c in text])
     else:
         fragments = ((char, i, i + 1) for i, char in enumerate(text))
 
-    parts: List[str] = []
-    spans: List[Tuple[int, int]] = []
-    cluster: List[str] = []
+    parts: list[str] = []
+    spans: list[tuple[int, int]] = []
+    cluster: list[str] = []
     cluster_start = 0
     cluster_end = 0
     starter = ""
@@ -128,13 +129,13 @@ class PreparedSearchText:
 
 def prepare_search_text(text: str) -> PreparedSearchText:
     normalized, spans = _normalize_with_source_spans(text)
-    parts: List[str] = []
-    starts: List[int] = []
-    ends: List[int] = []
-    initials: List[str] = []
-    initial_starts: List[int] = []
-    initial_ends: List[int] = []
-    for char, (start, end) in zip(normalized, spans):
+    parts: list[str] = []
+    starts: list[int] = []
+    ends: list[int] = []
+    initials: list[str] = []
+    initial_starts: list[int] = []
+    initial_ends: list[int] = []
+    for char, (start, end) in zip(normalized, spans, strict=True):
         split = split_hangul_string(CANONICAL_TO_COMPAT.get(char, char))
         parts.extend(split)
         starts.extend([start] * len(split))
@@ -154,7 +155,7 @@ _get_prepared_text = _cache_short_text(prepare_search_text)
 
 
 @_cache_short_text
-def _plain_search_text(text: str) -> Tuple[str, str]:
+def _plain_search_text(text: str) -> tuple[str, str]:
     normalized = normalize_hangul(text, "NFC")
     initials = "".join(
         split_hangul_string(char)[0] if is_hangul(char) else CANONICAL_TO_COMPAT.get(char, char)
@@ -179,7 +180,7 @@ def _normalize_chosung_pattern(pattern: str) -> str:
 
 def _select_search_basis(
     prepared: PreparedSearchText, searcher: "HangulSearcher"
-) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
+) -> tuple[str, str, tuple[int, ...], tuple[int, ...]]:
     if searcher.is_chosung_pattern:
         word, starts, ends = prepared.chosung
         if searcher.pattern_split in word or len(searcher.pattern_split) != 1:
@@ -188,7 +189,7 @@ def _select_search_basis(
     return word, searcher.fallback_pattern_split, starts, ends
 
 
-def _get_search_basis(word: str, pattern: str) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
+def _get_search_basis(word: str, pattern: str) -> tuple[str, str, tuple[int, ...], tuple[int, ...]]:
     return _select_search_basis(_get_prepared_text(word), HangulSearcher(pattern))
 
 
@@ -196,8 +197,8 @@ def _iter_matches(
     text: str,
     word_basis: str,
     pattern_basis: str,
-    starts: Tuple[int, ...],
-    ends: Tuple[int, ...],
+    starts: tuple[int, ...],
+    ends: tuple[int, ...],
     overlap: bool,
 ) -> Iterator[HangulMatch]:
     if not pattern_basis:
@@ -218,7 +219,7 @@ def _iter_matches(
         search_start = index + 1
 
 
-def find_hangul_spans(text: str, pattern: str, overlap: bool = False) -> List[HangulMatch]:
+def find_hangul_spans(text: str, pattern: str, overlap: bool = False) -> list[HangulMatch]:
     """한글 패턴의 원문 기준 구간을 찾습니다.
 
     빈 패턴은 매치하지 않습니다. 기본값은 겹치지 않는 매치이며,
@@ -236,8 +237,7 @@ def find_hangul_spans(text: str, pattern: str, overlap: bool = False) -> List[Ha
 def hangul_contains(
     word: str,
     pattern: str,
-    not_allow_empty: Optional[bool] = None,
-    **legacy_options: object,
+    not_allow_empty: bool = False,
 ) -> bool:
     """
     주어진 한글 문자열이 다른 한글 문자열을 포함하는지 검사합니다.
@@ -247,9 +247,7 @@ def hangul_contains(
     :param not_allow_empty: 패턴이 빈 문자열일 때 false를 반환하는 옵션
     :return: 포함되면 True, 아니면 False
     """
-    not_allow_empty = resolve_legacy_bool(
-        not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-    )
+    not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
     if not pattern:
         return not not_allow_empty
 
@@ -259,8 +257,7 @@ def hangul_contains(
 def hangul_search(
     word: str,
     pattern: str,
-    not_allow_empty: Optional[bool] = None,
-    **legacy_options: object,
+    not_allow_empty: bool = False,
 ) -> int:
     """
     한글 문자열에서 패턴을 검색하고 첫 번째 매칭 위치의 인덱스를 반환합니다.
@@ -270,9 +267,7 @@ def hangul_search(
     :param not_allow_empty: 패턴이 빈 문자열일 때 -1을 반환하는 옵션
     :return: 매칭 시작 인덱스, 없으면 -1
     """
-    not_allow_empty = resolve_legacy_bool(
-        not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-    )
+    not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
     if not pattern:
         return -1 if not_allow_empty else 0
 
@@ -288,9 +283,8 @@ def hangul_search(
 def hangul_search_all(
     word: str,
     pattern: str,
-    not_allow_empty: Optional[bool] = None,
-    **legacy_options: object,
-) -> List[int]:
+    not_allow_empty: bool = False,
+) -> list[int]:
     """
     한글 문자열에서 패턴이 나타나는 모든 위치의 인덱스를 반환합니다.
 
@@ -299,15 +293,13 @@ def hangul_search_all(
     :param not_allow_empty: 패턴이 빈 문자열일 때 빈 리스트를 반환하는 옵션
     :return: 매칭 위치 인덱스 리스트
     """
-    not_allow_empty = resolve_legacy_bool(
-        not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-    )
+    not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
     if not pattern:
         return [] if not_allow_empty else [0]
 
     word_split, pattern_split, positions, _ = _get_search_basis(word, pattern)
 
-    indices: List[int] = []
+    indices: list[int] = []
     start = 0
     while True:
         index = word_split.find(pattern_split, start)
@@ -340,14 +332,13 @@ class HangulSearcher:
         )
         self.fallback_pattern_split = _decompose_cached(pattern) if pattern else ""
 
-    def _get_word_basis(self, word: str) -> Tuple[str, str, Tuple[int, ...], Tuple[int, ...]]:
+    def _get_word_basis(self, word: str) -> tuple[str, str, tuple[int, ...], tuple[int, ...]]:
         return _select_search_basis(_get_prepared_text(word), self)
 
     def search(
         self,
         word: str,
-        not_allow_empty: Optional[bool] = None,
-        **legacy_options: object,
+        not_allow_empty: bool = False,
     ) -> bool:
         """
         문자열에서 패턴을 검색하고 포함 여부를 반환합니다.
@@ -356,9 +347,7 @@ class HangulSearcher:
         :param not_allow_empty: 패턴이 빈 문자열일 때 false를 반환하는 옵션
         :return: 포함되면 True, 아니면 False
         """
-        not_allow_empty = resolve_legacy_bool(
-            not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-        )
+        not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
         if not self.pattern:
             return not not_allow_empty
 
@@ -373,8 +362,7 @@ class HangulSearcher:
     def find_index(
         self,
         word: str,
-        not_allow_empty: Optional[bool] = None,
-        **legacy_options: object,
+        not_allow_empty: bool = False,
     ) -> int:
         """
         문자열에서 패턴의 첫 번째 매칭 위치를 반환합니다.
@@ -383,9 +371,7 @@ class HangulSearcher:
         :param not_allow_empty: 패턴이 빈 문자열일 때 -1을 반환하는 옵션
         :return: 매칭 시작 인덱스, 없으면 -1
         """
-        not_allow_empty = resolve_legacy_bool(
-            not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-        )
+        not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
         if not self.pattern:
             return -1 if not_allow_empty else 0
 
@@ -400,9 +386,8 @@ class HangulSearcher:
     def find_all(
         self,
         word: str,
-        not_allow_empty: Optional[bool] = None,
-        **legacy_options: object,
-    ) -> List[int]:
+        not_allow_empty: bool = False,
+    ) -> list[int]:
         """
         문자열에서 패턴이 나타나는 모든 위치를 반환합니다.
 
@@ -410,14 +395,12 @@ class HangulSearcher:
         :param not_allow_empty: 패턴이 빈 문자열일 때 빈 리스트를 반환하는 옵션
         :return: 매칭 위치 인덱스 리스트
         """
-        not_allow_empty = resolve_legacy_bool(
-            not_allow_empty, legacy_options, "notallowempty", "not_allow_empty"
-        )
+        not_allow_empty = require_bool(not_allow_empty, "not_allow_empty")
         if not self.pattern:
             return [] if not_allow_empty else [0]
 
         word_split, pattern_split, positions, _ = self._get_word_basis(word)
-        indices: List[int] = []
+        indices: list[int] = []
         start = 0
         while True:
             index = word_split.find(pattern_split, start)

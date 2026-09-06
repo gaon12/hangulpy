@@ -1,7 +1,8 @@
 """Rule-based modern Korean pronunciation normalization."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import List, Literal, Mapping, Optional, Tuple, Union, overload
+from typing import Literal, overload
 
 from hangulpy._phonology import n_insertion_positions
 from hangulpy.hangul_normalize import normalize_hangul
@@ -36,7 +37,7 @@ class PronunciationResult:
     """발음 표기와 실제로 적용된 규칙 추적입니다."""
 
     pronunciation: str
-    steps: Tuple[PronunciationRuleStep, ...]
+    steps: tuple[PronunciationRuleStep, ...]
 
 
 LEXICAL_PRONUNCIATIONS = {"디귿이": "디그시"}
@@ -87,7 +88,7 @@ def _decompose_char(char: str) -> _Syllable:
     return _Syllable(*components, char)
 
 
-def _compose_syllables(syllables: List[_Syllable]) -> str:
+def _compose_syllables(syllables: list[_Syllable]) -> str:
     return "".join(compose_syllable(item.cho, item.jung, item.jong) for item in syllables)
 
 
@@ -97,16 +98,16 @@ def _representative_final(jong: str) -> str:
 
 def _record_rule(
     rule: str,
-    syllables: List[_Syllable],
+    syllables: list[_Syllable],
     before: str,
-    steps: List[PronunciationRuleStep],
+    steps: list[PronunciationRuleStep],
 ) -> None:
     after = _compose_syllables(syllables)
     if before != after:
         steps.append(PronunciationRuleStep(rule, before, after))
 
 
-def _apply_h_rules(syllables: List[_Syllable]) -> None:
+def _apply_h_rules(syllables: list[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -143,7 +144,7 @@ def _apply_h_rules(syllables: List[_Syllable]) -> None:
                 following.cho = "ㅊ"
 
 
-def _apply_palatalization(syllables: List[_Syllable]) -> None:
+def _apply_palatalization(syllables: list[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -152,14 +153,14 @@ def _apply_palatalization(syllables: List[_Syllable]) -> None:
             current.jong = ""
 
 
-def _apply_lexical_n_insertion(syllables: List[_Syllable]) -> None:
+def _apply_lexical_n_insertion(syllables: list[_Syllable]) -> None:
     source = "".join(item.source for item in syllables)
     for position in n_insertion_positions(source):
         if syllables[position].cho == "ㅇ":
             syllables[position].cho = "ㄴ"
 
 
-def _apply_liaison(syllables: List[_Syllable]) -> None:
+def _apply_liaison(syllables: list[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -177,11 +178,9 @@ def _apply_liaison(syllables: List[_Syllable]) -> None:
             current.jong = ""
 
 
-def _apply_final_rules(syllables: List[_Syllable]) -> None:
+def _apply_final_rules(syllables: list[_Syllable]) -> None:
     for index, current in enumerate(syllables):
-        following: Optional[_Syllable] = (
-            syllables[index + 1] if index + 1 < len(syllables) else None
-        )
+        following: _Syllable | None = syllables[index + 1] if index + 1 < len(syllables) else None
         original = current.jong
         if not original:
             continue
@@ -204,7 +203,7 @@ def _apply_final_rules(syllables: List[_Syllable]) -> None:
         current.jong = _representative_final(current.jong)
 
 
-def _apply_nasal_and_liquid_assimilation(syllables: List[_Syllable]) -> None:
+def _apply_nasal_and_liquid_assimilation(syllables: list[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -238,7 +237,7 @@ def _apply_nasal_and_liquid_assimilation(syllables: List[_Syllable]) -> None:
                 following.cho = "ㄹ"
 
 
-def _apply_tensing(syllables: List[_Syllable]) -> None:
+def _apply_tensing(syllables: list[_Syllable]) -> None:
     for index in range(len(syllables) - 1):
         current = syllables[index]
         following = syllables[index + 1]
@@ -250,9 +249,9 @@ def _standardize_segment(
     segment: str,
     apply_tensing: bool,
     explain: bool = False,
-    lexicon: Optional[Mapping[str, str]] = None,
-) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
-    steps: List[PronunciationRuleStep] = []
+    lexicon: Mapping[str, str] | None = None,
+) -> tuple[str, tuple[PronunciationRuleStep, ...]]:
+    steps: list[PronunciationRuleStep] = []
     lexical = (lexicon or {}).get(segment, LEXICAL_PRONUNCIATIONS.get(segment, segment))
     if not isinstance(lexical, str):
         raise TypeError("lexicon values must be strings")
@@ -291,12 +290,12 @@ def _standardize_text(
     *,
     apply_tensing: bool = True,
     explain: bool = False,
-    lexicon: Optional[Mapping[str, str]] = None,
-) -> Tuple[str, Tuple[PronunciationRuleStep, ...]]:
+    lexicon: Mapping[str, str] | None = None,
+) -> tuple[str, tuple[PronunciationRuleStep, ...]]:
     normalized = normalize_hangul(text, "NFC")
-    result: List[str] = []
-    segment: List[str] = []
-    steps: List[PronunciationRuleStep] = []
+    result: list[str] = []
+    segment: list[str] = []
+    steps: list[PronunciationRuleStep] = []
 
     def flush_segment() -> None:
         if not segment:
@@ -324,7 +323,7 @@ def standardize_pronunciation(
     *,
     hard_conversion: bool = True,
     explain: Literal[False] = False,
-    lexicon: Optional[Mapping[str, str]] = None,
+    lexicon: Mapping[str, str] | None = None,
 ) -> str: ...
 
 
@@ -334,7 +333,7 @@ def standardize_pronunciation(
     *,
     hard_conversion: bool = True,
     explain: Literal[True],
-    lexicon: Optional[Mapping[str, str]] = None,
+    lexicon: Mapping[str, str] | None = None,
 ) -> PronunciationResult: ...
 
 
@@ -343,8 +342,8 @@ def standardize_pronunciation(
     *,
     hard_conversion: bool = True,
     explain: bool = False,
-    lexicon: Optional[Mapping[str, str]] = None,
-) -> Union[str, PronunciationResult]:
+    lexicon: Mapping[str, str] | None = None,
+) -> str | PronunciationResult:
     """Apply standard pronunciation rules and optionally return a rule trace.
 
     Set ``hard_conversion`` to false to skip tensing while retaining liaison,

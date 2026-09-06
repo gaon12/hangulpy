@@ -5,9 +5,9 @@ import json
 import platform
 import statistics
 import time
+from collections.abc import Callable
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from typing import Callable
 
 import hangeul_jamo_py as hangeul_jamo_py
 import hangul_jamo

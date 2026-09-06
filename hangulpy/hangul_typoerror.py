@@ -1,9 +1,9 @@
 # hangul_typoerror.py
 
 import unicodedata
-from typing import List, Optional, TypedDict, overload
+from typing import TypedDict
 
-from hangulpy._deprecated import resolve_legacy_bool
+from hangulpy._deprecated import require_bool
 from hangulpy.utils import (
     CHOSUNG_LIST,
     COMPOUND_FINAL_DECOMP,
@@ -22,27 +22,15 @@ from hangulpy.utils import (
 
 
 class _EnkoState(TypedDict):
-    cho: Optional[str]
-    jung: Optional[str]
+    cho: str | None
+    jung: str | None
     jong: str
     jong_combined: bool
 
 
-_LEGACY_DOUBLE_CONSONANT = "allowDoubleConsonant"
-
-
-@overload
-def enko(eng_text: str, allow_double_consonant: bool = False) -> str: ...
-
-
-@overload
-def enko(eng_text: str, *, allowDoubleConsonant: bool) -> str: ...
-
-
 def enko(
     eng_text: str,
-    allow_double_consonant: Optional[bool] = None,
-    **legacy_kwargs: object,
+    allow_double_consonant: bool = False,
 ) -> str:
     """
     영문 키보드 입력값을 한글 자모 조합으로 변환합니다.
@@ -51,14 +39,9 @@ def enko(
     :param allow_double_consonant: 두 개의 초성 결합(쌍자음) 허용 여부
     :return: 한글 자판 입력 문자열
     """
-    allow_double = resolve_legacy_bool(
-        allow_double_consonant,
-        legacy_kwargs,
-        _LEGACY_DOUBLE_CONSONANT,
-        "allow_double_consonant",
-    )
+    allow_double = require_bool(allow_double_consonant, "allow_double_consonant")
 
-    result: List[str] = []
+    result: list[str] = []
     state: _EnkoState = {"cho": None, "jung": None, "jong": "", "jong_combined": False}
 
     def flush() -> None:
@@ -159,7 +142,7 @@ def enko(
 
 
 def _normalize_qwerty_case(text: str) -> str:
-    normalized: List[str] = []
+    normalized: list[str] = []
     for char in text:
         if char in CONSONANT_MAP or char in VOWEL_MAP:
             normalized.append(char)
@@ -168,18 +151,9 @@ def _normalize_qwerty_case(text: str) -> str:
     return "".join(normalized)
 
 
-@overload
-def convert_qwerty_to_hangul(text: str, allow_double_consonant: bool = False) -> str: ...
-
-
-@overload
-def convert_qwerty_to_hangul(text: str, *, allowDoubleConsonant: bool) -> str: ...
-
-
 def convert_qwerty_to_hangul(
     text: str,
-    allow_double_consonant: Optional[bool] = None,
-    **legacy_kwargs: object,
+    allow_double_consonant: bool = False,
 ) -> str:
     """
     QWERTY 자판 입력을 한글 문장으로 변환합니다.
@@ -188,12 +162,7 @@ def convert_qwerty_to_hangul(
     :param allow_double_consonant: 두 개의 초성 허용 여부
     :return: 한글 문자열
     """
-    allow_double = resolve_legacy_bool(
-        allow_double_consonant,
-        legacy_kwargs,
-        _LEGACY_DOUBLE_CONSONANT,
-        "allow_double_consonant",
-    )
+    allow_double = require_bool(allow_double_consonant, "allow_double_consonant")
 
     if allow_double:
         return enko(_normalize_qwerty_case(text), allow_double_consonant=True)
@@ -210,7 +179,7 @@ def convert_qwerty_to_alphabet(text: str) -> str:
     :param text: 변환할 QWERTY 문자열
     :return: 한글 자모 문자열
     """
-    result: List[str] = []
+    result: list[str] = []
     for char in _normalize_qwerty_case(text):
         if char in CONSONANT_MAP:
             result.append(CONSONANT_MAP[char])
@@ -239,7 +208,7 @@ def koen(kor_text: str) -> str:
     :param kor_text: 변환할 한글 문자열
     :return: 영문 키보드 입력 문자열
     """
-    result: List[str] = []
+    result: list[str] = []
     for ch in unicodedata.normalize("NFC", kor_text):
         # 공백은 그대로 추가
         if ch == " ":
@@ -289,18 +258,9 @@ def convert_hangul_to_qwerty(text: str) -> str:
     return koen(text)
 
 
-@overload
-def autofix(text: str, allow_double_consonant: bool = False) -> str: ...
-
-
-@overload
-def autofix(text: str, *, allowDoubleConsonant: bool) -> str: ...
-
-
 def autofix(
     text: str,
-    allow_double_consonant: Optional[bool] = None,
-    **legacy_kwargs: object,
+    allow_double_consonant: bool = False,
 ) -> str:
     """
     입력 문자열의 각 구간(한글, 영문, 기타)을 분리하여
@@ -310,18 +270,13 @@ def autofix(
     :param allow_double_consonant: 두 개의 초성 허용 여부
     :return: 변환된 문자열
     """
-    allow_double = resolve_legacy_bool(
-        allow_double_consonant,
-        legacy_kwargs,
-        _LEGACY_DOUBLE_CONSONANT,
-        "allow_double_consonant",
-    )
+    allow_double = require_bool(allow_double_consonant, "allow_double_consonant")
 
-    result: List[str] = []
+    result: list[str] = []
     current_segment = ""
-    current_type: Optional[str] = None  # 'hangul', 'roman', 'other'
+    current_type: str | None = None  # 'hangul', 'roman', 'other'
 
-    def flush_segment(seg: str, seg_type: Optional[str]) -> str:
+    def flush_segment(seg: str, seg_type: str | None) -> str:
         if not seg:
             return ""
         if seg_type == "hangul":
