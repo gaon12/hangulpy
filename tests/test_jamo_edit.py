@@ -1,3 +1,4 @@
+# pyright: basic
 import unicodedata
 
 from hangulpy.jamo_edit import jamo_len, jamo_slice, typing_steps

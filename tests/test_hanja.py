@@ -1,3 +1,4 @@
+# pyright: basic
 import pytest
 
 from hangulpy.hanja import HanjaRun, is_hanja, split_hanja

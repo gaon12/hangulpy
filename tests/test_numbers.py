@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_numbers.py
 
 from decimal import Decimal
@@ -39,7 +40,7 @@ class TestHangulNumbers:
     def test_fractional_zeroes_are_preserved(self):
         assert number_to_hangul(1.01) == "일점영일"
         assert number_to_hangul(Decimal("0.00102")) == "영점영영일영이"
-        assert hangul_to_number("일점영일") == pytest.approx(1.01)
+        assert hangul_to_number("일점영일") == pytest.approx(1.01)  # type: ignore[attr-defined]
 
     def test_hangul_to_number(self):
         """한글 숫자 역변환 테스트"""

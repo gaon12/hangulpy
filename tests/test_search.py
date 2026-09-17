@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_search.py
 
 import unicodedata

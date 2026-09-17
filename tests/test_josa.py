@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_josa.py
 
 import unicodedata
@@ -69,7 +70,7 @@ class TestJosa:
         assert has_batchim("버전 1.2)") is False
 
         with pytest.raises(ValueError):
-            has_batchim("각", only="invalid")
+            has_batchim("각", only="invalid")  # type: ignore[arg-type]
 
     def test_unsupported_particle(self):
         """지원하지 않는 조사 테스트"""

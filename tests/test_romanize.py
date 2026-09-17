@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_romanize.py
 
 import unicodedata
