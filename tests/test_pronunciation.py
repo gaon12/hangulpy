@@ -1,3 +1,4 @@
+# pyright: basic
 import unicodedata
 
 import pytest
@@ -111,4 +112,4 @@ def test_pronunciation_lexicon_is_per_call_and_takes_precedence():
     assert result.steps[0].before == "꽃잎"
     assert standardize_pronunciation("꽃잎") == "꼰닙"
     with pytest.raises(TypeError, match="lexicon"):
-        standardize_pronunciation("꽃잎", lexicon={"꽃잎": 1})
+        standardize_pronunciation("꽃잎", lexicon={"꽃잎": 1})  # type: ignore[dict-item]

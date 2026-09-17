@@ -1,3 +1,4 @@
+# pyright: basic
 import unicodedata
 from time import perf_counter
 
@@ -11,7 +12,7 @@ def test_hangul_distance_uses_jamo_and_normalizes_unicode():
     assert hangul_distance(unicodedata.normalize("NFD", "한글"), "한글") == 0.0
     assert hangul_distance("한글", "한국") == 2.0
     assert hangul_distance("과", "고") == 1.0
-    assert hangul_similarity("한글", "한국") == pytest.approx(2 / 3)
+    assert hangul_similarity("한글", "한국") == pytest.approx(2 / 3)  # type: ignore[attr-defined]
 
 
 def test_hangul_index_prioritizes_direct_and_fuzzy_matches():

@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_properties.py
 
 from hangulpy import (

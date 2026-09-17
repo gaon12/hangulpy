@@ -1,3 +1,4 @@
+# pyright: basic
 # tests/test_assemble.py
 
 from hangulpy import (

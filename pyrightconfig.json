@@ -1,7 +1,9 @@
 {
-    "include": ["hangulpy"],
+    "include": ["hangulpy", "tests"],
     "exclude": ["**/__pycache__", "build", "dist"],
     "pythonVersion": "3.11",
+    "venvPath": ".",
+    "venv": ".venv",
     "typeCheckingMode": "strict",
     "reportUnnecessaryIsInstance": "warning"
 }
