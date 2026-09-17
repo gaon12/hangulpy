@@ -5,7 +5,13 @@ from hangulpy.utils import (
     JONGSUNG_DECOMPOSE,
     JUNGSUNG_DECOMPOSE,
     decompose_syllable,
+    decompose_text,
 )
+
+
+def split_hangul_string(s: str) -> list[str]:
+    """Split syllables, compound vowels and compound finals into keyboard Jamo."""
+    return list(decompose_text(s))
 
 
 def decompose_hangul_string(

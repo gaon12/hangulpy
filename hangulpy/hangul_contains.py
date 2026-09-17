@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TypeVar
 
-from hangulpy._deprecated import require_bool
+from hangulpy._validation import require_bool
+from hangulpy.hangul_decompose import split_hangul_string
 from hangulpy.hangul_normalize import (
     CANONICAL_CHOSUNG,
     CANONICAL_TO_COMPAT,
     COMPAT_JAMO,
     normalize_hangul,
 )
-from hangulpy.hangul_split import split_hangul_string
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
 
 _SearchData = tuple[str, tuple[int, ...], tuple[int, ...]]

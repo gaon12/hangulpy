@@ -5,7 +5,7 @@ import unicodedata
 from collections.abc import Iterator
 from typing import Literal, overload
 
-from hangulpy.hangul_split import decompose_text, split_hangul_string
+from hangulpy.hangul_decompose import split_hangul_string
 from hangulpy.utils import (
     CHOSUNG_LIST,
     COMPOUND_FINAL_MAP,
@@ -13,6 +13,7 @@ from hangulpy.utils import (
     JUNGSUNG_LIST,
     VOWEL_COMBO,
     compose_syllable,
+    decompose_text,
 )
 
 

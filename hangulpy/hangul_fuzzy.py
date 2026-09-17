@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from heapq import nsmallest
 
 from hangulpy.hangul_contains import HangulSearcher, prepare_search_text
+from hangulpy.hangul_decompose import split_hangul_string
 from hangulpy.hangul_normalize import normalize_hangul
-from hangulpy.hangul_split import split_hangul_string
 
 
 def _search_units(text: str) -> tuple[str, ...]:

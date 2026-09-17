@@ -3,7 +3,7 @@
 import unicodedata
 from typing import TypedDict
 
-from hangulpy._deprecated import require_bool
+from hangulpy._validation import require_bool
 from hangulpy.utils import (
     CHOSUNG_LIST,
     COMPOUND_FINAL_DECOMP,
