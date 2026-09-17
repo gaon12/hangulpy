@@ -1,9 +1,43 @@
+# pyright: basic
 import hangulpy
 
 
 def test_all_exports_are_unique_and_importable() -> None:
     assert len(hangulpy.__all__) == len(set(hangulpy.__all__))
     assert all(hasattr(hangulpy, name) for name in hangulpy.__all__)
+
+
+def test_public_modules_export_every_defined_member() -> None:
+    import importlib
+    import inspect
+    import pkgutil
+    from pathlib import Path
+
+    # Internal helpers shared across package modules; intentionally not exported.
+    internal_members = {
+        "hangul_assemble.assemble_fragments",
+        "hangul_contains.PreparedSearchText",
+        "hangul_contains.prepare_search_text",
+    }
+
+    package_dir = Path(hangulpy.__file__).parent
+    missing: list[str] = []
+    for module_info in pkgutil.iter_modules([str(package_dir)]):
+        module_name = module_info.name
+        if module_name.startswith("_") or module_name == "utils":
+            continue
+        module = importlib.import_module(f"hangulpy.{module_name}")
+        for name, member in inspect.getmembers(module):
+            if name.startswith("_"):
+                continue
+            if not (inspect.isfunction(member) or inspect.isclass(member)):
+                continue
+            if member.__module__ != module.__name__:
+                continue
+            qualified = f"{module_name}.{name}"
+            if qualified not in internal_members and name not in hangulpy.__all__:
+                missing.append(qualified)
+    assert not missing, f"public members missing from hangulpy.__all__: {missing}"
 
 
 def test_package_exposes_a_version_string() -> None:
@@ -29,4 +63,4 @@ def test_v15_removes_legacy_names_and_keywords():
         with pytest.raises(TypeError, match="bool"):
             function("rrk", allow_double_consonant=1)
     with pytest.raises(TypeError, match="bool"):
-        hangulpy.hangul_contains("한글", "", not_allow_empty=1)
+        hangulpy.hangul_contains("한글", "", not_allow_empty=1)  # type: ignore[arg-type]
