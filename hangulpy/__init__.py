@@ -7,7 +7,6 @@ try:
 except PackageNotFoundError:  # pragma: no cover - source tree without installed metadata
     __version__ = "0+unknown"
 
-# Original functions
 from ._deprecated import HangulpyDeprecationWarning
 from .chosung import chosung_includes, get_chosung_string
 from .hangul_assemble import (
@@ -30,7 +29,7 @@ from .hangul_contains import (
     hangul_search,
     hangul_search_all,
 )
-from .hangul_decompose import decompose_hangul_string
+from .hangul_decompose import decompose_hangul_string, split_hangul_string
 from .hangul_ends_with_consonant import ends_with_consonant
 from .hangul_fuzzy import HangulIndex, HangulSearchResult, hangul_distance, hangul_similarity
 from .hangul_normalize import normalize_hangul, to_compat_jamo, to_jamo
@@ -52,8 +51,6 @@ from .hangul_pronunciation import (
     PronunciationRuleStep,
     standardize_pronunciation,
 )
-
-# New enhanced functions
 from .hangul_properties import (
     extract_chosung,
     extract_jongsung,
@@ -70,7 +67,6 @@ from .hangul_properties import (
 from .hangul_replace import hangul_partition, hangul_replace, hangul_rpartition, hangul_split
 from .hangul_role import can_be_chosung, can_be_jongsung, can_be_jungsung
 from .hangul_sort import sort_hangul
-from .hangul_split import split_hangul_string
 from .hangul_syllable import hangul_syllable
 from .hangul_transform import map_hangul
 from .hangul_typoerror import (
@@ -95,7 +91,6 @@ from .romanize import (
 __all__ = [
     "__version__",
     "HangulpyDeprecationWarning",
-    # Original exports
     "chosung_includes",
     "get_chosung_string",
     "is_hangul_consonant",
@@ -154,11 +149,9 @@ __all__ = [
     "format_josa",
     "match_hangul_pattern",
     "jarip_noun",
-    # New enhanced search functions
     "hangul_search",
     "hangul_search_all",
     "HangulSearcher",
-    # New property checking functions
     "is_complete_hangul",
     "is_chosung",
     "is_jungsung",
@@ -173,7 +166,6 @@ __all__ = [
     "standardize_pronunciation",
     "PronunciationResult",
     "PronunciationRuleStep",
-    # New assembly functions
     "split_syllables",
     "join_jamos",
     "disassemble",
@@ -183,7 +175,6 @@ __all__ = [
     "disassemble_to_groups",
     "disassemble_complete_character",
     "remove_last_character",
-    # Romanization
     "Romanizer",
     "romanize",
 ]

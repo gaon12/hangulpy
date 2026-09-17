@@ -385,6 +385,19 @@ def decompose_syllable(char: str) -> tuple[str, str, str] | None:
     )
 
 
+def _is_modern_jamo_char(char: str) -> bool:
+    """Return whether *char* is a modern canonical or compatibility jamo."""
+    code = ord(char)
+    return (
+        0x1100 <= code <= 0x1112
+        or 0x1161 <= code <= 0x1175
+        or 0x11A8 <= code <= 0x11C2
+        or char in CHOSUNG_INDEX
+        or char in JUNGSUNG_INDEX
+        or char in JONGSUNG_INDEX
+    )
+
+
 def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bool:
     """
     입력된 문자열의 모든 문자가 한글 완성형(또는 띄어쓰기)인지 확인합니다.
@@ -402,17 +415,7 @@ def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bo
             return True
         if char == " " and spaces:
             return True
-        if not include_jamo:
-            return False
-        code = ord(char)
-        return (
-            0x1100 <= code <= 0x1112
-            or 0x1161 <= code <= 0x1175
-            or 0x11A8 <= code <= 0x11C2
-            or char in CHOSUNG_INDEX
-            or char in JUNGSUNG_INDEX
-            or char in JONGSUNG_INDEX
-        )
+        return include_jamo and _is_modern_jamo_char(char)
 
     normalized = unicodedata.normalize("NFC", text)
     for char in normalized:
@@ -420,19 +423,9 @@ def is_hangul(text: str, spaces: bool = False, include_jamo: bool = False) -> bo
             continue
         if is_complete_hangul_char(char):
             continue
-        code = ord(char)
-        is_canonical_jamo = (
-            0x1100 <= code <= 0x1112 or 0x1161 <= code <= 0x1175 or 0x11A8 <= code <= 0x11C2
-        )
-        if include_jamo and (
-            is_canonical_jamo
-            or char in CHOSUNG_INDEX
-            or char in JUNGSUNG_INDEX
-            or char in JONGSUNG_INDEX
-        ):
+        if include_jamo and _is_modern_jamo_char(char):
             continue
-        else:
-            return False
+        return False
     return True
 
 
@@ -459,3 +452,28 @@ def compose_syllable(cho: str, jung: str, jong: str = "") -> str:
 
     code = HANGUL_BEGIN_UNICODE + (cho_index * 21 + jung_index) * 28 + jong_index
     return chr(code)
+
+
+# Only modern syllables and the fixed compound-Jamo repertoire are retained.
+# Unknown Unicode characters pass through and cannot grow this table.
+_TRANSLATIONS: dict[int, str] = {
+    ord(char): "".join(parts)
+    for char, parts in {**JUNGSUNG_DECOMPOSE, **JONGSUNG_DECOMPOSE}.items()
+}
+
+
+def decompose_text(text: str) -> str:
+    """Return flat Jamo text, preserving other characters after NFC normalization."""
+    from hangulpy.hangul_normalize import normalize_hangul
+
+    normalized = normalize_hangul(text, "NFC")
+    for char in set(normalized):
+        code = ord(char)
+        if 0xAC00 <= code <= 0xD7A3 and code not in _TRANSLATIONS:
+            parts = decompose_syllable(char)
+            if parts is not None:
+                cho, jung, jong = parts
+                medial = JUNGSUNG_DECOMPOSE.get(jung, (jung,))
+                final = JONGSUNG_DECOMPOSE.get(jong, (jong,) if jong else ())
+                _TRANSLATIONS[code] = cho + "".join(medial) + "".join(final)
+    return normalized.translate(_TRANSLATIONS)
