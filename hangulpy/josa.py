@@ -130,9 +130,10 @@ ALPHABET_PRONUNCIATION_FINAL = {
 
 def has_jongsung(text: str, only: BatchimKind | None = None) -> bool:
     """
-    주어진 한글 음절에 받침이 있는지 확인합니다.
+    주어진 문자열의 마지막 유효 한글 음절에 받침이 있는지 확인합니다.
 
-    :param char: 한글 음절 문자
+    :param text: 받침 여부를 판단할 문자열
+    :param only: 'single' 또는 'double'로 받침 종류를 제한할 수 있습니다
     :return: 받침이 있으면 True, 없으면 False
     """
     return has_batchim(text, only=only)
