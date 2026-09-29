@@ -60,6 +60,20 @@ def test_repeat_limit_applies_to_both_plain_and_attached_jamo(limit):
     assert reduce_jamo_repeats("앜" + "ㅋ" * 7, max_repeats=limit) == "아" + "ㅋ" * limit
 
 
+@pytest.mark.parametrize(
+    ("limit", "expected"),
+    [(1, "ㅋㅎㅋ"), (2, "ㅋㅎㅎㅋㅋ"), (3, "ㅋㅎㅎㅋㅋㅋ"), (4, "ㅋㅎㅎㅋㅋㅋㅋ")],
+)
+@pytest.mark.parametrize("normalize_emoticons", [True, False])
+def test_mixed_laughter_keeps_separate_jamo_runs(limit, expected, normalize_emoticons):
+    assert (
+        reduce_jamo_repeats(
+            "ㅋㅎㅎㅋㅋㅋㅋ", max_repeats=limit, normalize_emoticons=normalize_emoticons
+        )
+        == expected
+    )
+
+
 def test_long_input_has_no_regex_backtracking_and_keeps_word_boundaries():
     text = "ㅋ" * 20_000 + "하하하" + "ㅠ" * 20_000
     assert reduce_jamo_repeats(text) == "ㅋㅋ하하하ㅠㅠ"
