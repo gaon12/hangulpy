@@ -1,6 +1,6 @@
 ---
 title: 한글 Unicode 정규화
-description: 완성형, canonical Jamo, 호환 자모 사이의 안전한 변환
+description: 반각 한글, 완성형, canonical Jamo, 호환 자모 사이의 안전한 변환
 ---
 
 ## normalize_hangul
@@ -14,7 +14,7 @@ normalize_hangul(
 
 `NFC`는 조합된 완성형, `NFD`는 Unicode canonical Jamo, `HCJ`는 호환 자모
 형태를 반환합니다. 호환 자모가 들어 있는 입력은 문맥상 조합 가능한 부분만
-먼저 조합합니다.
+먼저 조합합니다. 반각 한글은 호환 자모로 바꾼 뒤 같은 규칙으로 처리합니다.
 
 ```python
 import unicodedata
@@ -25,7 +25,32 @@ nfd = unicodedata.normalize("NFD", "한글")
 print(normalize_hangul(nfd))  # 한글
 print(normalize_hangul("ㅎㅏㄴㄱㅡㄹ"))  # 한글
 print(normalize_hangul("한글", "HCJ"))  # ㅎㅏㄴㄱㅡㄹ
+print(normalize_hangul("ﾾￂﾤﾡￚﾩ"))  # 한글
 ```
+
+## normalize_halfwidth_hangul
+
+```python
+normalize_halfwidth_hangul(text: str) -> str
+```
+
+반각 한글 영역의 할당된 문자 52개를 대응하는 호환 자모로 변환합니다.
+반각 한글 채움 문자는 호환 자모 채움 문자로 변환하고, 미할당 문자는 그대로
+보존합니다. 문자열 길이와 각 문자 위치가 유지됩니다.
+
+음절 조합이 필요하면 `normalize_hangul`을 사용하세요. 전각 영문·숫자,
+동그라미 숫자, 일본어 반각 문자, 결합 문자, 이모지는 너비 변환 함수에서
+원문 그대로 보존됩니다.
+
+```python
+from hangulpy import normalize_halfwidth_hangul
+
+print(normalize_halfwidth_hangul("ﾻﾻﾻ"))  # ㅋㅋㅋ
+print(normalize_halfwidth_hangul("Ａ① ﾾￂﾤ"))  # Ａ① ㅎㅏㄴ
+```
+
+`normalize_hangul`, `to_jamo`, `to_compat_jamo`와 한글 검색·치환도 반각 한글을
+처리합니다. 검색 결과의 위치와 치환 범위는 반각 문자가 포함된 원문 기준입니다.
 
 ## to_jamo / to_compat_jamo
 

@@ -3,6 +3,7 @@
 import unicodedata
 from typing import Literal
 
+from hangulpy._validation import require_str
 from hangulpy.utils import CHOSUNG_LIST, JONGSUNG_LIST, JUNGSUNG_LIST
 
 NormalizationForm = Literal["NFC", "NFD", "HCJ"]
@@ -18,13 +19,30 @@ CANONICAL_TO_COMPAT = {
 }
 COMPAT_JAMO = frozenset(CHOSUNG_LIST + JUNGSUNG_LIST + JONGSUNG_LIST[1:])
 
+# Use the direct width mapping: NFKC also changes compatibility Jamo roles
+# (for example, ㅀ becomes archaic U+111A) and unrelated compatibility text.
+_HALFWIDTH_TO_COMPAT = {
+    code: chr(int(unicodedata.decomposition(chr(code)).split()[1], 16))
+    for code in range(0xFFA0, 0xFFDD)
+    if unicodedata.decomposition(chr(code)).startswith("<narrow>")
+}
+
+
+def normalize_halfwidth_hangul(text: str) -> str:
+    """Convert halfwidth Hangul to compatibility Jamo, preserving other text.
+
+    This performs a one-character-to-one-character width conversion, including
+    U+FFA0 Hangul filler. It does not compose syllables or normalize other text.
+    """
+    return require_str(text).translate(_HALFWIDTH_TO_COMPAT)
+
 
 def to_compat_jamo(text: str) -> str:
     """완성형 및 canonical Jamo를 호환 자모(HCJ)로 변환합니다."""
     if not isinstance(text, str):
         raise TypeError("text must be a string")
 
-    decomposed = unicodedata.normalize("NFD", text)
+    decomposed = unicodedata.normalize("NFD", normalize_halfwidth_hangul(text))
     return "".join(CANONICAL_TO_COMPAT.get(char, char) for char in decomposed)
 
 
@@ -38,6 +56,7 @@ def normalize_hangul(text: str, form: NormalizationForm = "NFC") -> str:
         raise TypeError("text must be a string")
     if form not in ("NFC", "NFD", "HCJ"):
         raise ValueError("form must be one of 'NFC', 'NFD', or 'HCJ'")
+    text = normalize_halfwidth_hangul(text)
     if form == "HCJ":
         return to_compat_jamo(text)
 

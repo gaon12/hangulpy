@@ -10,7 +10,7 @@ Python 한글 처리 라이브러리입니다. [es-hangul](https://github.com/to
 영감을 받아 Python에 자연스러운 API와 타입 정보를 제공합니다.
 
 - 별도 런타임 의존성 없음
-- NFC·NFD와 호환 자모를 고려한 Unicode 처리
+- NFC·NFD, 호환 자모와 반각 한글을 고려한 Unicode 처리
 - `py.typed`를 포함한 정적 타입 검사 지원
 - 조사, 검색, 숫자, 발음, 로마자 표기를 하나의 패키지에서 제공
 

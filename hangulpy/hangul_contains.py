@@ -12,6 +12,7 @@ from hangulpy.hangul_normalize import (
     CANONICAL_CHOSUNG,
     CANONICAL_TO_COMPAT,
     COMPAT_JAMO,
+    normalize_halfwidth_hangul,
     normalize_hangul,
 )
 from hangulpy.utils import CHOSUNG_LIST, is_hangul
@@ -55,6 +56,9 @@ def _normalize_with_source_spans(text: str) -> tuple[str, tuple[tuple[int, int],
 
     if not isinstance(text, str):
         raise TypeError("text must be a string")
+    # Width conversion preserves length, so assembly spans still address the
+    # caller's original text, including mixed-width syllables.
+    text = normalize_halfwidth_hangul(text)
     fragments: Iterator[tuple[str, int, int]]
     if any(char in COMPAT_JAMO for char in text):
         fragments = assemble_fragments([CANONICAL_TO_COMPAT.get(c, c) for c in text])

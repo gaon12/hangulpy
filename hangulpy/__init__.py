@@ -31,7 +31,12 @@ from .hangul_contains import (
 from .hangul_decompose import decompose_hangul_string, split_hangul_string
 from .hangul_ends_with_consonant import ends_with_consonant
 from .hangul_fuzzy import HangulIndex, HangulSearchResult, hangul_distance, hangul_similarity
-from .hangul_normalize import normalize_hangul, to_compat_jamo, to_jamo
+from .hangul_normalize import (
+    normalize_halfwidth_hangul,
+    normalize_hangul,
+    to_compat_jamo,
+    to_jamo,
+)
 from .hangul_number import (
     amount_to_hangul,
     counter,
@@ -127,6 +132,7 @@ __all__ = [
     "seosusa",
     "days",
     "normalize_hangul",
+    "normalize_halfwidth_hangul",
     "to_jamo",
     "to_compat_jamo",
     "can_be_chosung",
