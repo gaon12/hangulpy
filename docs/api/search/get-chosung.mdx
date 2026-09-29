@@ -8,7 +8,7 @@ description: 초성 추출과 초성 기반 포함 여부 확인
 문자열에서 초성만 추출합니다.
 
 ```python
-get_chosung_string(text: str, keep_spaces: bool = False) -> str
+get_chosung_string(text: str, keep_spaces: bool = False, *, keep_non_hangul: bool | None = None) -> str
 ```
 
 `keep_spaces` 를 생략하면 기본값은 `False` 이고, 공백을 제거한 초성 문자열을 반환합니다.
@@ -23,7 +23,23 @@ print(get_chosung_string("띄어 쓰기"))  # ㄸㅇㅆㄱ
 print(get_chosung_string("띄어 쓰기", keep_spaces=True))  # ㄸㅇ ㅆㄱ
 ```
 
-`keep_spaces=True` 를 사용하면 공백 위치를 유지한 채 초성 문자열을 만들 수 있습니다.
+`keep_non_hangul`을 생략하면 기존 동작을 유지합니다. 이때 `keep_spaces=False`는
+완성형 음절의 초성만 모으고, `True`는 공백뿐 아니라 영문·숫자·기호 등 모든
+비한글 문자도 그대로 남깁니다.
+
+`keep_non_hangul=False` 또는 `True`를 명시하면 독립 초성 자모도 보존하는
+구성요소 추출 모드를 사용합니다. 이 모드에서는 공백과 비한글 문자 보존을
+각각 `keep_spaces`, `keep_non_hangul`로 제어합니다.
+
+```python
+print(get_chosung_string("A한! ㄱ", keep_spaces=True))  # Aㅎ! ㄱ
+print(get_chosung_string("A한! ㄱ", keep_spaces=True, keep_non_hangul=False))  # ㅎ ㄱ
+print(get_chosung_string("A한! ㄱ", keep_non_hangul=True))  # Aㅎ!ㄱ
+```
+
+`extract_chosung(text)`에서 이전할 때는
+`get_chosung_string(text, keep_spaces=True, keep_non_hangul=False)`를 사용하세요.
+`extract_chosung`은 경고 후 v1.6에서 제거합니다.
 
 ## chosung_includes
 

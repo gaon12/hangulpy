@@ -7,7 +7,6 @@ try:
 except PackageNotFoundError:  # pragma: no cover - source tree without installed metadata
     __version__ = "0+unknown"
 
-from ._deprecated import HangulpyDeprecationWarning
 from .chosung import chosung_includes, get_chosung_string
 from .hangul_assemble import (
     assemble,
@@ -58,7 +57,9 @@ from .hangul_properties import (
     get_chosung,
     get_hangul_components,
     get_jongsung,
+    get_jongsung_string,
     get_jungsung,
+    get_jungsung_string,
     is_chosung,
     is_complete_hangul,
     is_jongsung,
@@ -90,7 +91,6 @@ from .romanize import (
 
 __all__ = [
     "__version__",
-    "HangulpyDeprecationWarning",
     "chosung_includes",
     "get_chosung_string",
     "is_hangul_consonant",
@@ -159,6 +159,8 @@ __all__ = [
     "get_chosung",
     "get_jungsung",
     "get_jongsung",
+    "get_jungsung_string",
+    "get_jongsung_string",
     "get_hangul_components",
     "extract_chosung",
     "extract_jungsung",

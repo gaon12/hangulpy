@@ -34,7 +34,7 @@ Python 3.8~3.10을 계속 사용해야 한다면 `python -m pip install "hangulp
 
 ```python
 from hangulpy import (
-    extract_chosung,
+    get_chosung_string,
     format_josa,
     hangul_contains,
     join_jamos,
@@ -49,7 +49,7 @@ print(hangul_contains("사과", "삭"))  # True
 
 print(split_syllables("한글", output_format="string"))  # ㅎㅏㄴㄱㅡㄹ
 print(join_jamos(["ㅎ", "ㅏ", "ㄴ", "ㄱ", "ㅡ", "ㄹ"]))  # 한글
-print(extract_chosung("한글"))  # ㅎㄱ
+print(get_chosung_string("한글"))  # ㅎㄱ
 
 print(standardize_pronunciation("굳이"))  # 구지
 print(romanize("한글"))  # hangeul
@@ -63,7 +63,7 @@ print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
 | 조사 | 받침, 숫자, 영문 약어에 맞는 조사 선택 | `josa`, `josa_pick`, `format_josa`, `has_batchim` |
 | 검색 | 초성·부분 음절·퍼지 검색과 원문 위치 추적 | `hangul_contains`, `HangulSearcher`, `HangulIndex`, `find_hangul_spans` |
 | 자모 | 음절 분해·조합, 자모 단위 편집과 변환 | `split_syllables`, `join_jamos`, `jamo_slice`, `map_hangul` |
-| 속성 | 초·중·종성 판정과 문자열 전체 성분 추출 | `get_hangul_components`, `extract_chosung`, `can_be_jongsung` |
+| 속성 | 초·중·종성 판정과 문자열 전체 성분 추출 | `get_hangul_components`, `get_chosung_string`, `can_be_jongsung` |
 | 발음·표기 | 표준 발음 변환과 여러 방식의 로마자 표기 | `standardize_pronunciation`, `romanize`, `Romanizer` |
 | 숫자·키보드 | 한글 수사 변환과 한영타 교정 | `number_to_hangul`, `susa`, `days`, `koen`, `enko`, `autofix` |
 

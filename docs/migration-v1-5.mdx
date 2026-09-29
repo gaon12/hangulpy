@@ -39,8 +39,41 @@ enko("rrk", allow_double_consonant=True)
 검색 키워드를 적용하세요. 키보드 키워드는 `enko`, `autofix`,
 `convert_qwerty_to_hangul`에서 동일합니다.
 
-기존 경고 필터가 가져오는 `HangulpyDeprecationWarning` 클래스는 유지합니다.
-이 클래스를 가져올 수 있다는 사실이 제거된 API 호출을 허용한다는 뜻은 아닙니다.
+호환 API의 경고 기간이 끝났으므로 `HangulpyDeprecationWarning` 클래스도
+제거했습니다. 이 클래스를 가져오는 코드와 전용 경고 필터를 삭제하세요.
+
+## 문자열 구성요소 API 이름 이전
+
+한 음절의 속성은 `get_chosung`, `get_jungsung`, `get_jongsung`으로 조회하고,
+문자열 전체는 `get_chosung_string`, `get_jungsung_string`,
+`get_jongsung_string`으로 처리합니다.
+
+`extract_chosung`, `extract_jungsung`, `extract_jongsung`은 현재 1.5 계열에서
+기존 결과를 유지하면서 표준 `DeprecationWarning`을 발생시키며, 다음 minor
+버전인 **1.6에서 제거합니다**. 이 경고는 제거한 과거 전용 경고 클래스와는
+별개입니다. Python의 기본 경고 필터에서는 숨겨질 수 있으므로 개발·CI에서는
+`python -W default::DeprecationWarning ...` 또는 pytest의 경고 표시를 활용하세요.
+
+기존 `extract_*`의 기본 동작은 공백 보존이므로 이전할 때 `keep_spaces=True`를
+지정하세요. 초성 함수에는 `keep_non_hangul=False`도 명시해야 독립 초성 자모를
+보존하고 비한글 문자를 제외하는 기존 결과가 유지됩니다.
+
+```python
+# 이전: extract_chosung(text, keep_non_hangul=keep)
+get_chosung_string(text, keep_spaces=True, keep_non_hangul=keep)
+# 이전: extract_jungsung(text, keep_non_hangul=keep)
+get_jungsung_string(text, keep_spaces=True, keep_non_hangul=keep)
+# 이전: extract_jongsung(text, keep_non_hangul=keep)
+get_jongsung_string(text, keep_spaces=True, keep_non_hangul=keep)
+```
+
+기존 `get_chosung_string(text, keep_spaces=...)` 호출의 결과는 바뀌지 않습니다.
+이 함수에서 `keep_non_hangul`을 생략한 호환 모드와 명시한 구성요소 추출 모드의
+차이는 [문자열 초성 API](api/search/get-chosung)를 확인하세요.
+
+문서화되지 않았던 `hangulpy.chosung.extract_chosung`의 단일 문자 도우미도
+경고 후 v1.6에서 제거합니다. 한 음절에는 패키지의 `get_chosung`을 사용하세요.
+기존의 비한글 문자 통과 동작이 필요하면 `get_chosung(char) or char`로 이전하세요.
 
 ## 달라지는 결과
 

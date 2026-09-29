@@ -21,7 +21,7 @@ from hangulpy import (
     convert_hangul_to_qwerty,
     convert_qwerty_to_hangul,
     days,
-    extract_chosung,
+    get_chosung_string,
     hangul_contains,
     has_batchim,
     join_jamos,
@@ -294,7 +294,7 @@ def main() -> None:
             feature="get_choseong",
             library="hangulpy",
             library_version=hangulpy_version,
-            fn=lambda: extract_chosung(TEXT),
+            fn=lambda: get_chosung_string(TEXT, keep_spaces=True, keep_non_hangul=False),
             work_units=len(TEXT),
             unit="char",
         )

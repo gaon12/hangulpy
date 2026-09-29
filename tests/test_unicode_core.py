@@ -8,10 +8,10 @@ from hangulpy import (
     can_be_jungsung,
     disassemble,
     ends_with_consonant,
-    extract_chosung,
-    extract_jongsung,
-    extract_jungsung,
+    get_chosung_string,
     get_hangul_components,
+    get_jongsung_string,
+    get_jungsung_string,
     hangul_contains,
     hangul_search,
     is_complete_hangul,
@@ -114,14 +114,14 @@ def test_jamo_role_checks_accept_composed_and_decomposed_medials_and_finals():
 def test_extract_components_from_complete_nfd_and_mixed_text():
     nfd = unicodedata.normalize("NFD", "한글")
 
-    assert extract_chosung("한글") == "ㅎㄱ"
-    assert extract_chosung(nfd) == "ㅎㄱ"
-    assert extract_jungsung("사과") == "ㅏㅘ"
-    assert extract_jungsung("띄어 쓰기") == "ㅢㅓ ㅡㅣ"
-    assert extract_jongsung("한글") == "ㄴㄹ"
-    assert extract_jongsung("값 사과") == "ㅄ "
-    assert extract_jongsung("ㄴㅈ") == ""
-    assert extract_chosung("A한!", keep_non_hangul=True) == "Aㅎ!"
+    assert get_chosung_string("한글") == "ㅎㄱ"
+    assert get_chosung_string(nfd) == "ㅎㄱ"
+    assert get_jungsung_string("사과") == "ㅏㅘ"
+    assert get_jungsung_string("띄어 쓰기", keep_spaces=True) == "ㅢㅓ ㅡㅣ"
+    assert get_jongsung_string("한글") == "ㄴㄹ"
+    assert get_jongsung_string("값 사과", keep_spaces=True) == "ㅄ "
+    assert get_jongsung_string("ㄴㅈ") == ""
+    assert get_chosung_string("A한!", keep_non_hangul=True) == "Aㅎ!"
 
 
 def test_decomposition_string_and_list_agree_on_mixed_unicode():

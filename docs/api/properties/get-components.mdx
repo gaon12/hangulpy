@@ -43,27 +43,38 @@ print(get_hangul_components("한"))  # ('ㅎ', 'ㅏ', 'ㄴ')
 
 ## 문자열 전체에서 추출
 
-`extract_*` 함수는 문자열의 모든 한글 음절을 훑습니다. NFC와 NFD를 모두
-처리하고 공백은 기본으로 보존합니다. `keep_non_hangul=True`이면 숫자와 기호
-같은 비한글 문자도 보존합니다.
+`get_*_string` 함수는 문자열 전체에서 초·중·종성을 모읍니다. NFC와 NFD를
+모두 처리하고 공백은 기본으로 제외합니다. `keep_spaces=True`로 공백을 보존하고,
+`keep_non_hangul=True`로 숫자와 기호 같은 비한글 문자를 보존할 수 있습니다.
+
+초성 함수의 `keep_non_hangul=None` 기본값은 기존 호출 결과를 유지하는 호환
+모드입니다. 세 함수의 공백·비한글 필터를 동일하게 적용하려면 초성 함수에도
+`keep_non_hangul=False` 또는 `True`를 명시하세요.
 
 ```python
-extract_chosung(text: str, *, keep_non_hangul: bool = False) -> str
-extract_jungsung(text: str, *, keep_non_hangul: bool = False) -> str
-extract_jongsung(text: str, *, keep_non_hangul: bool = False) -> str
+get_chosung_string(text: str, keep_spaces: bool = False, *, keep_non_hangul: bool | None = None) -> str
+get_jungsung_string(text: str, keep_spaces: bool = False, *, keep_non_hangul: bool = False) -> str
+get_jongsung_string(text: str, keep_spaces: bool = False, *, keep_non_hangul: bool = False) -> str
 ```
 
 ```python
-from hangulpy import extract_chosung, extract_jongsung, extract_jungsung
+from hangulpy import get_chosung_string, get_jongsung_string, get_jungsung_string
 
-print(extract_chosung("한글"))  # ㅎㄱ
-print(extract_jungsung("사과"))  # ㅏㅘ
-print(extract_jongsung("한글"))  # ㄴㄹ
-print(extract_jungsung("띄어 쓰기"))  # ㅢㅓ ㅡㅣ
+print(get_chosung_string("한글"))  # ㅎㄱ
+print(get_jungsung_string("사과"))  # ㅏㅘ
+print(get_jongsung_string("한글"))  # ㄴㄹ
+print(get_jungsung_string("띄어 쓰기", keep_spaces=True))  # ㅢㅓ ㅡㅣ
+print(get_chosung_string("A한! ㄱ", keep_spaces=True, keep_non_hangul=False))  # ㅎ ㄱ
 ```
 
-`get_*` 함수는 정확히 한 음절의 속성을 반환하고, `extract_*` 함수는 문자열
+`get_*` 함수는 정확히 한 음절의 속성을 반환하고, `get_*_string` 함수는 문자열
 전체에서 같은 위치의 자모를 모은다는 차이가 있습니다.
+
+<Warning>
+  이전 이름인 `extract_chosung`, `extract_jungsung`, `extract_jongsung`은 기존
+  결과를 유지하면서 `DeprecationWarning`을 발생시키며 v1.6에서 제거합니다.
+  [이전 가이드](../../migration-v1-5#문자열-구성요소-api-이름-이전)의 옵션을 적용하세요.
+</Warning>
 
 ## 같이 보기
 
