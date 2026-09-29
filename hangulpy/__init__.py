@@ -70,6 +70,7 @@ from .hangul_properties import (
     is_jongsung,
     is_jungsung,
 )
+from .hangul_repeats import reduce_jamo_repeats
 from .hangul_replace import hangul_partition, hangul_replace, hangul_rpartition, hangul_split
 from .hangul_role import can_be_chosung, can_be_jongsung, can_be_jungsung
 from .hangul_sort import sort_hangul
@@ -133,6 +134,7 @@ __all__ = [
     "days",
     "normalize_hangul",
     "normalize_halfwidth_hangul",
+    "reduce_jamo_repeats",
     "to_jamo",
     "to_compat_jamo",
     "can_be_chosung",

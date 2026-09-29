@@ -66,6 +66,7 @@ print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
 | 속성 | 초·중·종성 판정과 문자열 전체 성분 추출 | `get_hangul_components`, `get_chosung_string`, `can_be_jongsung` |
 | 발음·표기 | 표준 발음 변환과 여러 방식의 로마자 표기 | `standardize_pronunciation`, `romanize`, `Romanizer` |
 | 숫자·키보드 | 한글 수사 변환과 한영타 교정 | `number_to_hangul`, `susa`, `days`, `koen`, `enko`, `autofix` |
+| 전처리 | 반각 한글 변환과 반복 자모·이모티콘 정리 | `normalize_halfwidth_hangul`, `reduce_jamo_repeats` |
 
 전체 공개 API와 사용법은 [공식 문서](https://hangulpy.uiharu.dev)에서 확인할 수
 있습니다.

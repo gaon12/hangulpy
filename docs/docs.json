@@ -90,6 +90,7 @@
           "api/conversions/number-to-hangul",
           "api/conversions/hangul-to-number",
           "api/conversions/normalize-hangul",
+          "api/conversions/reduce-jamo-repeats",
           "api/conversions/romanize",
           "api/conversions/keyboard",
           "api/conversions/sort-hangul",

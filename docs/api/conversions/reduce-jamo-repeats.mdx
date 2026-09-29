@@ -1,0 +1,66 @@
+---
+title: 반복 자모와 이모티콘 정리
+description: 댓글·채팅의 반복 자모를 줄이고 붙어 있는 이모티콘 형태를 정리
+---
+
+## reduce_jamo_repeats
+
+```python
+reduce_jamo_repeats(
+    text: str,
+    max_repeats: int = 2,
+    *,
+    normalize_emoticons: bool = True,
+) -> str
+```
+
+연속된 독립 현대 한글 자모를 최대 `max_repeats`개로 줄입니다. 같은 자모의
+canonical·호환 형태는 같은 반복으로 취급하고, 남기는 문자는 원래 형태를
+유지합니다. 반각 한글은 먼저 호환 자모로 변환합니다.
+
+완성형 음절과 NFD 음절은 하나의 단위로 처리합니다. `하하하` 같은 단어,
+숫자, 영문, 공백, 줄바꿈, 기호, 이모지는 그대로 보존합니다. 호환 자모로
+입력한 문자열은 음절로 조합하지 않습니다.
+
+```python
+from hangulpy import reduce_jamo_repeats
+
+print(reduce_jamo_repeats("ㅋㅋㅋㅋ ㅠㅠㅠㅠ"))  # ㅋㅋ ㅠㅠ
+print(reduce_jamo_repeats("하하하 1111 AAAA"))  # 하하하 1111 AAAA
+print(reduce_jamo_repeats("ㅋㅋㅋㅋ", max_repeats=3))  # ㅋㅋㅋ
+print(reduce_jamo_repeats("ﾻﾻﾻﾻ"))  # ㅋㅋ
+```
+
+## 붙어 있는 이모티콘 정리
+
+`normalize_emoticons=True`이면 다음 문맥을 추가로 정리한 뒤 반복을 줄입니다.
+
+- `앜ㅋㅋ`, `헣ㅎㅎ`: 음절의 `ㅋ`·`ㅎ` 받침 뒤에 같은 독립 자모가 두 개
+  이상 이어지면 받침을 독립 자모로 분리합니다.
+- `ㅋㅋ쿠ㅜㅜ`, `ㅎㅎ휴ㅠㅠ`: 같은 초성의 웃음 자모와 같은 중성의 울음 자모가
+  각각 두 개 이상 이어지는 사이의 받침 없는 음절을 자모로 분리합니다.
+- `ㅠㅠ유ㅠㅠ`, `ㅜㅜ우ㅜㅜ`: 양쪽의 울음 자모가 각각 두 개 이상 이어지는
+  사이의 `ㅇ` 초성 음절을 울음 자모로 바꿉니다.
+
+```python
+print(reduce_jamo_repeats("앜ㅋㅋㅋㅋ"))  # 아ㅋㅋ
+print(reduce_jamo_repeats("ㅋㅋㅋ쿠ㅜㅜㅜ"))  # ㅋㅋㅜㅜ
+print(reduce_jamo_repeats("ㅠㅠㅠ유ㅠㅠㅠ"))  # ㅠㅠ
+print(reduce_jamo_repeats("ㅋㅋㅋ쿠키"))  # ㅋㅋ쿠키
+print(reduce_jamo_repeats("앜ㅋㅋㅋㅋ", normalize_emoticons=False))  # 앜ㅋㅋ
+```
+
+NFD 음절을 바꾸는 경우에도 남는 음절의 원래 NFD 형태를 보존합니다.
+`normalize_emoticons=False`이면 붙어 있는 음절을 바꾸지 않고 독립 자모만
+줄입니다. 처리 시간은 입력 길이에 비례합니다.
+
+## 인수 검사
+
+- `text`는 문자열이어야 합니다.
+- `max_repeats`는 1 이상의 정수이며 `bool`은 허용하지 않습니다.
+- `normalize_emoticons`는 `bool`이어야 합니다.
+
+## 같이 보기
+
+- [한글 Unicode 정규화](normalize-hangul)
+- [초·중·종성 구성요소 추출](../properties/get-components)
