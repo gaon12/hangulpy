@@ -4,6 +4,7 @@ from collections import deque
 from collections.abc import Callable
 from itertools import islice
 
+from hangulpy._validation import require_str
 from hangulpy.hangul_contains import HangulMatch, HangulSearcher
 
 HangulReplacement = str | Callable[[HangulMatch], str]
@@ -14,7 +15,7 @@ def _validate_pattern(pattern: str) -> None:
         raise ValueError("pattern must not be empty")
 
 
-def _validate_limit(value: int, name: str) -> None:
+def _validate_limit(value: object, name: str) -> None:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an integer")
     if value < -1:
@@ -43,9 +44,10 @@ def hangul_replace(
     source_end = 0
     for match in matches:
         result.append(text[source_end : match.start])
-        value = replacement(match) if callable(replacement) else replacement
-        if not isinstance(value, str):
-            raise TypeError("replacement callable must return a string")
+        value = require_str(
+            replacement(match) if callable(replacement) else replacement,
+            message="replacement callable must return a string",
+        )
         result.append(value)
         source_end = match.end
     result.append(text[source_end:])

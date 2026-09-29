@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from hangulpy._validation import require_str
+
 # Unified ideographs, their major extensions, and compatibility ideographs.
 # Keeping explicit inclusive ranges avoids broad Unicode-name heuristics that
 # accidentally classify radicals, strokes, or punctuation as Hanja.
@@ -31,8 +33,7 @@ class HanjaRun:
 
 def is_hanja(char: str) -> bool:
     """Return whether ``char`` is one Unicode CJK ideograph."""
-    if not isinstance(char, str):
-        raise TypeError("char must be a string")
+    char = require_str(char, message="char must be a string")
     if len(char) != 1:
         return False
 
@@ -42,8 +43,7 @@ def is_hanja(char: str) -> bool:
 
 def split_hanja(text: str) -> list[HanjaRun]:
     """Split text into consecutive Hanja and non-Hanja runs."""
-    if not isinstance(text, str):
-        raise TypeError("text must be a string")
+    text = require_str(text, message="text must be a string")
     if not text:
         return []
 

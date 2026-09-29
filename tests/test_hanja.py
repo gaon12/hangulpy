@@ -24,6 +24,12 @@ def test_is_hanja_rejects_non_string_input() -> None:
         is_hanja(1)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("text", [None, 1, b"text", ["字"]])
+def test_split_hanja_rejects_non_string_input(text) -> None:
+    with pytest.raises(TypeError, match="^text must be a string$"):
+        split_hanja(text)
+
+
 def test_split_hanja_returns_consecutive_typed_runs() -> None:
     assert split_hanja("한字ABC𠀀끝") == [
         HanjaRun("한", False),

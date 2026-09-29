@@ -25,6 +25,7 @@ from hangulpy import (
     to_compat_jamo,
     to_jamo,
 )
+from hangulpy.hangul_contains import prepare_search_text
 
 
 def test_normalize_hangul_across_unicode_forms():
@@ -42,6 +43,13 @@ def test_normalize_hangul_across_unicode_forms():
 def test_normalize_hangul_rejects_invalid_form():
     with pytest.raises(ValueError):
         normalize_hangul("한글", "nfkc")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("function", [normalize_hangul, to_compat_jamo, prepare_search_text])
+@pytest.mark.parametrize("text", [None, 1, b"text", ["한글"]])
+def test_normalization_and_search_preparation_reject_non_strings(function, text):
+    with pytest.raises(TypeError, match="^text must be a string$"):
+        function(text)
 
 
 def test_all_modern_syllables_round_trip():

@@ -7,9 +7,9 @@ def require_bool(value: object, name: str) -> bool:
     return value
 
 
-def require_str(value: object, name: str = "text") -> str:
+def require_str(value: object, name: str = "text", *, message: str | None = None) -> str:
     if not isinstance(value, str):
-        raise TypeError(f"{name!r} must be a string")
+        raise TypeError(message if message is not None else f"{name!r} must be a string")
     return value
 
 

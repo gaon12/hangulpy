@@ -56,6 +56,24 @@ def test_hangul_index_validates_search_options():
         HangulIndex(["한글", 1])  # type: ignore[list-item]
 
 
+@pytest.mark.parametrize("limit", [None, 1.5, "1"])
+def test_hangul_index_rejects_non_integer_limits(limit):
+    with pytest.raises(TypeError, match="^limit must be an integer$"):
+        HangulIndex(["한글"]).search("한글", limit=limit)
+
+
+@pytest.mark.parametrize("min_score", [None, "0.5"])
+def test_hangul_index_rejects_non_numeric_scores_even_with_zero_limit(min_score):
+    with pytest.raises(TypeError, match="^min_score must be a number$"):
+        HangulIndex(["한글"]).search("한글", limit=0, min_score=min_score)
+
+
+@pytest.mark.parametrize("min_score", [float("nan"), float("inf"), -float("inf")])
+def test_hangul_index_rejects_non_finite_scores(min_score):
+    with pytest.raises(ValueError, match="^min_score must be between 0.0 and 1.0$"):
+        HangulIndex(["한글"]).search("한글", min_score=min_score)
+
+
 def test_hangul_index_uses_linear_substring_dynamic_programming():
     index = HangulIndex(["누" * 400])
     started = perf_counter()

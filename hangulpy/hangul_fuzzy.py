@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from heapq import nsmallest
 
+from hangulpy._validation import require_str
 from hangulpy.hangul_contains import HangulSearcher, prepare_search_text
 from hangulpy.hangul_decompose import split_hangul_string
 from hangulpy.hangul_normalize import normalize_hangul
@@ -75,6 +76,17 @@ def _best_substring_similarity(query: Sequence[str], candidate: Sequence[str]) -
     return 1.0 - (best_distance / len(query))
 
 
+def _validate_search_options(limit: object, min_score: object) -> None:
+    if not isinstance(limit, int) or isinstance(limit, bool):
+        raise TypeError("limit must be an integer")
+    if limit < 0:
+        raise ValueError("limit must be non-negative")
+    if not isinstance(min_score, (int, float)) or isinstance(min_score, bool):
+        raise TypeError("min_score must be a number")
+    if not 0.0 <= min_score <= 1.0:
+        raise ValueError("min_score must be between 0.0 and 1.0")
+
+
 @dataclass(frozen=True)
 class HangulSearchResult:
     """퍼지 검색 결과와 원본 컬렉션 위치입니다."""
@@ -97,8 +109,8 @@ class HangulIndex:
         if isinstance(items, str):
             raise TypeError("items must be an iterable of strings, not a single string")
         self.items = tuple(items)
-        if any(not isinstance(item, str) for item in self.items):
-            raise TypeError("items must contain only strings")
+        for item in self.items:
+            require_str(item, message="items must contain only strings")
         self._prepared = tuple(prepare_search_text(item) for item in self.items)
         self._units = tuple("".join(_search_units(item)) for item in self.items)
 
@@ -110,14 +122,7 @@ class HangulIndex:
         min_score: float = 0.0,
     ) -> list[HangulSearchResult]:
         """직접 일치와 자모 유사도를 함께 사용해 결과를 정렬합니다."""
-        if not isinstance(limit, int) or isinstance(limit, bool):
-            raise TypeError("limit must be an integer")
-        if limit < 0:
-            raise ValueError("limit must be non-negative")
-        if not isinstance(min_score, (int, float)) or isinstance(min_score, bool):
-            raise TypeError("min_score must be a number")
-        if not 0.0 <= min_score <= 1.0:
-            raise ValueError("min_score must be between 0.0 and 1.0")
+        _validate_search_options(limit, min_score)
         if limit == 0:
             return []
 

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Literal, overload
 
 from hangulpy._phonology import n_insertion_positions
+from hangulpy._validation import require_str
 from hangulpy.hangul_normalize import normalize_hangul
 from hangulpy.utils import (
     JONGSUNG_DECOMPOSE,
@@ -252,9 +253,10 @@ def _standardize_segment(
     lexicon: Mapping[str, str] | None = None,
 ) -> tuple[str, tuple[PronunciationRuleStep, ...]]:
     steps: list[PronunciationRuleStep] = []
-    lexical = (lexicon or {}).get(segment, LEXICAL_PRONUNCIATIONS.get(segment, segment))
-    if not isinstance(lexical, str):
-        raise TypeError("lexicon values must be strings")
+    lexical = require_str(
+        (lexicon or {}).get(segment, LEXICAL_PRONUNCIATIONS.get(segment, segment)),
+        message="lexicon values must be strings",
+    )
     if lexical != segment and explain:
         steps.append(PronunciationRuleStep("lexical_exception", segment, lexical))
 

@@ -39,8 +39,7 @@ def normalize_halfwidth_hangul(text: str) -> str:
 
 def to_compat_jamo(text: str) -> str:
     """완성형 및 canonical Jamo를 호환 자모(HCJ)로 변환합니다."""
-    if not isinstance(text, str):
-        raise TypeError("text must be a string")
+    text = require_str(text, message="text must be a string")
 
     decomposed = unicodedata.normalize("NFD", normalize_halfwidth_hangul(text))
     return "".join(CANONICAL_TO_COMPAT.get(char, char) for char in decomposed)
@@ -52,8 +51,7 @@ def normalize_hangul(text: str, form: NormalizationForm = "NFC") -> str:
     Unicode canonical Jamo는 표준 정규화를 그대로 따릅니다. 호환 자모가
     포함된 입력은 음절 조합기를 거쳐 문맥상 조합 가능한 부분만 조합합니다.
     """
-    if not isinstance(text, str):
-        raise TypeError("text must be a string")
+    text = require_str(text, message="text must be a string")
     if form not in ("NFC", "NFD", "HCJ"):
         raise ValueError("form must be one of 'NFC', 'NFD', or 'HCJ'")
     text = normalize_halfwidth_hangul(text)

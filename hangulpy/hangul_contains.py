@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TypeVar
 
-from hangulpy._validation import require_bool
+from hangulpy._validation import require_bool, require_str
 from hangulpy.hangul_decompose import split_hangul_string
 from hangulpy.hangul_normalize import (
     CANONICAL_CHOSUNG,
@@ -54,8 +54,7 @@ def _normalize_with_source_spans(text: str) -> tuple[str, tuple[tuple[int, int],
     """
     from hangulpy.hangul_assemble import assemble_fragments
 
-    if not isinstance(text, str):
-        raise TypeError("text must be a string")
+    text = require_str(text, message="text must be a string")
     # Width conversion preserves length, so assembly spans still address the
     # caller's original text, including mixed-width syllables.
     text = normalize_halfwidth_hangul(text)
