@@ -75,7 +75,7 @@ print(number_to_hangul_mixed(123456780))  # 1억2,345만6,780
 
 - [빠른 시작 가이드](https://hangulpy.uiharu.dev/quickstart)
 - [API 개요](https://hangulpy.uiharu.dev/api/overview)
-- [v1.5.0 릴리즈 노트](https://hangulpy.uiharu.dev/releases/v1-5-0)
+- [v1.5.2 릴리즈 노트](https://hangulpy.uiharu.dev/releases/v1-5-2)
 - [실행 가능한 예제](https://github.com/gaon12/hangulpy/blob/main/examples/quickstart.py)
 
 ## 개발과 기여

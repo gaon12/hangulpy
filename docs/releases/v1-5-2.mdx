@@ -1,0 +1,63 @@
+---
+title: v1.5.2 릴리즈 노트
+description: 구성요소 API 이름 이전, 반각 한글 변환, 반복 자모 정리와 런타임 검증 개선
+---
+
+## 구성요소 API 이름 이전
+
+한 음절에는 `get_chosung`, `get_jungsung`, `get_jongsung`을 사용하고, 문자열
+전체에는 `get_chosung_string`, `get_jungsung_string`, `get_jongsung_string`을
+사용하도록 이름을 정리했습니다.
+
+기존 `extract_chosung`, `extract_jungsung`, `extract_jongsung`은 결과를 유지하며
+표준 `DeprecationWarning`을 발생시킵니다. 다음 minor 버전인 **1.6에서
+제거합니다**. 공백과 비한글 문자 처리 옵션을 포함한 이전 방법은
+[마이그레이션 가이드](/migration-v1-5#문자열-구성요소-api-이름-이전)를 확인하세요.
+
+과거 호환 API의 경고 기간이 끝난 `HangulpyDeprecationWarning` 클래스는
+제거했습니다. 이 클래스를 가져오거나 전용 경고 필터로 쓰던 코드는 정리하세요.
+
+## 반각 한글 변환
+
+`normalize_halfwidth_hangul`은 반각 한글을 호환 자모로 바꾸고 그 밖의 문자를
+보존합니다. 기존 한글 정규화와 검색·치환에도 반각 한글 처리를 적용했습니다.
+검색 결과의 위치는 원문 좌표를 유지합니다.
+
+```python
+from hangulpy import normalize_halfwidth_hangul
+
+normalize_halfwidth_hangul("\uffbb\uffbb Ａ ①")  # "ㅋㅋ Ａ ①"
+```
+
+## 반복 자모와 이모티콘 정리
+
+`reduce_jamo_repeats`로 동일한 자모가 연속으로 반복되는 횟수를 제한할 수
+있습니다. `max_repeats`의 기본값은 2이며 양의 정수를 지정할 수 있습니다.
+서로 다른 자모 구간은 각각 처리합니다.
+
+```python
+from hangulpy import reduce_jamo_repeats
+
+reduce_jamo_repeats("ㅋㅎㅎㅋㅋㅋㅋ")  # "ㅋㅎㅎㅋㅋ"
+reduce_jamo_repeats("ㅋㅎㅎㅋㅋㅋㅋ", max_repeats=1)  # "ㅋㅎㅋ"
+reduce_jamo_repeats("앜ㅋㅋㅋㅋ")  # "아ㅋㅋ"
+reduce_jamo_repeats("앜ㅋㅋㅋㅋ", normalize_emoticons=False)  # "앜ㅋㅋ"
+```
+
+완성 음절, 일반 단어, 숫자, 이모지와 공백을 보존하고, 제한된 이모티콘 문맥에서
+붙어 있는 음절을 정리합니다. 지원 문맥과 옵션은
+[반복 자모 API](/api/conversions/reduce-jamo-repeats)를 확인하세요.
+
+## 런타임 검증과 품질
+
+런타임 타입 검사를 `object`를 받는 내부 검증 함수로 정리했습니다. 잘못된
+입력에 대한 기존 오류 동작과 메시지를 유지하면서 Pyright 경고 11개를
+해결했습니다. 숫자 옵션은 불리언을 거부하고, 검색 점수는 NaN과 무한대를
+허용하지 않습니다.
+
+Windows의 Python 3.11.9와 Python 3.15.0rc2에서 각각 전체 테스트 344개가
+통과했습니다. CI에서도 Python 3.11~3.14와 3.15 사전 출시 버전을 검사합니다.
+3.15 사전 출시 테스트는 개발 중인 인터프리터와의 호환성을 확인하는 별도
+작업으로 유지합니다.
+
+런타임 의존성은 추가하지 않았으며 Python 3.11 이상을 계속 지원합니다.
